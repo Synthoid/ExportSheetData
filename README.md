@@ -4,7 +4,7 @@ Goals
 -----
 **Convenient:** Export Sheet Data is meant to be simple to use but very powerful. No more exporting multiple CSVs then compiling data.
 
-**Customizable:** Options and formats can be tweaked to reflect personal taste. Newline or sameline braces. Attributes or child elements. Format your data the way you want.
+**Customizable:** Options and formats can be tweaked to reflect personal taste. Newline or sameline braces for JSON. Attributes or child elements for XML. Format your data the way you want.
 
 
 
