@@ -33,7 +33,7 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
  
 Contributing
 ------------
-If you would like to add a feature to Export Sheet Data, be sure to read the [wiki page on contributing](). Also, take a look at the [notes on project structure]() and check out the currently [open issues]().
+If you would like to add a feature to Export Sheet Data, be sure to read the [wiki page on contributing](https://github.com/Synthoid/ExportSheetData/wiki/Contributing). Also, take a look at the [notes on project structure](https://github.com/Synthoid/ExportSheetData/wiki/Project-Structure) and check out the [currently open issues](https://github.com/Synthoid/ExportSheetData/issues).
 
 Credits
 -------
