@@ -1,0 +1,606 @@
+<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+
+<style>
+  .paddedV
+  {
+    min-height: 35px;
+    background-color: #242424;
+  }
+  
+  .buttonPadding
+  {
+    min-height: 5px;
+    background-color: #242424;
+    margin-bottom: 15px;
+  }
+  
+  .buttonPlaceholder
+  {
+    min-height: 70px;
+  }
+  
+  .mainWrapper
+  {
+	margin-left: auto;
+	margin-right: auto;
+  }
+  
+  .sectionWrapper
+  {
+    margin: 25px;
+  }
+  
+  .centerWrapper
+  {
+    margin: auto;
+    max-width: 175px;
+  }
+  
+  .scrollWrapper
+  {
+    max-height: 150px;
+    overflow: auto;
+  }
+  
+  .buttonWrapper
+  {
+    background-color: #4d4d4d;
+    min-width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding-bottom: 20px;
+  }
+  
+  .dropdown
+  {
+    width: 200px;
+  }
+  
+  .note
+  {
+    color: grey;
+    font-style: italic;
+  }
+  
+  .disabled
+  {
+    color: grey;
+  }
+
+  h1
+  {
+    color: white;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+    margin-left: 15px;
+  }
+</style>
+
+<div class='mainWrapper'>
+  <div class='paddedV'>
+    <h1>Format</h1>
+  </div>
+  <div class="block form-group sectionWrapper">
+  <p>
+  <label for="select"><b>Select Format</b></label>
+  <select class="dropdown" id="formatSelect" onchange="changeExportFormat()">
+    <option value="xmlFormat">XML</option>
+    <option value="jsonFormat" selected>JSON</option>
+  </select>
+  </p>
+  <p>
+  <label for="select"><b>Select Sheet(s)</b></label>
+  <select class="dropdown" id="sheetSelect" onchange="changeExportSheets()">
+    <option value="allSheets" selected>All sheets</option>
+    <option value="currentSheet">Current sheet only</option>
+    <option value="custom">Custom</option>
+  </select>
+  </p>
+  <div id='customSheetSelect'>
+  
+  </div>
+  </div>
+  <div class='paddedV'>
+    <h1>General Options</h1>
+  </div>
+  <div class='sectionWrapper'>
+    <p>
+    Replace existing file(s): <input id='replaceToggle' type='checkbox' value='Replace' />
+    </p>
+    <p class='note'>
+    Trash files in the folder with the same name and extension as the exported file.
+    </p>
+  </div>
+  <div class='sectionWrapper'>
+    <p>
+    Newline elements: <input id='newlineToggle' type='checkbox' value='Newline' />
+    </p>
+    <p class='note'>
+    Use newlines when formatting data.
+    </p>
+  </div>
+  <div id='xmlOptions'>
+    <div class='paddedV'>
+    <h1>XML Options</h1>
+    </div>
+    <div class='sectionWrapper'>
+      <p>
+      Export columns as child elements: <input id='elementToggle' type='checkbox' value='false' />
+      </p>
+      <p class='note'>
+      Export a sheet's columns as child elements instead of attributes for each row.
+      </p>
+    </div>
+  </div>
+  <div id='jsonOptions'>
+    <div class='paddedV'>
+    <h1>JSON Options</h1>
+    </div>
+    <div class='sectionWrapper'>
+      <p>
+      Unwrap single row JSON: <input id='unwrapToggle' type='checkbox' value='Unwrap' />
+      </p>
+      <p class='note'>
+      Don't wrap a sheet's rows in separate JSON objects if the sheet contains only one row. (not counting keys)
+      </p>
+    </div>
+  </div>
+  <div class='buttonPlaceholder'></div>
+  
+  <div class='buttonWrapper'>
+  <div class='buttonPadding'></div>
+  <div class='centerWrapper'>
+  <button class="action" onclick="exportFile()">Export</button>
+  <button onclick="visualizeFile()">Visualize</button>
+  </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  //General Options
+  //Replaces any export files that have the same name
+  var replaceExistingFiles = false;
+  //Formats the exported data to use newlines when possible
+  var newlineElements = false;
+  
+  //XML Options
+  //Export values as child elements instead of attributes
+  var exportChildElementXml = false;
+  //Replace illegal XML characters with their XML compatible codes
+  var formatContentXml = false;
+  
+  //JSON Options
+  //Don't wrap the contents of a sheet in a JSON object if the sheet only has one row
+  var unwrapSingleRowJson = false;
+  //Export the spreadsheet's contents as a JSON array, instead of a regular JSON object
+  var exportContentsAsArrayJson = false;
+  //Export cell contents as a JSON object if the cell is wrapped with {}
+  var exportCellObjectJson = false;
+  //Export cell contents as a JSON array if the cell contains commas
+  var exportCellArrayJson = false;
+  //Export a sheet's contents as an array, with each row being one JSON object element in the array
+  var exportSheetArrayJson = false;
+  //Force every value to be a string instead of the default bool/int/float/etc.
+  var forceStringJson = false;
+  
+  var exportType = "xmlOption";
+  var exportSheets = "allSheets";
+  var targetSheets = { };
+  var sheets = new Array();
+  
+  function getNames(onSuccess)
+  {
+    return google.script.run.withSuccessHandler(onSuccess).getSheetNames();
+  }
+  
+  function getActiveName(onSuccess)
+  {
+    return google.script.run.withSuccessHandler(onSuccess).getActiveSheetName();
+  }
+  
+  function checkAllTogglesTrue()
+  {
+    for(var i=0; i < sheets.length; i++)
+    {
+      if(targetSheets[sheets[i]] == 'false') return false;
+    }
+    
+    return true;
+  }
+  
+  function toggleReplace()
+  {
+    replaceExistingFiles = !replaceExistingFiles;
+  }
+  
+  function toggleNewline()
+  {
+    newlineElements = !newlineElements;
+  }
+  
+  function toggleElement()
+  {
+    exportChildElementXml = !exportChildElementXml;
+  }
+  
+  function toggleFormatContentXml()
+  {
+    formatContentXml = !formatContentXml;
+  }
+  
+  function toggleUnwrap()
+  {
+    unwrapSingleRowJson = !unwrapSingleRowJson;
+  }
+  
+  function toggleContentArrayJson()
+  {
+    exportContentsAsArrayJson = !exportContentsAsArrayJson;
+  }
+  
+  function toggleCellObjectJson()
+  {
+    exportCellObjectJson = !exportCellObjectJson;
+  }
+  
+  function toggleArrayJson()
+  {
+    exportCellArrayJson = !exportCellArrayJson;
+  }
+  
+  function toggleSheetArrayJson()
+  {
+    exportSheetArrayJson = !exportSheetArrayJson;
+  }
+  
+  function toggleForceStringJson()
+  {
+    forceStringJson = !forceStringJson;
+  }
+  
+  function toggleAllSheets()
+  {
+    var value = document.getElementById('allSheetsToggle').value;
+    
+    if(value == 'false') generateSheetToggles(sheets, 'true');
+    else generateSheetToggles(sheets, 'false');
+  }
+  
+  function updateAllSheetsToggle()
+  {
+    var value = checkAllTogglesTrue();
+    
+    if(value == true)
+    {
+      document.getElementById('allToggleContainer').innerHTML = "<input id='allSheetsToggle' type='checkbox' value='true' onChange='toggleAllSheets()' checked /> All";
+    }
+    else
+    {
+      document.getElementById('allToggleContainer').innerHTML = "<input id='allSheetsToggle' type='checkbox' value='false' onChange='toggleAllSheets()' /> All";
+    }
+  }
+  
+  function selectAllSheets()
+  {
+    generateSheetToggles(sheets, 'true');
+  }
+  
+  function selectNoneSheets()
+  {
+    generateSheetToggles(sheets, 'false');
+  }
+  
+  function toggleSheet(sheetName)
+  {
+    var value = document.getElementById(sheetName + 'Toggle').value;
+    
+    if(value == 'false') value = 'true';
+    else value = 'false';
+    
+    targetSheets[sheetName] = value;
+    
+    document.getElementById(sheetName + 'Toggle').value = value;
+    
+    updateAllSheetsToggle();
+  }
+  
+  function changeExportFormat()
+  {
+    exportType = document.getElementById("formatSelect").value;
+    
+    if(exportType != "jsonFormat")
+    {
+      removeJsonListeners();
+      
+      document.getElementById("jsonOptions").innerHTML = "";
+      
+      var xmlText = "<div class='paddedV'><h1>XML Options</h1></div>";
+      //Export child elements
+      xmlText += "<div class='sectionWrapper'><p>Export columns as child elements: <input id='elementToggle' type='checkbox' value='false' ";
+      if(exportChildElementXml) xmlText += "checked";
+      xmlText += "/></p><p class='note'>Export a sheet's columns as child elements instead of attributes for each row.</p></div>";
+      //Format xml content
+      xmlText += "<div class='sectionWrapper'><p>Format illegal characters: <input id='formatToggle' type='checkbox' value='false' ";
+      if(formatContentXml) xmlText += "checked";
+      xmlText += "/></p><p class='note'>Replace illegal XML characters in each collumn with their appropriate encoding. (keys are automatically encoded)</p></div>";
+      
+      document.getElementById("xmlOptions").innerHTML = xmlText;
+      document.getElementById('elementToggle').addEventListener("change", toggleElement);
+      document.getElementById('formatToggle').addEventListener("change", toggleFormatContentXml);
+    }
+    else
+    {
+      removeXmlListeners();
+      
+      document.getElementById("xmlOptions").innerHTML = "";
+      
+      var jsonText = "<div class='paddedV'><h1>JSON Options</h1></div>";
+      //Unrap JSON
+      jsonText += "<div class='sectionWrapper'><p>Unwrap single row JSON: <input id='unwrapToggle' type='checkbox' value='Unwrap'";
+      if(unwrapSingleRowJson) jsonText += " checked";
+      jsonText += "></p><p class='note'>Don't wrap a sheet's rows in separate JSON objects if the sheet contains only one row. (not counting keys)</p></div>";
+      //Force string Json
+      jsonText += "<div class='sectionWrapper' id='forceStringOption'><p";
+      jsonText += ">Force string values: <input id='forceStringToggle' type='checkbox' value='Force'";
+      if(forceStringJson) jsonText += " checked";
+      jsonText += "></p><p class='note'>Force exported values to be strings.</p></div>";
+      //Content to array JSON
+      jsonText += "<div class='sectionWrapper'><p>Export contents as array: <input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
+      if(exportContentsAsArrayJson) jsonText += " checked";
+      jsonText += "></p><p class='note'>Export total contents as a raw JSON array. (WARNING: This means the exported data will not be formatted as a stand-alone JSON object.)</p></div>";
+      //Braces to object JSON
+      jsonText += "<div class='sectionWrapper'><p>Export cell objects: <input id='cellObjectToggle' type='checkbox' value='CellObject'";
+      if(exportCellObjectJson) jsonText += " checked";
+      jsonText += "></p><p class='note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will not be formatted automatically.)</p></div>";
+      //Commas to array JSON
+      jsonText += "<div class='sectionWrapper'><p>Export cell arrays: <input id='arrayToggle' type='checkbox' value='Array'";
+      if(exportCellArrayJson) jsonText += " checked";
+      jsonText += "></p><p class='note'>Export a cell's contents as a JSON array if it contains commas. (Wrap content in quotation marks to prevent mid-content breaking)</p></div>";
+      //Sheet to JSON object array
+      jsonText += "<div class='sectionWrapper'><p>Export sheet arrays: <input id='sheetArrayToggle' type='checkbox' value='SheetArray'";
+      if(exportSheetArrayJson) jsonText += " checked";
+      jsonText += "></p><p class='note'>Export a sheet's contents as an array of JSON objects.</p></div>";
+      
+      document.getElementById("jsonOptions").innerHTML = jsonText;
+      document.getElementById('unwrapToggle').addEventListener("change", toggleUnwrap);
+      document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
+      document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
+      document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
+      document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
+      document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
+    }
+  }
+  
+  function changeExportSheets()
+  {
+    exportSheets = document.getElementById("sheetSelect").value;
+    
+    if(exportSheets != "custom")
+    {
+      clearSheetToggles();
+    }
+    else
+    {
+      getNames(showSheets);
+    }
+  }
+  
+  function showSheets(sheetNames)
+  {
+    sheets = sheetNames;
+    
+    generateSheetToggles(sheetNames, 'false');
+  }
+  
+  function generateSheetToggles(sheetNames, defaultValue)
+  {
+    clearSheetToggles();
+    
+    var text = "<div id='allToggleContainer'><input id='allSheetsToggle' type='checkbox' value='" + defaultValue + "' onChange='toggleAllSheets()' ";
+    
+    if(defaultValue == 'true')
+    {
+      text += "checked ";
+    }
+    
+    text += "/> All</div><hr><div class='scrollWrapper'>";
+    
+    for(var i=0; i < sheetNames.length; i++)
+    {
+      text += "<p>";
+      
+      if(defaultValue == 'true')
+      {
+        text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='true' checked /> " + sheetNames[i];
+        targetSheets[sheetNames[i]] = 'true';
+      }
+      else
+      {
+        text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='false' /> " + sheetNames[i];
+        targetSheets[sheetNames[i]] = 'false';
+      }
+      
+      text += "</p>";
+    }
+    
+    text += "</div><hr>";
+    
+    document.getElementById("customSheetSelect").innerHTML = text;
+    
+    createSheetToggleListeners()
+  }
+  
+  function createSheetToggleListeners()
+  {
+    for(var i=0; i < sheets.length; i++)
+    {
+      (function()
+      {
+        var targetSheet = sheets[i];
+        document.getElementById(targetSheet + 'Toggle').addEventListener("change", function() { toggleSheet(targetSheet); });
+      }())
+    }
+  }
+  
+  function clearSheetToggles()
+  {
+    targetSheets = { };
+    
+    for(var i=0; i < sheets.length; i++)
+    {
+      (function()
+      {
+        if(document.getElementById(sheets[i] + 'Toggle') != null)
+        {
+          var targetSheet = sheets[i];
+          document.getElementById(targetSheet + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
+        }
+      }())
+    }
+    
+    document.getElementById("customSheetSelect").innerHTML = "";
+  }
+  
+  function removeXmlListeners()
+  {
+    if(document.getElementById('elementToggle') != null)
+    {
+      document.getElementById('elementToggle').removeEventListener("change", toggleElement);
+    }
+    if(document.getElementById('formatToggle') != null)
+    {
+      document.getElementById('formatToggle').removeEventListener("change", toggleFormatContentXml);
+    }
+  }
+  
+  function removeJsonListeners()
+  {
+    if(document.getElementById('unwrapToggle') != null)
+    {
+      document.getElementById('unwrapToggle').removeEventListener("change", toggleUnwrap);
+    }
+    if(document.getElementById('contentsArrayToggle') != null)
+    {
+      document.getElementById('contentsArrayToggle').removeEventListener("change", toggleContentArrayJson);
+    }
+    if(document.getElementById('cellObjectToggle') != null)
+    {
+      document.getElementById('cellObjectToggle').removeEventListener("change", toggleCellObjectJson);
+    }
+    if(document.getElementById('arrayToggle') != null)
+    {
+      document.getElementById('arrayToggle').removeEventListener("change", toggleArrayJson);
+    }
+    if(document.getElementById('sheetArrayToggle') != null)
+    {
+      document.getElementById('sheetArrayToggle').removeEventListener("change", toggleSheetArrayJson);
+    }
+    if(document.getElementById('forceStringToggle') != null)
+    {
+      document.getElementById('forceStringToggle').removeEventListener("change", toggleForceStringJson);
+    }
+  }
+  
+  function visualizeFile()
+  {
+    if(exportSheets == "custom")
+    {
+      if(exportType == "xmlFormat") exportXmlCustom(true, exportSheets == "currentSheet");
+      else exportJsonCustom(true, exportSheets == "currentSheet");
+    }
+    else
+    {
+      if(exportType == "xmlFormat") exportXml(true, exportSheets == "currentSheet");
+      else exportJson(true, exportSheets == "currentSheet");
+    }
+  }
+  
+  function exportFile()
+  {
+    if(exportSheets == "custom")
+    {
+      if(exportType == "xmlFormat") exportXmlCustom(false);
+      else exportJsonCustom(false);
+    }
+    else
+    {
+      if(exportType == "xmlFormat") exportXml(false, exportSheets == "currentSheet");
+      else exportJson(false, exportSheets == "currentSheet");
+    }
+  }
+  
+  function exportXml(visualize, singleSheet)
+  {
+    if(singleSheet)
+    {
+      if(visualize) getActiveName(visualizeXmlSingle);
+      else getActiveName(exportXmlSingle);
+    }
+    else
+    {
+      google.script.run.exportXml(visualize, singleSheet, exportChildElementXml, formatContentXml, replaceExistingFiles, newlineElements, null);
+    }
+  }
+  
+  function exportXmlSingle(sheet)
+  {
+    var newSheets = { };
+    newSheets[sheet] = 'true';
+    
+    google.script.run.exportXml(false, true, exportChildElementXml, formatContentXml, replaceExistingFiles, newlineElements, newSheets);
+  }
+  
+  function visualizeXmlSingle(sheet)
+  {
+    var newSheets = { };
+    newSheets[sheet] = 'true';
+    
+    google.script.run.exportXml(true, true, exportChildElementXml, formatContentXml, replaceExistingFiles, newlineElements, newSheets);
+  }
+  
+  function exportJson(visualize, singleSheet)
+  {
+    if(singleSheet)
+    {
+      if(visualize) getActiveName(visualizeJsonSingle);
+      else getActiveName(exportJsonSingle);
+    }
+    else
+    {
+      google.script.run.exportJson(visualize, singleSheet, unwrapSingleRowJson, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, null);
+    }
+  }
+  
+  function exportJsonSingle(sheet)
+  {
+    var newSheets = { };
+    newSheets[sheet] = 'true';
+    
+    google.script.run.exportJson(false, true, unwrapSingleRowJson, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, newSheets);
+  }
+  
+  function visualizeJsonSingle(sheet)
+  {
+    var newSheets = { };
+    newSheets[sheet] = 'true';
+    
+    google.script.run.exportJson(true, true, unwrapSingleRowJson, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, newSheets);
+  }
+  
+  function exportXmlCustom(visualize)
+  {
+    google.script.run.exportXml(visualize, false, exportChildElementXml, formatContentXml, replaceExistingFiles, newlineElements, targetSheets);
+  }
+  
+  function exportJsonCustom(visualize)
+  {
+    google.script.run.exportJson(visualize, false, unwrapSingleRowJson, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, targetSheets);
+  }
+  
+  document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
+  document.getElementById('newlineToggle').addEventListener("change",toggleNewline);
+
+  changeExportFormat();
+</script>
