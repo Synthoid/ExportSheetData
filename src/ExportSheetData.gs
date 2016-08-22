@@ -1,7 +1,6 @@
 var indentValue = "  ";
 var indentAmount = 0;
 
-//Returns the correct ammount of indentation needed for proper formatting
 function getIndent()
 {
   var indent = "";
@@ -14,7 +13,7 @@ function getIndent()
   return indent;
 }
 
-//Returns all the sheets contained in the Sheet file
+
 function getSheetNames()
 {
   var spreadsheet = SpreadsheetApp.getActive();
@@ -37,8 +36,7 @@ function getActiveSheetName()
   return spreadsheet.getActiveSheet().getName();
 }
 
-//Returns the contents of a cell in the form of an array
-//Elements are separated by commas (,) unless wrapped in double quotes (")
+
 function getCellContentArray(cell)
 {
   var content = cell;
@@ -108,7 +106,7 @@ function getCellContentArray(cell)
   return cellArray;
 }
 
-//Formats a value to comply with XML
+
 function formatXmlString(value)
 {
   if(!isNaN(value)) return value;
@@ -148,8 +146,7 @@ function formatXmlString(value)
   return xmlString;
 }
 
-//Formats a value to comply with JSON
-//If passed a JSON Object, no formatting is done
+
 function formatJsonString(value, asObject)
 {
   if(value.length > 1)
@@ -177,13 +174,7 @@ function formatJsonString(value, asObject)
 
 function exportXml(visualize, singleSheet, childElements, replaceIllegal, replace, newline, customSheets)
 {
-  var html = HtmlService.createHtmlOutputFromFile('Spinner')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
-      .setWidth(300)
-      .setHeight(100);
-  
-  SpreadsheetApp.getUi()
-      .showModelessDialog(html, 'Compiling XML...');
+  showCompilingMessage('Compiling XML...');
   
   exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, replace, newline, customSheets);
 }
@@ -191,12 +182,7 @@ function exportXml(visualize, singleSheet, childElements, replaceIllegal, replac
 
 function exportJson(visualize, singleSheet, unwrap, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, replace, newline, customSheets)
 {
-  var html = HtmlService.createHtmlOutputFromFile('Spinner')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
-      .setWidth(300)
-      .setHeight(100);
-  SpreadsheetApp.getUi()
-      .showModelessDialog(html, 'Compiling JSON...');
+  showCompilingMessage('Compiling JSON...');
   
   exportSpreadsheetJson(visualize, singleSheet, unwrap, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, replace, newline, customSheets);
 }
@@ -595,7 +581,17 @@ function exportDocument(filename, content, type, visualize, replaceFile)
   }
 }
 
-//Opens the sidebar to allow options adjusting and exporting data
+function showCompilingMessage(message)
+{
+  var html = HtmlService.createHtmlOutputFromFile('Spinner')
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+      .setWidth(300)
+      .setHeight(100);
+  
+  SpreadsheetApp.getUi()
+      .showModelessDialog(html, message);
+}
+  
 function openSidebar()
 {
   var html = HtmlService.createHtmlOutputFromFile('Sidebar')
@@ -606,13 +602,12 @@ function openSidebar()
       .showSidebar(html);
 }
 
-//Default Google Add-on function needed for properly setting up add-on
 function onInstall(e)
 {
   onOpen(e);
 }
 
-//Default Google Add-on function needed to create the Export Sheet Data controls in the Add-ons menu
+
 function onOpen(e)
 {
   var ui = SpreadsheetApp.getUi();
