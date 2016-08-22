@@ -172,11 +172,26 @@ function formatJsonString(value, asObject)
 }
 
 
-function exportXml(visualize, singleSheet, childElements, replaceIllegal, replace, newline, customSheets)
+function keyHasPrefix(key, prefix)
+{
+  if(prefix.length > key.length || prefix.length === 0) return false;
+  
+  var newKey = "";
+  
+  for(var i=0; i < prefix.length; i++)
+  {
+    newKey += key[i];
+  }
+  
+  return newKey === prefix;
+}
+
+
+function exportXml(visualize, singleSheet, childElements, replaceIllegal, rootElement, attributePrefix, childElementPrefix, replace, newline, customSheets)
 {
   showCompilingMessage('Compiling XML...');
   
-  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, replace, newline, customSheets);
+  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, rootElement, attributePrefix, childElementPrefix, replace, newline, customSheets);
 }
 
 
@@ -188,7 +203,7 @@ function exportJson(visualize, singleSheet, unwrap, contentsArray, exportCellObj
 }
 
 
-function exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, replaceFile, newline, customSheets)
+function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, rootElement, attributePrefix, childElementPrefix, replaceFile, newline, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -212,7 +227,7 @@ function exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIlle
   }
   
   var sheetValues = [[]];
-  var rawValue = "<data>\n";
+  var rawValue = "<" + rootElement + ">\n";
   
   indentAmount += 1;
                             
@@ -229,50 +244,72 @@ function exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIlle
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
-      if(childElements)
+      var attributeKeys = [];
+      var childElementKeys = [];
+      var attributes = [];
+      var childElements = [];
+      
+      for(var k=0; k < columns; k++)
       {
-        var row = getIndent() + "<" + formatXmlString(values[j][0]) + ">\n";
+        Logger.log(values[0][k] + ": " + useChildElements + " | " + (attributePrefix === "") + " | " + !keyHasPrefix(values[0][k], attributePrefix) + " | " + (childElementPrefix !== "") + " | " + keyHasPrefix(values[0][k], childElementPrefix));
+        Logger.log((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix))) + " | " + (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)));
+        
+        if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix))) || (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
+        {
+          childElementKeys.push(values[0][k]);
+          childElements.push(values[j][k]);
+        }
+        else
+        {
+          attributeKeys.push(values[0][k]);
+          attributes.push(values[j][k]);
+        }
+      }
+      
+      var row = getIndent() + "<" + formatXmlString(values[j][0]) + " ";
+      
+      for(var k=0; k < attributes.length; k++)
+      {
+        if(replaceIllegal) row += formatXmlString(attributeKeys[k]) + "=" + '"' + formatXmlString(attributes[k]) + '"' + " ";
+        else row += attributeKeys[k] + "=" + '"' + attributes[k] + '"' + " ";
+        //if(replaceIllegal) row += formatXmlString(values[0][k]) + "=" + '"' + formatXmlString(values[j][k]) + '"' + " ";
+        //else row += values[0][k] + "=" + '"' + values[j][k] + '"' + " ";
+      }
+      
+      if(childElements.length === 0) row += "/>";
+      else row += ">";
+      
+      for(var k=0; k < childElements.length; k++)
+      {
         indentAmount += 1;
         
-        for(var k=0; k < columns; k++)
+        row += getIndent() + "<" + formatXmlString(childElementKeys[k]) + ">";
+        //row += getIndent() + "<" + formatXmlString(values[0][k]) + ">";
+          
+        if(newline)
         {
-          row += getIndent() + "<" + formatXmlString(values[0][k]) + ">";
-          
-          if(newline)
-          {
-            indentAmount += 1;
-            row += "\n" + getIndent();
-          }
-          
-          if(replaceIllegal) row += formatXmlString(values[j][k]);
-          else row += values[j][k];
-          
-          if(newline)
-          {
-            indentAmount -= 1;
-            row += "\n" + getIndent();
-          }
-          
-          row += "</" + formatXmlString(values[0][k]) + ">\n";
+          indentAmount += 1;
+          row += "\n" + getIndent();
         }
+          
+        if(replaceIllegal) row += formatXmlString(childElements[k]);
+        else row += childElements[k];
+          
+        if(newline)
+        {
+          indentAmount -= 1;
+          row += "\n" + getIndent();
+        }
+          
+        row += "</" + formatXmlString(childElementKeys[k]) + ">\n";
         
         indentAmount -= 1;
-        row += getIndent() + "</" + formatXmlString(values[j][0]) + ">\n";
-        sheetValues[i[j-1]] = row;
-        sheetData += row;
       }
-      else
-      {
-        var row = getIndent() + "<" + formatXmlString(values[j][0]) + " ";
-        for(var k=0; k < columns; k++)
-        {
-          if(replaceIllegal) row += formatXmlString(values[0][k]) + "=" + '"' + formatXmlString(values[j][k]) + '"' + " ";
-          else row += values[0][k] + "=" + '"' + values[j][k] + '"' + " ";
-        }
-        row += "/>\n";
-        sheetValues[i[j-1]] = row;
-        sheetData += row;
-      }
+      
+      if(childElements.length > 0) row += getIndent() + "</" + formatXmlString(values[j][0]) + ">\n";
+      
+      sheetValues[i[j-1]] = row;
+      sheetData += row;
     }
     
     indentAmount -= 1;
@@ -283,7 +320,7 @@ function exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIlle
   
   indentAmount -= 1;
   
-  rawValue += "</data>";
+  rawValue += "</" + rootElement + ">";
   
   exportDocument(fileName, rawValue, ContentService.MimeType.XML, visualize, replaceFile);
 }

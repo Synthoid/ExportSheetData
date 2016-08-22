@@ -271,11 +271,15 @@
   
   function getAttributePrefix()
   {
+    if(forceAttributesXml === false) return "";
+  
     return forceAttributesPrefixXml === "" ? XML_ATT_DEFAULT : forceAttributesPrefixXml;
   }
   
   function getChildElementPrefix()
   {
+    if(forceChildElementsXml === false) return "";
+  
     return forceChildElementsPrefixXml === "" ? XML_CE_DEFAULT : forceChildElementsPrefixXml;
   }
   
@@ -687,11 +691,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(visualize, false, exportChildElementXml, formatContentXml, replaceExistingFiles, newlineElements, targetSheets);
+      google.script.run.exportXml(visualize, false, exportChildElementXml, formatContentXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), replaceExistingFiles, newlineElements, targetSheets);
     }
     else
     {
-      google.script.run.exportXml(visualize, false, exportChildElementXml, formatContentXml, replaceExistingFiles, newlineElements, null);
+      google.script.run.exportXml(visualize, false, exportChildElementXml, formatContentXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), replaceExistingFiles, newlineElements, null);
     }
   }
   
@@ -700,7 +704,7 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(visualize, true, exportChildElementXml, formatContentXml, replaceExistingFiles, newlineElements, newSheets);
+    google.script.run.exportXml(visualize, true, exportChildElementXml, formatContentXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), replaceExistingFiles, newlineElements, newSheets);
   }
   
   function exportJson(visualize)
