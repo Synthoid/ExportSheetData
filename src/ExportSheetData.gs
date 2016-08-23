@@ -249,11 +249,9 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       var attributes = [];
       var childElements = [];
       
+      //Separate columns into those that export as child elements or attributes
       for(var k=0; k < columns; k++)
       {
-        Logger.log(values[0][k] + ": " + useChildElements + " | " + (attributePrefix === "") + " | " + !keyHasPrefix(values[0][k], attributePrefix) + " | " + (childElementPrefix !== "") + " | " + keyHasPrefix(values[0][k], childElementPrefix));
-        Logger.log((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix))) + " | " + (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)));
-        
         if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix))) || (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
         {
           childElementKeys.push(values[0][k]);
@@ -266,25 +264,23 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
         }
       }
       
+      //Build the actual row string
       var row = getIndent() + "<" + formatXmlString(values[j][0]) + " ";
       
       for(var k=0; k < attributes.length; k++)
       {
         if(replaceIllegal) row += formatXmlString(attributeKeys[k]) + "=" + '"' + formatXmlString(attributes[k]) + '"' + " ";
         else row += attributeKeys[k] + "=" + '"' + attributes[k] + '"' + " ";
-        //if(replaceIllegal) row += formatXmlString(values[0][k]) + "=" + '"' + formatXmlString(values[j][k]) + '"' + " ";
-        //else row += values[0][k] + "=" + '"' + values[j][k] + '"' + " ";
       }
       
       if(childElements.length === 0) row += "/>";
-      else row += ">";
+      else row += ">\n";
       
       for(var k=0; k < childElements.length; k++)
       {
         indentAmount += 1;
         
         row += getIndent() + "<" + formatXmlString(childElementKeys[k]) + ">";
-        //row += getIndent() + "<" + formatXmlString(values[0][k]) + ">";
           
         if(newline)
         {

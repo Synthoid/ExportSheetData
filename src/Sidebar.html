@@ -67,6 +67,16 @@
   {
     color: grey;
   }
+  
+  input[type=text]:enabled
+  {
+    background: #ffffff;
+  }
+
+  input[type=text]:disabled
+  {
+    background: #595959;
+  }
 
   h1
   {
@@ -308,6 +318,11 @@
     if(forceAttributesXml === false) text += " disabled";
     text += "/>";
     
+    if(forceAttributesXml === false)
+    {
+      text = "<span style='color:#CCCCCC'>" + text + "</span>";
+    }
+    
     document.getElementById("xmlForceAttributeText").innerHTML = text;
     
     if(forceAttributesXml === true) document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
@@ -322,6 +337,11 @@
     text += " placeholder='" + XML_CE_DEFAULT + "'";
     if(forceChildElementsXml === false) text += " disabled";
     text += "/>";
+    
+    if(forceChildElementsXml === false)
+    {
+      text = "<span style='color:#CCCCCC'>" + text + "</span>";
+    }
     
     document.getElementById("xmlForceChildElementsText").innerHTML = text;
     
@@ -442,21 +462,25 @@
       advancedXmlText += "<div class='sectionWrapper'><p>Export columns with prefix as attributes: <input id='xmlForceAttributeToggle' type='checkbox' value='false'";
       if(forceAttributesXml === true) advancedXmlText += " checked";
       advancedXmlText += "/></p>";
+      if(forceAttributesXml === false) advancedXmlText += "<span style='color:#CCCCCC'>";
       advancedXmlText += "<p id='xmlForceAttributeText'><input id='xmlForceAttributesTextField' type='text' value=";
       advancedXmlText += "'" + forceAttributesPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_ATT_DEFAULT + "'";
       if(forceAttributesXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p>";
+      if(forceAttributesXml === false) advancedXmlText += "</span>";
       advancedXmlText += "<p class='note'>Force columns with keys using the specified prefix to export as attributes.</p></div>";
       //Force child element column export
       advancedXmlText += "<div class='sectionWrapper'><p>Export columns with prefix as child elements: <input id='xmlForceChildElementToggle' type='checkbox' value='false'";
       if(forceChildElementsXml === true) advancedXmlText += " checked";
       advancedXmlText += "/></p>";
+      if(forceChildElementsXml === false) advancedXmlText += "<span style='color:#CCCCCC'>";
       advancedXmlText += "<p id='xmlForceChildElementsText'><input id='xmlForceChildElementsTextField' type='text' value=";
       advancedXmlText += "'" + forceChildElementsPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_CE_DEFAULT + "'";
       if(forceChildElementsXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p>";
+      if(forceChildElementsXml === false) advancedXmlText += "</span>";
       advancedXmlText += "<p class='note'>Force columns with keys using the specified prefix to export as child elements.</p></div>";
       
       document.getElementById("xmlOptions").innerHTML = xmlText;
