@@ -130,6 +130,14 @@
     Use newlines when formatting data.
     </p>
   </div>
+  <div class='sectionWrapper'>
+    <p>
+    Unwrap single row sheets: <input id='unwrapSingleRowToggle' type='checkbox' value='false' />
+    </p>
+    <p class='note'>
+    Don't wrap a sheet's contents with a JSON object/XML element if it contains only one row. (not counting keys)
+    </p>
+  </div>
   <div id='xmlOptions'>
     <div class='paddedV'>
     <h1>XML Options</h1>
@@ -183,32 +191,41 @@
   var XML_ROOT_DEFAULT = "data";
   var XML_ATT_DEFAULT = "ATT_";
   var XML_CE_DEFAULT = "CE_";
+  var XML_IT_DEFAULT = "IT_";
+  
+  //Visualization
+  var visualizeData = false;
   
   //General Options
   //Replaces any export files that have the same name
   var replaceExistingFiles = false;
   //Formats the exported data to use newlines when possible
   var newlineElements = false;
+  //Don't wrap the contents of a sheet in a JSON object / XML element if the sheet only has one row
+  var unwrapSingleRows = false;
   
   //XML Options
   //Export values as child elements instead of attributes
   var exportChildElementXml = false;
   //Replace illegal XML characters with their XML compatible codes
   var formatContentXml = false;
+  //Include the first column in the export in addition to using it as the name for the row element.
+  var includeFirstColumnXml = false;
   
   //XML Advanced Options
   //Root element of the XML document
   var rootElementXml = "data";
-  //Columns with keys starting with a specified string will always be exported as attributes
+  //Columns using keys starting with a specified string will always be exported as attributes
   var forceAttributesXml = false;
   var forceAttributesPrefixXml = "ATT_";
-  //Columns with keys starting with a specified string will always be exported as child elements
+  //Columns using keys starting with a specified string will always be exported as child elements
   var forceChildElementsXml = false;
   var forceChildElementsPrefixXml = "CE_";
+  //Columns using keys starting with a specified string will always be exported as inner text
+  var forceInnerTextXml = false;
+  var forceInnerTextPrefixXml = "IT_";
   
   //JSON Options
-  //Don't wrap the contents of a sheet in a JSON object if the sheet only has one row
-  var unwrapSingleRowJson = false;
   //Export cell contents as a JSON array if the cell contains commas
   var exportCellArrayJson = false;
   //Export a sheet's contents as an array, with each row being one JSON object element in the array
@@ -263,6 +280,11 @@
     newlineElements = !newlineElements;
   }
   
+  function toggleUnwrapSingleRows()
+  {
+    unwrapSingleRows = !unwrapSingleRows;
+  }
+  
   //XML Options
   function toggleElement()
   {
@@ -272,6 +294,11 @@
   function toggleFormatContentXml()
   {
     formatContentXml = !formatContentXml;
+  }
+  
+  function toggleIncludeFirstColumnXml()
+  {
+    includeFirstColumnXml = !includeFirstColumnXml;
   }
   
   function getRootElement()
@@ -293,6 +320,13 @@
     return forceChildElementsPrefixXml === "" ? XML_CE_DEFAULT : forceChildElementsPrefixXml;
   }
   
+  function getInnerTextPrefix()
+  {
+    if(forceInnerTextXml === false) return "";
+    
+    return forceInnerTextPrefixXml === "" ? XML_IT_DEFAULT : forceInnerTextPrefixXml;
+  }
+  
   function updateRootElementXml()
   {
     rootElementXml = document.getElementById("xmlRootField").value;
@@ -308,6 +342,11 @@
     forceChildElementsPrefixXml = document.getElementById("xmlForceChildElementsTextField").value;
   }
   
+  function updateInnerTextPrefixXml()
+  {
+    forceInnerTextPrefixXml = document.getElementById("xmlForceInnerTextTextField").value;
+  }
+  
   function toggleAttributePrefixXml()
   {
     forceAttributesXml = !forceAttributesXml;
@@ -317,11 +356,6 @@
     text += " placeholder='" + XML_ATT_DEFAULT + "'";
     if(forceAttributesXml === false) text += " disabled";
     text += "/>";
-    
-    if(forceAttributesXml === false)
-    {
-      text = "<span style='color:#CCCCCC'>" + text + "</span>";
-    }
     
     document.getElementById("xmlForceAttributeText").innerHTML = text;
     
@@ -338,22 +372,27 @@
     if(forceChildElementsXml === false) text += " disabled";
     text += "/>";
     
-    if(forceChildElementsXml === false)
-    {
-      text = "<span style='color:#CCCCCC'>" + text + "</span>";
-    }
-    
     document.getElementById("xmlForceChildElementsText").innerHTML = text;
     
     if(forceChildElementsXml === true) document.getElementById('xmlForceChildElementsTextField').addEventListener("change", updateChildElementPrefixXml);
   }
   
-  //JSON Options
-  function toggleUnwrap()
+  function toggleInnerTextPrefixXml()
   {
-    unwrapSingleRowJson = !unwrapSingleRowJson;
+    forceInnerTextXml = !forceInnerTextXml;
+    
+    var text = "<input id='xmlForceInnerTextTextField' type='text' value=";
+    text += "'" + forceInnerTextPrefixXml + "'";
+    text += " placeholder='" + XML_IT_DEFAULT + "'";
+    if(forceInnerTextXml === false) text += " disabled";
+    text += "/>";
+    
+    document.getElementById("xmlForceInnerTextText").innerHTML = text;
+    
+    if(forceInnerTextXml === true) document.getElementById('xmlForceInnerTextTextField').addEventListener("change", updateInnerTextPrefixXml);
   }
   
+  //JSON Options
   function toggleContentArrayJson()
   {
     exportContentsAsArrayJson = !exportContentsAsArrayJson;
@@ -450,6 +489,10 @@
       xmlText += "<div class='sectionWrapper'><p>Format illegal characters: <input id='formatToggle' type='checkbox' value='false'";
       if(formatContentXml) xmlText += " checked";
       xmlText += "/></p><p class='note'>Replace illegal XML characters in each collumn with their appropriate encoding. (keys are automatically encoded)</p></div>";
+      //Include first column in export
+      xmlText += "<div class='sectionWrapper'><p>Include first column in export: <input id='firstColumnXmlToggle' type='checkbox' value='false'";
+      if(includeFirstColumnXml) xmlText += " checked";
+      xmlText += "/></p><p class='note'>Export the first column as a distinct element in addition to the name of the row element.</p></div>";
       
       //Advanced Options
       var advancedXmlText = "<div class='paddedV'><h1>Advanced Options</h1></div>";
@@ -462,39 +505,47 @@
       advancedXmlText += "<div class='sectionWrapper'><p>Export columns with prefix as attributes: <input id='xmlForceAttributeToggle' type='checkbox' value='false'";
       if(forceAttributesXml === true) advancedXmlText += " checked";
       advancedXmlText += "/></p>";
-      if(forceAttributesXml === false) advancedXmlText += "<span style='color:#CCCCCC'>";
       advancedXmlText += "<p id='xmlForceAttributeText'><input id='xmlForceAttributesTextField' type='text' value=";
       advancedXmlText += "'" + forceAttributesPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_ATT_DEFAULT + "'";
       if(forceAttributesXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p>";
-      if(forceAttributesXml === false) advancedXmlText += "</span>";
       advancedXmlText += "<p class='note'>Force columns with keys using the specified prefix to export as attributes.</p></div>";
       //Force child element column export
       advancedXmlText += "<div class='sectionWrapper'><p>Export columns with prefix as child elements: <input id='xmlForceChildElementToggle' type='checkbox' value='false'";
       if(forceChildElementsXml === true) advancedXmlText += " checked";
       advancedXmlText += "/></p>";
-      if(forceChildElementsXml === false) advancedXmlText += "<span style='color:#CCCCCC'>";
       advancedXmlText += "<p id='xmlForceChildElementsText'><input id='xmlForceChildElementsTextField' type='text' value=";
       advancedXmlText += "'" + forceChildElementsPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_CE_DEFAULT + "'";
       if(forceChildElementsXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p>";
-      if(forceChildElementsXml === false) advancedXmlText += "</span>";
       advancedXmlText += "<p class='note'>Force columns with keys using the specified prefix to export as child elements.</p></div>";
+      //Force inner text column export
+      advancedXmlText += "<div class='sectionWrapper'><p>Export columns with prefix as inner text: <input id='xmlForceInnerTextToggle' type='checkbox' value='false'";
+      if(forceInnerTextXml === true) advancedXmlText += " checked";
+      advancedXmlText += "/></p>";
+      advancedXmlText += "<p id='xmlForceInnerTextText'><input id='xmlForceInnerTextTextField' type='text' value=";
+      advancedXmlText += "'" + forceInnerTextPrefixXml + "'";
+      advancedXmlText += " placeholder='" + XML_IT_DEFAULT + "'";
+      if(forceInnerTextXml === false) advancedXmlText += " disabled";
+      advancedXmlText += "/></p>";
+      advancedXmlText += "<p class='note'>Force columns with keys using the specified prefix to export as inner text of the row element.</p></div>";
       
       document.getElementById("xmlOptions").innerHTML = xmlText;
       document.getElementById("advancedOptions").innerHTML = advancedXmlText;
       //XML Options
       document.getElementById('elementToggle').addEventListener("change", toggleElement);
       document.getElementById('formatToggle').addEventListener("change", toggleFormatContentXml);
+      document.getElementById('firstColumnXmlToggle').addEventListener("change", toggleIncludeFirstColumnXml);
       //Advanced Options
       document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
       document.getElementById('xmlForceAttributeToggle').addEventListener("change", toggleAttributePrefixXml);
       if(forceAttributesXml === true) document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
       document.getElementById('xmlForceChildElementToggle').addEventListener("change", toggleChildElementPrefixXml);
       if(forceChildElementsXml === true) document.getElementById('xmlForceChildElementsTextField').addEventListener("change", updateChildElementPrefixXml);
-      //document.getElementById('xmlForceChildElementToggle').addEventListener("change", toggleAttributePrefixXml);
+      document.getElementById('xmlForceInnerTextToggle').addEventListener("change", toggleInnerTextPrefixXml);
+      if(forceInnerTextXml === true) document.getElementById('xmlForceInnerTextTextField').addEventListener("change", updateInnerTextPrefixXml);
     }
     else
     {
@@ -504,10 +555,6 @@
       
       //JSON Options
       var jsonText = "<div class='paddedV'><h1>JSON Options</h1></div>";
-      //Unrap JSON
-      jsonText += "<div class='sectionWrapper'><p>Unwrap single row JSON: <input id='unwrapToggle' type='checkbox' value='Unwrap'";
-      if(unwrapSingleRowJson) jsonText += " checked";
-      jsonText += "></p><p class='note'>Don't wrap a sheet's rows in separate JSON objects if the sheet contains only one row. (not counting keys)</p></div>";
       //Force string Json
       jsonText += "<div class='sectionWrapper'><p>Force string values: <input id='forceStringToggle' type='checkbox' value='Force'";
       if(forceStringJson) jsonText += " checked";
@@ -534,7 +581,6 @@
       
       document.getElementById("jsonOptions").innerHTML = jsonText;
       document.getElementById("advancedOptions").innerHTML = advancedJsonText;
-      document.getElementById('unwrapToggle').addEventListener("change", toggleUnwrap);
       document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
       document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
       document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
@@ -648,6 +694,10 @@
     {
       document.getElementById('formatToggle').removeEventListener("change", toggleFormatContentXml);
     }
+    if(document.getElementById('firstColumnXmlToggle') != null)
+    {
+      document.getElementById('firstColumnXmlToggle').removeEventListener("change", toggleIncludeFirstColumnXml);
+    }
     if(document.getElementById('xmlRootField') != null)
     {
       document.getElementById('xmlRootField').removeEventListener("change", updateRootElementXml);
@@ -662,15 +712,16 @@
       document.getElementById('xmlForceChildElementToggle').removeEventListener("change", toggleChildElementPrefixXml);
       document.getElementById('xmlForceChildElementsTextField').removeEventListener("change", updateChildElementPrefixXml);
     }
+    if(document.getElementById('xmlForceInnerTextToggle') != null)
+    {
+      document.getElementById('xmlForceInnerTextToggle').removeEventListener("change", toggleInnerTextPrefixXml);
+      document.getElementById('xmlForceInnerTextTextField').removeEventListener("change", updateInnerTextPrefixXml);
+    }
   }
   
   //Removes event listeners for JSON option toggles
   function removeJsonListeners()
   {
-    if(document.getElementById('unwrapToggle') != null)
-    {
-      document.getElementById('unwrapToggle').removeEventListener("change", toggleUnwrap);
-    }
     if(document.getElementById('contentsArrayToggle') != null)
     {
       document.getElementById('contentsArrayToggle').removeEventListener("change", toggleContentArrayJson);
@@ -696,18 +747,22 @@
   //Set selected sheets to be visualized with the current options
   function visualizeFile()
   {
-    if(exportType === EXP_TYPE_XML) exportXml(true);
-    else exportJson(true);
+    visualizeData = true;
+  
+    if(exportType === EXP_TYPE_XML) exportXml();
+    else exportJson();
   }
   
   //Set selected sheets to be exported with the current options
   function exportFile()
   {
-    if(exportType === EXP_TYPE_XML) exportXml(false);
-    else exportJson(false);
+    visualizeData = false;
+  
+    if(exportType === EXP_TYPE_XML) exportXml();
+    else exportJson();
   }
   
-  function exportXml(visualize)
+  function exportXml()
   {
     if(exportSheets === EXP_SHEET_SINGLE)
     {
@@ -715,11 +770,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(visualize, false, exportChildElementXml, formatContentXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), replaceExistingFiles, newlineElements, targetSheets);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, targetSheets);
     }
     else
     {
-      google.script.run.exportXml(visualize, false, exportChildElementXml, formatContentXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), replaceExistingFiles, newlineElements, null);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, null);
     }
   }
   
@@ -728,10 +783,10 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(visualize, true, exportChildElementXml, formatContentXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), replaceExistingFiles, newlineElements, newSheets);
+    google.script.run.exportXml(visualizeData, true, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, newSheets);
   }
   
-  function exportJson(visualize)
+  function exportJson()
   {
     if(exportSheets === EXP_SHEET_SINGLE)
     {
@@ -739,11 +794,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportJson(visualize, false, unwrapSingleRowJson, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, targetSheets);
+      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, unwrapSingleRows, targetSheets);
     }
     else
     {
-      google.script.run.exportJson(visualize, false, unwrapSingleRowJson, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, null);
+      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, unwrapSingleRows, null);
     }
   }
   
@@ -752,11 +807,12 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportJson(visualize, true, unwrapSingleRowJson, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, newSheets);
+    google.script.run.exportJson(visualizeData, true, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, replaceExistingFiles, newlineElements, unwrapSingleRows, newSheets);
   }
   
   document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
   document.getElementById('newlineToggle').addEventListener("change",toggleNewline);
+  document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
 
   changeExportFormat();
 </script>

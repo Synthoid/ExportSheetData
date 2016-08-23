@@ -187,23 +187,23 @@ function keyHasPrefix(key, prefix)
 }
 
 
-function exportXml(visualize, singleSheet, childElements, replaceIllegal, rootElement, attributePrefix, childElementPrefix, replace, newline, customSheets)
+function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, customSheets)
 {
   showCompilingMessage('Compiling XML...');
   
-  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, rootElement, attributePrefix, childElementPrefix, replace, newline, customSheets);
+  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, customSheets);
 }
 
 
-function exportJson(visualize, singleSheet, unwrap, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, replace, newline, customSheets)
+function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, replace, newline, unwrap, customSheets)
 {
   showCompilingMessage('Compiling JSON...');
   
-  exportSpreadsheetJson(visualize, singleSheet, unwrap, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, replace, newline, customSheets);
+  exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, replace, newline, unwrap, customSheets);
 }
 
 
-function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, rootElement, attributePrefix, childElementPrefix, replaceFile, newline, customSheets)
+function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -216,7 +216,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
     
     for(var i=0; i < exportSheets.length; i++)
     {
-      if(customSheets[exportSheets[i].getName()] == 'true')
+      if(customSheets[exportSheets[i].getName()] === 'true')
       {
         if(spreadsheet.getSheetByName(exportSheets[i].getName()) != null)
         {
@@ -238,34 +238,50 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
     var rows = range.getNumRows();
     var columns = range.getNumColumns();
     
-    var sheetData = getIndent() + "<" + formatXmlString(sheets[i].getName()) + ">\n";
+    var sheetData = "";
     
-    indentAmount += 1;
+    if(rows > 2 || unwrap === false)
+    {
+      sheetData += getIndent() + "<" + formatXmlString(sheets[i].getName()) + ">\n";
+      indentAmount += 1;
+    }
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
       var attributeKeys = [];
       var childElementKeys = [];
+      var innerTextKeys = [];
       var attributes = [];
       var childElements = [];
+      var innerTextElements = [];
       
       //Separate columns into those that export as child elements or attributes
-      for(var k=0; k < columns; k++)
+      var startIndex = includeFirstColumnXml ? 0 : 1; //Exclude the first column by default since it is used as the name of the row element
+      
+      for(var k=startIndex; k < columns; k++)
       {
-        if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix))) || (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
+        if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))) || 
+          (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
         {
           childElementKeys.push(values[0][k]);
           childElements.push(values[j][k]);
         }
-        else
+        else if(innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))
         {
           attributeKeys.push(values[0][k]);
           attributes.push(values[j][k]);
         }
+        else
+        {
+          innerTextKeys.push(values[0][k]);
+          innerTextElements.push(values[j][k]);
+        }
       }
       
       //Build the actual row string
-      var row = getIndent() + "<" + formatXmlString(values[j][0]) + " ";
+      var row = getIndent() + "<" + formatXmlString(values[j][0]);
+      
+      if(attributes.length > 0) row += " ";
       
       for(var k=0; k < attributes.length; k++)
       {
@@ -273,8 +289,13 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
         else row += attributeKeys[k] + "=" + '"' + attributes[k] + '"' + " ";
       }
       
-      if(childElements.length === 0) row += "/>";
-      else row += ">\n";
+      if(childElements.length === 0 && innerTextElements.length === 0) row += "/>\n";
+      else
+      {
+        row += ">";
+        
+        if(childElements.length > 0 || newline) row += "\n";
+      }
       
       for(var k=0; k < childElements.length; k++)
       {
@@ -302,15 +323,35 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
         indentAmount -= 1;
       }
       
-      if(childElements.length > 0) row += getIndent() + "</" + formatXmlString(values[j][0]) + ">\n";
+      for(var k=0; k < innerTextElements.length; k++)
+      {
+        indentAmount += 1;
+        
+        if(newline || childElements.length > 0 && k === 0) row += getIndent();
+        
+        if(replaceIllegal) row += formatXmlString(innerTextElements[k]);
+        else row += innerTextElements[k];
+        
+        if(newline || childElements.length > 0 && k >= innerTextElements.length - 1) row += "\n";
+        
+        indentAmount -= 1;
+      }
+      
+      if(childElements.length > 0 || innerTextElements.length > 0)
+      {
+        if(newline || childElements.length > 0) row += getIndent();
+        row += "</" + formatXmlString(values[j][0]) + ">\n";
+      }
       
       sheetValues[i[j-1]] = row;
       sheetData += row;
     }
     
-    indentAmount -= 1;
-    
-    sheetData += getIndent() + "</" + sheets[i].getName() + ">\n";
+    if(rows > 2 || unwrap === false)
+    {
+      indentAmount -= 1;
+      sheetData += getIndent() + "</" + sheets[i].getName() + ">\n";
+    }
     rawValue += sheetData;
   }
   
@@ -322,7 +363,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
 }
 
 
-function exportSpreadsheetJson(visualize, singleSheet, unwrapSingleRow, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, replaceFile, newline, customSheets)
+function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, replaceFile, newline, unwrap, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -335,7 +376,7 @@ function exportSpreadsheetJson(visualize, singleSheet, unwrapSingleRow, contents
     
     for(var i=0; i < exportSheets.length; i++)
     {
-      if(customSheets[exportSheets[i].getName()] == 'true')
+      if(customSheets[exportSheets[i].getName()] === 'true')
       {
         if(spreadsheet.getSheetByName(exportSheets[i].getName()) != null)
         {
@@ -370,7 +411,7 @@ function exportSpreadsheetJson(visualize, singleSheet, unwrapSingleRow, contents
       
       if(!contentsArray && newline) row += "\n" + getIndent();
       
-      if(sheetArray && (!(rows <= 2 && unwrapSingleRow == true) || rows > 2 || unwrapSingleRow == false))
+      if(sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false))
       {
         row += "[\n";
       }
@@ -384,7 +425,7 @@ function exportSpreadsheetJson(visualize, singleSheet, unwrapSingleRow, contents
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
-      if(rows > 2 || unwrapSingleRow == false) //Only wrap the json for this row if there is more than one row (not counting the keys row)
+      if(rows > 2 || unwrap === false) //Only wrap the json for this row if there is more than one row (not counting the keys row)
       {
         //TODO: Need to have spacing formatting when single sheet and content
         if(!sheetArray && !(singleSheet && contentsArray))
@@ -494,7 +535,7 @@ function exportSpreadsheetJson(visualize, singleSheet, unwrapSingleRow, contents
         row += "\n";
       }
       
-      if(rows > 2 || unwrapSingleRow == false)
+      if(rows > 2 || unwrap == false)
       {
         indentAmount -= 1;
         
@@ -516,7 +557,7 @@ function exportSpreadsheetJson(visualize, singleSheet, unwrapSingleRow, contents
       indentAmount -= 1;
       row += getIndent();
       
-      if(sheetArray && (!(rows <= 2 && unwrapSingleRow == true) || rows > 2 || unwrapSingleRow == false))
+      if(sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false))
       {
         row += "]";
       }
