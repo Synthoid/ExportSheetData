@@ -187,6 +187,24 @@ function keyHasPrefix(key, prefix)
 }
 
 
+function stripPrefix(key, prefix)
+{
+  if(keyHasPrefix(key, prefix) === true)
+  {
+    var newKey = "";
+    
+    for(var i=prefix.length; i < key.length; i++)
+    {
+      newKey += key[i];
+    }
+    
+    return newKey;
+  }
+  
+  return key;
+}
+
+
 function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, customSheets)
 {
   showCompilingMessage('Compiling XML...');
@@ -263,17 +281,17 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
         if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))) || 
           (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
         {
-          childElementKeys.push(values[0][k]);
+          childElementKeys.push(stripPrefix(values[0][k], childElementPrefix));
           childElements.push(values[j][k]);
         }
         else if(innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))
         {
-          attributeKeys.push(values[0][k]);
+          attributeKeys.push(stripPrefix(values[0][k], attributePrefix));
           attributes.push(values[j][k]);
         }
         else
         {
-          innerTextKeys.push(values[0][k]);
+          innerTextKeys.push(stripPrefix(values[0][k], innerTextPrefix));
           innerTextElements.push(values[j][k]);
         }
       }
@@ -285,8 +303,10 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       
       for(var k=0; k < attributes.length; k++)
       {
-        if(replaceIllegal) row += formatXmlString(attributeKeys[k]) + "=" + '"' + formatXmlString(attributes[k]) + '"' + " ";
-        else row += attributeKeys[k] + "=" + '"' + attributes[k] + '"' + " ";
+        if(replaceIllegal) row += formatXmlString(attributeKeys[k]) + "=" + '"' + formatXmlString(attributes[k]) + '"';
+        else row += attributeKeys[k] + "=" + '"' + attributes[k] + '"';
+        
+        if(k < attributes.length - 1) row += " ";
       }
       
       if(childElements.length === 0 && innerTextElements.length === 0) row += "/>\n";
