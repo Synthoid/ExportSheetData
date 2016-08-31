@@ -188,10 +188,15 @@
   var EXP_SHEET_CUSTOM = "custom";
   var EXP_SHEET_SINGLE = "currentSheet";
   var EXP_TYPE_XML = "xmlFormat";
+  var IGNORE_ROW_DEFAULT = "IGNR_";
+  //XML
   var XML_ROOT_DEFAULT = "data";
   var XML_ATT_DEFAULT = "ATT_";
   var XML_CE_DEFAULT = "CE_";
   var XML_IT_DEFAULT = "IT_";
+  //JSON
+  var JSON_SEPARATOR_DEFAULT = ",";
+  var JSON_JA_DEFAULT = "JA_";
   
   //Visualization
   var visualizeData = false;
@@ -240,6 +245,11 @@
   var exportCellObjectJson = false;
   //Export sheets as 2D JSON arrays
   var export2dArrayJson = false;
+  //Separator char for JSON arrays
+  var arraySeparatorCharJson = ",";
+  //Columns using keys starting with a specified string will always be exported as inner text
+  var forceArrayJson = false;
+  var forceArrayPrefixJson = "JA_";
   
   var exportType = "xmlOption";
   var exportSheets = "allSheets";
@@ -418,6 +428,31 @@
     forceStringJson = !forceStringJson;
   }
   
+  function updateSeparatorCharJson()
+  {
+    arraySeparatorCharJson = document.getElementById("jsonArraySeparatorCharTextField").value;
+  }
+  
+  function updateArrayPrefixJson()
+  {
+    forceArrayPrefixJson = document.getElementById("jsonForceArrayTextField").value;
+  }
+  
+  function toggleArrayPrefixJson()
+  {
+    forceArrayJson = !forceArrayJson;
+    
+    var text = "<input id='jsonForceArrayTextField' type='text' value=";
+    text += "'" + forceArrayPrefixJson + "'";
+    text += " placeholder='" + JSON_JA_DEFAULT + "'";
+    if(forceArrayJson === false) text += " disabled";
+    text += "/>";
+    
+    document.getElementById("jsonForceArrayText").innerHTML = text;
+    
+    if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
+  }
+  
   //Toggles value for exporting all sheets
   function toggleAllSheets()
   {
@@ -578,14 +613,35 @@
       advancedJsonText += "<div class='sectionWrapper'><p>Export cell objects: <input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
       advancedJsonText += "></p><p class='note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will not be formatted automatically.)</p></div>";
+      //Serparator char value
+      advancedJsonText += "<div class='sectionWrapper'><p>Array separator character(s): <input id='jsonArraySeparatorCharTextField' type='text' value=";
+      advancedJsonText += "'" + arraySeparatorCharJson + "'";
+      advancedJsonText += " placeholder='" + JSON_SEPARATOR_DEFAULT + "'";
+      advancedJsonText += "/></p><p class='note'>Character(s) used to separate elements when exporting JSON arrays.</p></div>";
+      //Force array column export
+      advancedJsonText += "<div class='sectionWrapper'><p>Export columns with prefix as array: <input id='jsonForceArrayToggle' type='checkbox' value='false'";
+      if(forceArrayJson === true) advancedJsonText += " checked";
+      advancedJsonText += "/></p>";
+      advancedJsonText += "<p id='jsonForceArrayText'><input id='jsonForceArrayTextField' type='text' value=";
+      advancedJsonText += "'" + forceArrayPrefixJson + "'";
+      advancedJsonText += " placeholder='" + JSON_JA_DEFAULT + "'";
+      if(forceArrayJson === false) advancedJsonText += " disabled";
+      advancedJsonText += "/></p>";
+      advancedJsonText += "<p class='note'>Force columns with keys using the specified prefix to export as JSON arrays.</p></div>";
+      
       
       document.getElementById("jsonOptions").innerHTML = jsonText;
       document.getElementById("advancedOptions").innerHTML = advancedJsonText;
+      //JSON Options
       document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
       document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
       document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
       document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
       document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
+      //Advanced Options
+      document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
+      document.getElementById('jsonForceArrayToggle').addEventListener("change", toggleArrayPrefixJson);
+      if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
     }
   }
   
@@ -741,6 +797,15 @@
     if(document.getElementById('forceStringToggle') != null)
     {
       document.getElementById('forceStringToggle').removeEventListener("change", toggleForceStringJson);
+    }
+    if(document.getElementById('jsonArraySeparatorCharTextField') != null)
+    {
+      document.getElementById('jsonArraySeparatorCharTextField').removeEventListener("change", updateSeparatorCharJson);
+    }
+    if(document.getElementById('jsonForceArrayToggle') != null)
+    {
+      document.getElementById('jsonForceArrayToggle').removeEventListener("change", toggleArrayPrefixJson);
+      document.getElementById('jsonForceArrayTextField').removeEventListener("change", updateArrayPrefixJson);
     }
   }
   
