@@ -23,7 +23,7 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
 * Unwrapping a sheet's JSON for easier access after exporting
 
 **XML**
-* Exporting columns as attributes or child elements of a row
+* Exporting columns as attributes, child elements, or inner text of a row
 * Formatting XML illegal characters like &, <, and >
  
 **General**
