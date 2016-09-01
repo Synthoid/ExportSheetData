@@ -213,11 +213,11 @@ function exportXml(visualize, singleSheet, childElements, replaceIllegal, includ
 }
 
 
-function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, replace, newline, unwrap, customSheets)
+function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, customSheets)
 {
   showCompilingMessage('Compiling JSON...');
   
-  exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, replace, newline, unwrap, customSheets);
+  exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, customSheets);
 }
 
 
@@ -383,7 +383,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
 }
 
 
-function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, replaceFile, newline, unwrap, customSheets)
+function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, separatorChar, arrayPrefix, replaceFile, newline, unwrap, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
