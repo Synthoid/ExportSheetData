@@ -430,7 +430,7 @@
   
   function getSeparatorCharJson()
   {
-    return arraySeparatorCharJson === "" ? JSON_SEPARATOR_DEFAULT : arraySeparatorCharJson;
+    return (arraySeparatorCharJson === "" || arraySeparatorCharJson === "'" || arraySeparatorCharJson === '"') ? JSON_SEPARATOR_DEFAULT : arraySeparatorCharJson;
   }
   
   function getForceArayPrefixJson()

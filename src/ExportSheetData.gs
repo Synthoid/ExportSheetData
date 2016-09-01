@@ -37,7 +37,7 @@ function getActiveSheetName()
 }
 
 
-function getCellContentArray(cell)
+function getCellContentArray(cell, separatorChar)
 {
   var content = cell;
   var cellArray = new Array();
@@ -59,7 +59,7 @@ function getCellContentArray(cell)
         closeQuoteIndicies.push(i);
       }
     }
-    else if(content.charAt(i) == ',')
+    else if(content.charAt(i) == separatorChar)
     {
       commaIndicies.push(i);
     }
@@ -91,7 +91,7 @@ function getCellContentArray(cell)
   {
     var endIndex;
     
-    if(content[content.length - 1] == ',') endIndex = content.length - 1;
+    if(content[content.length - 1] == separatorChar) endIndex = content.length - 1;
     else endIndex = content.length;
     
     var lastString = content.slice(startIndex, endIndex); //Push the string from the last comma to the end of the content string
@@ -278,6 +278,8 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       
       for(var k=startIndex; k < columns; k++)
       {
+        if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
+        
         if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))) || 
           (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
         {
@@ -455,7 +457,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
           if(newline) row += "\n";
         }
         
-        if(newline || (singleSheet && contentsArray)) row += getIndent() + "{\n";
+        if(newline || (singleSheet && contentsArray) || sheetArray) row += getIndent() + "{\n";
         else row += "{\n";
         
         indentAmount += 1;
@@ -463,14 +465,21 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
       
       for(var k=0; k < columns; k++)
       {
-        if(exportArray && getCellContentArray(values[j][k]).length > 1)
+        if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
+        
+        if(exportArray && (getCellContentArray(values[j][k], separatorChar).length > 1) || (arrayPrefix != "" && keyHasPrefix(values[0][k], arrayPrefix)))
         {
           var content = values[j][k];
-          var cellArray = getCellContentArray(content);
+          var cellArray = getCellContentArray(content, separatorChar);
           
           if(!(singleSheet && contentsArray))
           {
-            row += getIndent() + formatJsonString(values[0][k], false) + " : ";
+            row += getIndent();
+            
+            if(arrayPrefix != "") row += formatJsonString(stripPrefix(values[0][k], arrayPrefix), false);
+            else row += formatJsonString(values[0][k], false);
+            
+            row += " : ";
           
             if(newline) row += "\n" + getIndent();
           }
@@ -549,7 +558,10 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
         
         if(k < columns - 1)
         {
-          row += ",";
+          if(k + 1 < columns && (values[0][k + 1] !== "" && values[0][k + 1] != null)) 
+          {
+            row += ",";
+          }
         }
         
         row += "\n";
