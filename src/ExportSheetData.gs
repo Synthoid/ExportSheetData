@@ -204,6 +204,19 @@ function stripPrefix(key, prefix)
   return key;
 }
 
+//Check if a column has columns with keys following it when exporting values for a JSON blob
+function columnIsLast(values, index)
+{
+  index++;
+  while(index < values.length)
+  {
+    if(values[index] != null && values[index] !== "") return false;
+    index++;
+  }
+  
+  return true;
+}
+
 
 function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, customSheets)
 {
@@ -558,7 +571,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
         
         if(k < columns - 1)
         {
-          if(k + 1 < columns && (values[0][k + 1] !== "" && values[0][k + 1] != null)) 
+          if(k + 1 < columns && !columnIsLast(values[0], k))
           {
             row += ",";
           }
