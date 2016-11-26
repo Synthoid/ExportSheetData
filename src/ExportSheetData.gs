@@ -1,6 +1,8 @@
 var indentValue = "  ";
 var indentAmount = 0;
 
+
+//Gets the number of indents to use when formatting
 function getIndent()
 {
   var indent = "";
@@ -13,7 +15,7 @@ function getIndent()
   return indent;
 }
 
-
+//Gets all of the sheet names in the current spreadsheet
 function getSheetNames()
 {
   var spreadsheet = SpreadsheetApp.getActive();
@@ -28,12 +30,39 @@ function getSheetNames()
   return sheetNames;
 }
 
-
+//Gets the active sheet name in the current spreadsheet
 function getActiveSheetName()
 {
   var spreadsheet = SpreadsheetApp.getActive();
   
   return spreadsheet.getActiveSheet().getName();
+}
+
+//Gets a file's parent folder
+function getFileParentFolder(file)
+{
+  var folders = file.getParents();
+  var parentFolder;
+    
+  while(folders.hasNext())
+  {
+    parentFolder = folders.next();
+  }
+  
+  return parentFolder;
+}
+
+//Gets a file's parent folder's ID, or the root Drive folder ID if the parent folder is null
+function getFileParentFolderId(file)
+{
+  var folder = getFileParentFolder(file);
+  
+  if(folder == null)
+  {
+    folder = DriveApp.getRootFolder();
+  }
+  
+  return folder.getId();
 }
 
 
@@ -644,10 +673,21 @@ function exportDocument(filename, content, type, visualize, replaceFile)
   else
   {
     //Creates the document and moves it into the same folder as the original file
+    //If the user does not have permission to write in the specified location or the file is trashed, the file will be created in the base folder in "My Drive"
+    var user = Session.getActiveUser();
     var file = DriveApp.createFile(filename, content);
     var currentFileId = SpreadsheetApp.getActive().getId();
     var currentFiles = DriveApp.getFilesByName(SpreadsheetApp.getActive().getName());
     var currentFile;
+    
+    var fileCounts = DriveApp.getFilesByName(file.getName());
+    var count = 0;
+    
+    while(fileCounts.hasNext())
+    {
+      count += 1;
+      fileCounts.next();
+    }
     
     while(currentFiles.hasNext())
     {
@@ -656,47 +696,55 @@ function exportDocument(filename, content, type, visualize, replaceFile)
       if(currentFile.getId() == currentFileId) break;
     }
     
-    var folders = currentFile.getParents();
-    var parentFolder;
-    while(folders.hasNext())
-    {
-      parentFolder = folders.next();
-    }
+    var permission = DriveApp.Permission.VIEW;
+    var parentFolder = getFileParentFolder(currentFile);
     
-    if(parentFolder != null)
-    {
-      var newFile;
+    if(parentFolder != null) permission = parentFolder.getAccess(user);
+    var newFile;
       
-      if(replaceFile)
+    if(replaceFile)
+    {
+      if(parentFolder != null && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT)) newFile = file.makeCopy(file.getName(), parentFolder);
+      else newFile = file.makeCopy(file.getName());
+      
+      file.setTrashed(true);
+      
+      if(parentFolder != null) currentFiles = parentFolder.getFiles();
+      else currentFiles = DriveApp.getFilesByName(newFile.getName());
+      
+      while(currentFiles.hasNext())
       {
-        newFile = file.makeCopy(file.getName(), parentFolder);
-        file.setTrashed(true);
-        
-        currentFiles = parentFolder.getFiles();
-        
-        while(currentFiles.hasNext())
+        currentFile = currentFiles.next();
+      
+        if(currentFile.getName() == newFile.getName() && currentFile.getId() != newFile.getId() && getFileParentFolderId(newFile) == getFileParentFolderId(currentFile))
         {
-          currentFile = currentFiles.next();
-          
-          if(currentFile.getName() == newFile.getName() && currentFile.getId() != newFile.getId())
-          {
-            currentFile.setTrashed(true);
-          }
+          currentFile.setTrashed(true);
         }
       }
-      else
-      {
-        newFile = file.makeCopy(file.getName(), parentFolder);
-        file.setTrashed(true);
-      }
+    }
+    else
+    {
+      if(parentFolder != null && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT)) newFile = file.makeCopy(file.getName(), parentFolder);
+      else newFile = file.makeCopy(file.getName());
       
-      var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:355px; height:85px; text-align: center; overflow: auto; } </style>File exported successfully. You can view the file here:<div class="display"><br><br><a href="' + newFile.getUrl() + '" target="_blank">' + newFile.getName() + '</a></div><button onclick="google.script.host.close()">Close</button>')
+      file.setTrashed(true);
+    }
+    
+    var message = '';
+    var height = 150;
+    
+    if(permission != DriveApp.Permission.OWNER && permission != DriveApp.Permission.EDIT)
+    {
+      message = "Note: You do not have permission to write to this spreadsheet's parent folder, so the new file is in your 'My Drive' folder.<br><br>";
+      height += 50;
+    }
+    
+    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:355px; height:85px; text-align: center; overflow: auto; } </style>File exported successfully. You can view the file here:<div class="display"><br><br><a href="' + newFile.getUrl() + '" target="_blank">' + newFile.getName() + '</a></div>' + message + '<button onclick="google.script.host.close()">Close</button>')
         .setSandboxMode(HtmlService.SandboxMode.IFRAME)
         .setWidth(400)
-        .setHeight(150);
-      SpreadsheetApp.getUi()
-        .showModelessDialog(html, 'Export Complete!');
-    }
+        .setHeight(height);
+    
+    SpreadsheetApp.getUi().showModelessDialog(html, 'Export Complete!');
   }
 }
 
