@@ -41,4 +41,4 @@ Developed by Chris Ingerson.
 
 License
 -------
-Export Sheet Data is licensed under the MIT License, see LICENSE for more information.
+Export Sheet Data is licensed under the MIT License, see [LICENSE](https://github.com/Synthoid/ExportSheetData/blob/master/LICENSE) for more information.
