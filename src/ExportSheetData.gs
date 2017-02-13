@@ -1,7 +1,6 @@
 var indentValue = "  ";
 var indentAmount = 0;
 
-
 //Gets the number of indents to use when formatting
 function getIndent()
 {
@@ -674,7 +673,7 @@ function exportDocument(filename, content, type, visualize, replaceFile)
   {
     //Creates the document and moves it into the same folder as the original file
     //If the user does not have permission to write in the specified location or the file is trashed, the file will be created in the base folder in "My Drive"
-    var user = Session.getActiveUser();
+    var user = Session.getEffectiveUser();
     var file = DriveApp.createFile(filename, content);
     var currentFileId = SpreadsheetApp.getActive().getId();
     var currentFiles = DriveApp.getFilesByName(SpreadsheetApp.getActive().getName());
@@ -700,8 +699,12 @@ function exportDocument(filename, content, type, visualize, replaceFile)
     var parentFolder = getFileParentFolder(currentFile);
     
     if(parentFolder != null) permission = parentFolder.getAccess(user);
+    
     var newFile;
       
+    //TODO: Look at removeFile(child) and addFile(child) functionality for folders to move file instead of copying and trashing original
+    //https://developers.google.com/apps-script/reference/drive/folder#removeFile(File)
+    
     if(replaceFile)
     {
       if(parentFolder != null && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT)) newFile = file.makeCopy(file.getName(), parentFolder);
@@ -733,7 +736,7 @@ function exportDocument(filename, content, type, visualize, replaceFile)
     var message = '';
     var height = 150;
     
-    if(permission != DriveApp.Permission.OWNER && permission != DriveApp.Permission.EDIT)
+    if(permission != DriveApp.Permission.OWNER && permission != DriveApp.Permission.EDIT && getFileParentFolderId(newFile) != DriveApp.getRootFolder())
     {
       message = "Note: You do not have permission to write to this spreadsheet's parent folder, so the new file is in your 'My Drive' folder.<br><br>";
       height += 50;
@@ -748,6 +751,7 @@ function exportDocument(filename, content, type, visualize, replaceFile)
   }
 }
 
+
 function showCompilingMessage(message)
 {
   var html = HtmlService.createHtmlOutputFromFile('Spinner')
@@ -758,6 +762,7 @@ function showCompilingMessage(message)
   SpreadsheetApp.getUi()
       .showModelessDialog(html, message);
 }
+
   
 function openSidebar()
 {
@@ -768,6 +773,7 @@ function openSidebar()
   SpreadsheetApp.getUi()
       .showSidebar(html);
 }
+
 
 function onInstall(e)
 {
