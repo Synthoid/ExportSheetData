@@ -246,23 +246,23 @@ function columnIsLast(values, index)
 }
 
 
-function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, customSheets)
+function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, customSheets)
 {
   showCompilingMessage('Compiling XML...');
   
-  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, customSheets);
+  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, customSheets);
 }
 
 
-function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, customSheets)
+function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, ignoreEmpty, customSheets)
 {
   showCompilingMessage('Compiling JSON...');
   
-  exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, customSheets);
+  exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, ignoreEmpty, customSheets);
 }
 
 
-function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, customSheets)
+function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, ignoreEmpty, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -320,6 +320,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       for(var k=startIndex; k < columns; k++)
       {
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
+        if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired
         
         if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))) || 
           (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
@@ -426,7 +427,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
 }
 
 
-function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, separatorChar, arrayPrefix, replaceFile, newline, unwrap, customSheets)
+function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, separatorChar, arrayPrefix, replaceFile, newline, unwrap, ignoreEmpty, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -507,6 +508,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
       for(var k=0; k < columns; k++)
       {
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
+        if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired
         
         if(exportArray && (getCellContentArray(values[j][k], separatorChar).length > 1) || (arrayPrefix != "" && keyHasPrefix(values[0][k], arrayPrefix)))
         {

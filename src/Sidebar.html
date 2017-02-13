@@ -21,8 +21,8 @@
   
   .mainWrapper
   {
-	margin-left: auto;
-	margin-right: auto;
+  margin-left: auto;
+  margin-right: auto;
   }
   
   .sectionWrapper
@@ -138,6 +138,14 @@
     Don't wrap a sheet's contents with a JSON object/XML element if it contains only one row. (not counting keys)
     </p>
   </div>
+  <div class='sectionWrapper'>
+    <p>
+    Ignore empty cells: <input id='ignoreEmptyCellsToggle' type='checkbox' value='false' />
+    </p>
+    <p class='note'>
+    Don't export cells that are empty.
+    </p>
+  </div>
   <div id='xmlOptions'>
     <div class='paddedV'>
     <h1>XML Options</h1>
@@ -208,6 +216,8 @@
   var newlineElements = false;
   //Don't wrap the contents of a sheet in a JSON object / XML element if the sheet only has one row
   var unwrapSingleRows = false;
+  //Don't export cells that are empty (helps reduce file size)
+  var ignoreEmptyCells = false;
   
   //XML Options
   //Export values as child elements instead of attributes
@@ -293,6 +303,11 @@
   function toggleUnwrapSingleRows()
   {
     unwrapSingleRows = !unwrapSingleRows;
+  }
+  
+  function toggleIgnoreEmptyCells()
+  {
+    ignoreEmptyCells = !ignoreEmptyCells;
   }
   
   //XML Options
@@ -847,11 +862,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, targetSheets);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, targetSheets);
     }
     else
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, null);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, null);
     }
   }
   
@@ -860,7 +875,7 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(visualizeData, true, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, newSheets);
+    google.script.run.exportXml(visualizeData, true, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, newSheets);
   }
   
   function exportJson()
@@ -871,11 +886,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, targetSheets);
+      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, targetSheets);
     }
     else
     {
-      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, null);
+      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, null);
     }
   }
   
@@ -884,12 +899,13 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportJson(visualizeData, true, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, newSheets);
+    google.script.run.exportJson(visualizeData, true, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, newSheets);
   }
   
   document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
   document.getElementById('newlineToggle').addEventListener("change",toggleNewline);
   document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
+  document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
 
   changeExportFormat();
 </script>
