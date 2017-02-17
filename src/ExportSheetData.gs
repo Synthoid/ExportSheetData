@@ -674,9 +674,10 @@ function exportDocument(filename, content, type, visualize, replaceFile)
   else
   {
     //Creates the document and moves it into the same folder as the original file
-    //If the user does not have permission to write in the specified location or the file is trashed, the file will be created in the base folder in "My Drive"
+    //If the user does not have permission to write in the specified location, the file will be created in the base folder in "My Drive"
     var user = Session.getEffectiveUser();
     var file = DriveApp.createFile(filename, content);
+    var rootFolder = DriveApp.getRootFolder();
     var currentFileId = SpreadsheetApp.getActive().getId();
     var currentFiles = DriveApp.getFilesByName(SpreadsheetApp.getActive().getName());
     var currentFile;
@@ -699,52 +700,52 @@ function exportDocument(filename, content, type, visualize, replaceFile)
     
     var permission = DriveApp.Permission.VIEW;
     var parentFolder = getFileParentFolder(currentFile);
+    var trueParentFolder = parentFolder; //Store the true parent folder for use in modal dialogues
     
     if(parentFolder != null) permission = parentFolder.getAccess(user);
     
-    var newFile;
-      
-    //TODO: Look at removeFile(child) and addFile(child) functionality for folders to move file instead of copying and trashing original
-    //https://developers.google.com/apps-script/reference/drive/folder#removeFile(File)
+    //If the parent folder for the file is null, use the root folder for Drive
+    if(parentFolder == null) parentFolder = rootFolder;
     
     if(replaceFile)
     {
-      if(parentFolder != null && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT)) newFile = file.makeCopy(file.getName(), parentFolder);
-      else newFile = file.makeCopy(file.getName());
+      if(parentFolder != rootFolder && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT))
+      {
+        rootFolder.removeFile(file); //Remove the file from the root Drive folder
+        parentFolder.addFile(file); //Add the file to the target parent folder
+      }
       
-      file.setTrashed(true);
-      
-      if(parentFolder != null) currentFiles = parentFolder.getFiles();
-      else currentFiles = DriveApp.getFilesByName(newFile.getName());
+      currentFiles = parentFolder.getFiles();
       
       while(currentFiles.hasNext())
       {
         currentFile = currentFiles.next();
-      
-        if(currentFile.getName() == newFile.getName() && currentFile.getId() != newFile.getId() && getFileParentFolderId(newFile) == getFileParentFolderId(currentFile))
+        
+        if(currentFile.getName() == file.getName() && currentFile.getId() != file.getId())
         {
-          currentFile.setTrashed(true);
+          currentFile.setTrashed(true); //Trash other files with the exported file's name
         }
       }
     }
     else
     {
-      if(parentFolder != null && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT)) newFile = file.makeCopy(file.getName(), parentFolder);
-      else newFile = file.makeCopy(file.getName());
-      
-      file.setTrashed(true);
+      if(parentFolder != rootFolder && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT))
+      {
+        rootFolder.removeFile(file);
+        parentFolder.addFile(file);
+      }
     }
     
     var message = '';
     var height = 150;
     
-    if(permission != DriveApp.Permission.OWNER && permission != DriveApp.Permission.EDIT && getFileParentFolderId(newFile) != DriveApp.getRootFolder())
+    if(permission != DriveApp.Permission.OWNER && permission != DriveApp.Permission.EDIT && trueParentFolder != rootFolder)
     {
       message = "Note: You do not have permission to write to this spreadsheet's parent folder, so the new file is in your 'My Drive' folder.<br><br>";
       height += 50;
     }
     
-    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:355px; height:85px; text-align: center; overflow: auto; } </style>File exported successfully. You can view the file here:<div class="display"><br><br><a href="' + newFile.getUrl() + '" target="_blank">' + newFile.getName() + '</a></div>' + message + '<button onclick="google.script.host.close()">Close</button>')
+    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:355px; height:85px; text-align: center; overflow: auto; } </style>File exported successfully. You can view the file here:<div class="display"><br><br><a href="' + file.getUrl() + '" target="_blank">' + file.getName() + '</a></div>' + message + '<button onclick="google.script.host.close()">Close</button>')
         .setSandboxMode(HtmlService.SandboxMode.IFRAME)
         .setWidth(400)
         .setHeight(height);
