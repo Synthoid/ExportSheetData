@@ -134,6 +134,27 @@ function getCellContentArray(cell, separatorChar)
   return cellArray;
 }
 
+//Formats a string to adhere to XML element naming conventions
+//See: https://www.w3schools.com/xml/xml_elements.asp
+function formatXmlName(value)
+{
+  var xmlName = value;
+  
+  if(!isNaN(value[0])) xmlName = "_" + value; //XML element names cannot start with a number, so add a "_" to the start of the name
+  
+  if(xmlName.length >= 3)
+  {
+    if(xmlName.toLowerCase().indexOf("xml") === 0)
+    {
+      xmlName = "_" + xmlName; //XML element names cannot start with "XML" so add an underscore to the front
+    }
+  }
+  
+  xmlName = xmlName.replace(/[^a-zA-Z0-9\-\_]/gm, "_"); //Replace non-alphanumeric, dash, underscore, or period chars with an underscore
+  
+  return xmlName;
+}
+
 
 function formatXmlString(value)
 {
@@ -286,7 +307,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
   }
   
   var sheetValues = [[]];
-  var rawValue = "<" + rootElement + ">\n";
+  var rawValue = "<" + formatXmlName(rootElement) + ">\n";
   
   indentAmount += 1;
                             
@@ -301,7 +322,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
     
     if(rows > 2 || unwrap === false)
     {
-      sheetData += getIndent() + "<" + formatXmlString(sheets[i].getName()) + ">\n";
+      sheetData += getIndent() + "<" + formatXmlName(sheets[i].getName()) + ">\n";
       indentAmount += 1;
     }
     
@@ -341,14 +362,14 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       }
       
       //Build the actual row string
-      var row = getIndent() + "<" + formatXmlString(values[j][0]);
+      var row = getIndent() + "<" + formatXmlName(values[j][0]);
       
       if(attributes.length > 0) row += " ";
       
       for(var k=0; k < attributes.length; k++)
       {
-        if(replaceIllegal) row += formatXmlString(attributeKeys[k]) + "=" + '"' + formatXmlString(attributes[k]) + '"';
-        else row += attributeKeys[k] + "=" + '"' + attributes[k] + '"';
+        if(replaceIllegal) row += formatXmlName(attributeKeys[k]) + "=" + '"' + formatXmlString(attributes[k]) + '"';
+        else row += formatXmlName(attributeKeys[k]) + "=" + '"' + attributes[k] + '"';
         
         if(k < attributes.length - 1) row += " ";
       }
@@ -365,7 +386,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       {
         indentAmount += 1;
         
-        row += getIndent() + "<" + formatXmlString(childElementKeys[k]) + ">";
+        row += getIndent() + "<" + formatXmlName(childElementKeys[k]) + ">";
           
         if(newline)
         {
@@ -382,7 +403,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
           row += "\n" + getIndent();
         }
           
-        row += "</" + formatXmlString(childElementKeys[k]) + ">\n";
+        row += "</" + formatXmlName(childElementKeys[k]) + ">\n";
         
         indentAmount -= 1;
       }
@@ -404,7 +425,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       if(childElements.length > 0 || innerTextElements.length > 0)
       {
         if(newline || childElements.length > 0) row += getIndent();
-        row += "</" + formatXmlString(values[j][0]) + ">\n";
+        row += "</" + formatXmlName(values[j][0]) + ">\n";
       }
       
       sheetValues[i[j-1]] = row;
@@ -414,14 +435,14 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
     if(rows > 2 || unwrap === false)
     {
       indentAmount -= 1;
-      sheetData += getIndent() + "</" + sheets[i].getName() + ">\n";
+      sheetData += getIndent() + "</" + formatXmlName(sheets[i].getName()) + ">\n";
     }
     rawValue += sheetData;
   }
   
   indentAmount -= 1;
   
-  rawValue += "</" + rootElement + ">";
+  rawValue += "</" + formatXmlName(rootElement) + ">";
   
   exportDocument(fileName, rawValue, ContentService.MimeType.XML, visualize, replaceFile);
 }
