@@ -96,8 +96,8 @@
   <p>
   <label for="select"><b>Select Format</b></label>
   <select class="dropdown" id="formatSelect" onchange="changeExportFormat()">
-    <option value="xmlFormat">XML</option>
     <option value="jsonFormat" selected>JSON</option>
+    <option value="xmlFormat">XML</option>
   </select>
   </p>
   <p>
@@ -230,6 +230,8 @@
   //XML Advanced Options
   //Root element of the XML document
   var rootElementXml = "data";
+  //XML element name invalid char replacement
+  var nameReplacementCharXml = "_";
   //Columns using keys starting with a specified string will always be exported as attributes
   var forceAttributesXml = false;
   var forceAttributesPrefixXml = "ATT_";
@@ -370,6 +372,12 @@
   function updateInnerTextPrefixXml()
   {
     forceInnerTextPrefixXml = document.getElementById("xmlForceInnerTextTextField").value;
+  }
+  
+  //Changes replacement char used in XML elements with illegal characters
+  function changeNameReplacementCharXml()
+  {
+    nameReplacementCharXml = document.getElementById("xmlNameReplaceCharDropdown").value;
   }
   
   function toggleAttributePrefixXml()
@@ -550,7 +558,7 @@
       //Format xml content
       xmlText += "<div class='sectionWrapper'><p>Format illegal characters: <input id='formatToggle' type='checkbox' value='false'";
       if(formatContentXml) xmlText += " checked";
-      xmlText += "/></p><p class='note'>Replace illegal XML characters in each collumn with their appropriate encoding. (keys are automatically encoded)</p></div>";
+      xmlText += "/></p><p class='note'>Replace illegal XML characters with their appropriate XML encoding. (keys are automatically encoded)</p></div>";
       //Include first column in export
       xmlText += "<div class='sectionWrapper'><p>Include first column in export: <input id='firstColumnXmlToggle' type='checkbox' value='false'";
       if(includeFirstColumnXml) xmlText += " checked";
@@ -563,6 +571,14 @@
       advancedXmlText += "'" + rootElementXml + "'";
       advancedXmlText += " placeholder='" + XML_ROOT_DEFAULT + "'";
       advancedXmlText += "/></p><p class='note'>Root element for the exported XML document.</p></div>";
+      //Invalid element name char replacement
+      advancedXmlText += "<div class='sectionWrapper'><p><label for='select'>Name replacement char:</label><select class='dropdown' id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
+      if(nameReplacementCharXml === "_") advancedXmlText += " selected";
+      advancedXmlText += ">Underscore ( _ )</option><option value='-'";
+      if(nameReplacementCharXml === "-") advancedXmlText += " selected";
+      advancedXmlText += ">Dash ( - )</option><option value='.'";
+      if(nameReplacementCharXml === ".") advancedXmlText += " selected";
+      advancedXmlText += ">Dot ( . )</option></select></p><p class='note'>What character to use when replacing illegal characters in XML element names.</p></div>";
       //Force attribute column export
       advancedXmlText += "<div class='sectionWrapper'><p>Export columns with prefix as attributes: <input id='xmlForceAttributeToggle' type='checkbox' value='false'";
       if(forceAttributesXml === true) advancedXmlText += " checked";
@@ -602,6 +618,7 @@
       document.getElementById('firstColumnXmlToggle').addEventListener("change", toggleIncludeFirstColumnXml);
       //Advanced Options
       document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
+      document.getElementById('xmlNameReplaceCharDropdown').addEventListener("change", changeNameReplacementCharXml);
       document.getElementById('xmlForceAttributeToggle').addEventListener("change", toggleAttributePrefixXml);
       if(forceAttributesXml === true) document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
       document.getElementById('xmlForceChildElementToggle').addEventListener("change", toggleChildElementPrefixXml);
@@ -785,6 +802,10 @@
     {
       document.getElementById('xmlRootField').removeEventListener("change", updateRootElementXml);
     }
+    if(document.getElementById('xmlNameReplaceCharDropdown') != null)
+    {
+      document.getElementById('xmlNameReplaceCharDropdown').removeEventListener("change", changeNameReplacementCharXml);
+    }
     if(document.getElementById('xmlForceAttributeToggle') != null)
     {
       document.getElementById('xmlForceAttributeToggle').removeEventListener("change", toggleAttributePrefixXml);
@@ -862,11 +883,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, targetSheets);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, targetSheets);
     }
     else
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, null);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, null);
     }
   }
   
@@ -875,7 +896,7 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(visualizeData, true, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, newSheets);
+    google.script.run.exportXml(visualizeData, true, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, newSheets);
   }
   
   function exportJson()

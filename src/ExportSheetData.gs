@@ -136,7 +136,7 @@ function getCellContentArray(cell, separatorChar)
 
 //Formats a string to adhere to XML element naming conventions
 //See: https://www.w3schools.com/xml/xml_elements.asp
-function formatXmlName(value)
+function formatXmlName(value, replacement)
 {
   var xmlName = value;
   
@@ -150,12 +150,17 @@ function formatXmlName(value)
     }
   }
   
-  xmlName = xmlName.replace(/[^a-zA-Z0-9\-\_]/gm, "_"); //Replace non-alphanumeric, dash, underscore, or period chars with an underscore
+  xmlName = xmlName.replace(/[^a-zA-Z0-9\-\_]/gm, replacement); //Replace non-alphanumeric, dash, underscore, or period chars with an underscore
+  
+  if(xmlName.search(/[a-zA-Z\_]/g) > 0)
+  {
+    xmlName = "_" + xmlName; //XML element names must start with a letter or underscore, so add an underscore to the front
+  }
   
   return xmlName;
 }
 
-
+//Encodes illegal XML characters into a format readable to XML
 function formatXmlString(value)
 {
   if(!isNaN(value)) return value;
@@ -283,7 +288,7 @@ function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson,
 }
 
 
-function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, ignoreEmpty, customSheets)
+function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, ignoreEmpty, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -307,7 +312,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
   }
   
   var sheetValues = [[]];
-  var rawValue = "<" + formatXmlName(rootElement) + ">\n";
+  var rawValue = "<" + formatXmlName(rootElement, nameReplacementChar) + ">\n";
   
   indentAmount += 1;
                             
@@ -322,7 +327,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
     
     if(rows > 2 || unwrap === false)
     {
-      sheetData += getIndent() + "<" + formatXmlName(sheets[i].getName()) + ">\n";
+      sheetData += getIndent() + "<" + formatXmlName(sheets[i].getName(), nameReplacementChar) + ">\n";
       indentAmount += 1;
     }
     
@@ -362,14 +367,14 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       }
       
       //Build the actual row string
-      var row = getIndent() + "<" + formatXmlName(values[j][0]);
+      var row = getIndent() + "<" + formatXmlName(values[j][0], nameReplacementChar);
       
       if(attributes.length > 0) row += " ";
       
       for(var k=0; k < attributes.length; k++)
       {
-        if(replaceIllegal) row += formatXmlName(attributeKeys[k]) + "=" + '"' + formatXmlString(attributes[k]) + '"';
-        else row += formatXmlName(attributeKeys[k]) + "=" + '"' + attributes[k] + '"';
+        if(replaceIllegal) row += formatXmlName(attributeKeys[k], nameReplacementChar) + "=" + '"' + formatXmlString(attributes[k]) + '"';
+        else row += formatXmlName(attributeKeys[k], nameReplacementChar) + "=" + '"' + attributes[k] + '"';
         
         if(k < attributes.length - 1) row += " ";
       }
@@ -386,7 +391,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       {
         indentAmount += 1;
         
-        row += getIndent() + "<" + formatXmlName(childElementKeys[k]) + ">";
+        row += getIndent() + "<" + formatXmlName(childElementKeys[k], nameReplacementChar) + ">";
           
         if(newline)
         {
@@ -403,7 +408,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
           row += "\n" + getIndent();
         }
           
-        row += "</" + formatXmlName(childElementKeys[k]) + ">\n";
+        row += "</" + formatXmlName(childElementKeys[k], nameReplacementChar) + ">\n";
         
         indentAmount -= 1;
       }
@@ -425,7 +430,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       if(childElements.length > 0 || innerTextElements.length > 0)
       {
         if(newline || childElements.length > 0) row += getIndent();
-        row += "</" + formatXmlName(values[j][0]) + ">\n";
+        row += "</" + formatXmlName(values[j][0], nameReplacementChar) + ">\n";
       }
       
       sheetValues[i[j-1]] = row;
@@ -435,14 +440,14 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
     if(rows > 2 || unwrap === false)
     {
       indentAmount -= 1;
-      sheetData += getIndent() + "</" + formatXmlName(sheets[i].getName()) + ">\n";
+      sheetData += getIndent() + "</" + formatXmlName(sheets[i].getName(), nameReplacementChar) + ">\n";
     }
     rawValue += sheetData;
   }
   
   indentAmount -= 1;
   
-  rawValue += "</" + formatXmlName(rootElement) + ">";
+  rawValue += "</" + formatXmlName(rootElement, nameReplacementChar) + ">";
   
   exportDocument(fileName, rawValue, ContentService.MimeType.XML, visualize, replaceFile);
 }
