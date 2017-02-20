@@ -140,7 +140,8 @@ function formatXmlName(value, replacement)
 {
   var xmlName = value;
   
-  if(!isNaN(value[0])) xmlName = "_" + value; //XML element names cannot start with a number, so add a "_" to the start of the name
+  if(!isNaN(value)) xmlName = "_" + value.toString();
+  else if(!isNaN(value[0])) xmlName = "_" + value; //XML element names cannot start with a number, so add a "_" to the start of the name
   
   if(xmlName.length >= 3)
   {
@@ -272,11 +273,11 @@ function columnIsLast(values, index)
 }
 
 
-function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, customSheets)
+function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, customSheets)
 {
   showCompilingMessage('Compiling XML...');
   
-  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, customSheets);
+  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, customSheets);
 }
 
 
@@ -292,6 +293,8 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
+  var exportMessage = "";
+  var exportMessageHeight = 0;
   
   if(customSheets != null)
   {
@@ -350,6 +353,13 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       {
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
         if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired
+        
+        //Make a note if an element name gets formatted so users know they do not have proper formatting
+        if(exportMessage === "" && values[0][k] !== formatXmlName(values[0][k], nameReplacementChar))
+        {
+          exportMessage = "Some keys were not properly formatted for XML and have been auto-formatted.";
+          exportMessageHeight = 25;
+        }
         
         if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))) || 
           (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
@@ -456,7 +466,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
   
   rawValue += "</" + formatXmlName(rootElement, nameReplacementChar) + ">";
   
-  exportDocument(fileName, rawValue, ContentService.MimeType.XML, visualize, replaceFile);
+  exportDocument(fileName, rawValue, ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
 
@@ -552,8 +562,8 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
           {
             row += getIndent();
             
-            if(arrayPrefix != "") row += formatJsonString(stripPrefix(values[0][k], arrayPrefix), false);
-            else row += formatJsonString(values[0][k], false);
+            if(arrayPrefix != "") row += formatJsonString(stripPrefix(values[0][k].toString(), arrayPrefix), false);
+            else row += formatJsonString(values[0][k].toString(), false);
             
             row += " : ";
           
@@ -614,7 +624,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
             
             if(!(singleSheet && contentsArray))
             {
-              row += formatJsonString(values[0][k], false) + " : ";
+              row += formatJsonString(values[0][k].toString(), false) + " : ";
             }
             
             row += formatJsonString(values[j][k].toString(), exportCellObjectJson);
@@ -625,7 +635,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
             
             if(!(singleSheet && contentsArray))
             {
-              row += formatJsonString(values[0][k], false) + " : ";
+              row += formatJsonString(values[0][k].toString(), false) + " : ";
             }
             
             row += formatJsonString(values[j][k], exportCellObjectJson);
@@ -689,18 +699,18 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
   if(contentsArray) rawValue += "]";
   else rawValue += "}";
   
-  exportDocument(fileName, rawValue, ContentService.MimeType.JSON, visualize, replaceFile);
+  exportDocument(fileName, rawValue, ContentService.MimeType.JSON, visualize, replaceFile, "", 0);
 }
 
 
-function exportDocument(filename, content, type, visualize, replaceFile)
+function exportDocument(filename, content, type, visualize, replaceFile, exportMessage, exportMessageHeight)
 {
   if(visualize == true)
   {
-    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:555px; height:425px; }</style><textarea class="display">' + content + '</textarea><br>Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.<br><br><button onclick="google.script.host.close()">Close</button>')
+    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:555px; height:425px; }</style><textarea class="display">' + content + '</textarea><br>Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.<br><br>' + (exportMessage === "" ? '' : exportMessage + '<br><br>') + '<button onclick="google.script.host.close()">Close</button>')
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(600)
-      .setHeight(525);
+      .setHeight(525 + exportMessageHeight);
     SpreadsheetApp.getUi()
       .showModelessDialog(html, 'Visualized Data - ' + filename);
   }
@@ -776,6 +786,12 @@ function exportDocument(filename, content, type, visualize, replaceFile)
     {
       message = "Note: You do not have permission to write to this spreadsheet's parent folder, so the new file is in your 'My Drive' folder.<br><br>";
       height += 50;
+    }
+    
+    if(exportMessage !== "")
+    {
+      message += exportMessage + "<br><br>";
+      height += exportMessageHeight + 25;
     }
     
     var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:355px; height:85px; text-align: center; overflow: auto; } </style>File exported successfully. You can view the file here:<div class="display"><br><br><a href="' + file.getUrl() + '" target="_blank">' + file.getName() + '</a></div>' + message + '<button onclick="google.script.host.close()">Close</button>')

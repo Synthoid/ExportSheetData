@@ -556,9 +556,9 @@
       if(exportChildElementXml) xmlText += " checked";
       xmlText += "/></p><p class='note'>Export a sheet's columns as child elements instead of attributes for each row.</p></div>";
       //Format xml content
-      xmlText += "<div class='sectionWrapper'><p>Format illegal characters: <input id='formatToggle' type='checkbox' value='false'";
+      xmlText += "<div class='sectionWrapper'><p>Don't format illegal characters: <input id='formatToggle' type='checkbox' value='false'";
       if(formatContentXml) xmlText += " checked";
-      xmlText += "/></p><p class='note'>Replace illegal XML characters with their appropriate XML encoding. (keys are automatically encoded)</p></div>";
+      xmlText += "/></p><p class='note'>Don't replace illegal XML characters in values with their appropriate XML encoding. (keys are always encoded)</p></div>";
       //Include first column in export
       xmlText += "<div class='sectionWrapper'><p>Include first column in export: <input id='firstColumnXmlToggle' type='checkbox' value='false'";
       if(includeFirstColumnXml) xmlText += " checked";
@@ -883,11 +883,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, targetSheets);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, targetSheets);
     }
     else
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, null);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, null);
     }
   }
   
@@ -896,7 +896,7 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(visualizeData, true, exportChildElementXml, formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, newSheets);
+    google.script.run.exportXml(visualizeData, true, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, newSheets);
   }
   
   function exportJson()
