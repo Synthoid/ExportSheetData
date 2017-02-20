@@ -292,7 +292,6 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
-  var fileName = spreadsheet.getName() + ".xml";
   
   if(customSheets != null)
   {
@@ -311,6 +310,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
     }
   }
   
+  var fileName = spreadsheet.getName() + (singleSheet ? (" - " + sheets[0].getName()) : "") + ".xml";
   var sheetValues = [[]];
   var rawValue = "<" + formatXmlName(rootElement, nameReplacementChar) + ">\n";
   
@@ -325,10 +325,13 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
     
     var sheetData = "";
     
-    if(rows > 2 || unwrap === false)
+    if(!singleSheet)
     {
-      sheetData += getIndent() + "<" + formatXmlName(sheets[i].getName(), nameReplacementChar) + ">\n";
-      indentAmount += 1;
+      if(rows > 2 || unwrap === false)
+      {
+        sheetData += getIndent() + "<" + formatXmlName(sheets[i].getName(), nameReplacementChar) + ">\n";
+        indentAmount += 1;
+      }
     }
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
@@ -437,11 +440,15 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       sheetData += row;
     }
     
-    if(rows > 2 || unwrap === false)
+    if(!singleSheet)
     {
-      indentAmount -= 1;
-      sheetData += getIndent() + "</" + formatXmlName(sheets[i].getName(), nameReplacementChar) + ">\n";
+      if(rows > 2 || unwrap === false)
+      {
+        indentAmount -= 1;
+        sheetData += getIndent() + "</" + formatXmlName(sheets[i].getName(), nameReplacementChar) + ">\n";
+      }
     }
+    
     rawValue += sheetData;
   }
   
@@ -457,7 +464,6 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
-  var fileName = spreadsheet.getName() + ".json";
   
   if(customSheets != null)
   {
@@ -476,6 +482,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
     }
   }
   
+  var fileName = spreadsheet.getName() + (singleSheet ? (" - " + sheets[0].getName()) : "") + ".json";
   var sheetValues = [[]];
   var rawValue = "";
   
