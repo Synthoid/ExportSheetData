@@ -273,23 +273,23 @@ function columnIsLast(values, index)
 }
 
 
-function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, customSheets)
+function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
 {
   showCompilingMessage('Compiling XML...');
   
-  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, customSheets);
+  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets);
 }
 
 
-function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, ignoreEmpty, customSheets)
+function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
 {
   showCompilingMessage('Compiling JSON...');
   
-  exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, ignoreEmpty, customSheets);
+  exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets);
 }
 
 
-function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, ignoreEmpty, customSheets)
+function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -353,6 +353,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
       {
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
         if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired
+        if(keyHasPrefix(values[0][k], ignorePrefix)) continue; //Skip columns with the ignore prefix
         
         //Make a note if an element name gets formatted so users know they do not have proper formatting
         if(exportMessage === "" && values[0][k] !== formatXmlName(values[0][k], nameReplacementChar))
@@ -470,7 +471,7 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
 }
 
 
-function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, separatorChar, arrayPrefix, replaceFile, newline, unwrap, ignoreEmpty, customSheets)
+function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, separatorChar, arrayPrefix, replaceFile, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -552,6 +553,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
       {
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
         if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired
+        if(keyHasPrefix(values[0][k], ignorePrefix)) continue; //Skip columns with the ignore prefix
         
         if(exportArray && (getCellContentArray(values[j][k], separatorChar).length > 1) || (arrayPrefix != "" && keyHasPrefix(values[0][k], arrayPrefix)))
         {

@@ -146,6 +146,15 @@
     Don't export cells that are empty.
     </p>
   </div>
+  <div class='sectionWrapper'>
+    <p>
+    Don't export columns with prefix: <input id='ignoreColumnsToggle' type='checkbox' value='false'/>
+    </p>
+    <p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value="NOEX_" placeholder="NOEX_" disabled/></p>
+    <p class='note'>
+    Don't export columns with keys using the specified prefix.
+    </p>
+  </div>
   <div id='xmlOptions'>
     <div class='paddedV'>
     <h1>XML Options</h1>
@@ -196,7 +205,7 @@
   var EXP_SHEET_CUSTOM = "custom";
   var EXP_SHEET_SINGLE = "currentSheet";
   var EXP_TYPE_XML = "xmlFormat";
-  var IGNORE_ROW_DEFAULT = "IGNR_";
+  var IGNORE_COLUMN_DEFAULT = "NOEX_";
   //XML
   var XML_ROOT_DEFAULT = "data";
   var XML_ATT_DEFAULT = "ATT_";
@@ -218,6 +227,9 @@
   var unwrapSingleRows = false;
   //Don't export cells that are empty (helps reduce file size)
   var ignoreEmptyCells = false;
+  //Don't export columns with the ignore prefix
+  var ignoreColumnsWithPrefix = false;
+  var ignoreColumnsPrefix = "NOEX_";
   
   //XML Options
   //Export values as child elements instead of attributes
@@ -310,6 +322,33 @@
   function toggleIgnoreEmptyCells()
   {
     ignoreEmptyCells = !ignoreEmptyCells;
+  }
+  
+  function getIgnorePrefix()
+  {
+    if(ignoreColumnsWithPrefix === false) return "";
+  
+    return ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
+  }
+  
+  function updateIgnorePrefix()
+  {
+    ignoreColumnsPrefix = document.getElementById("ignoreColumnsPrefixTextField").value;
+  }
+  
+  function toggleIgnoreColumnsWithPrefix()
+  {
+    ignoreColumnsWithPrefix = !ignoreColumnsWithPrefix;
+    
+    var text = "<input id='ignoreColumnsPrefixTextField' type='text' value=";
+    text += "'" + ignoreColumnsPrefix + "'";
+    text += " placeholder='" + IGNORE_COLUMN_DEFAULT + "'";
+    if(ignoreColumnsWithPrefix === false) text += " disabled";
+    text += "/>";
+    
+    document.getElementById("ignoreColumnsText").innerHTML = text;
+    
+    if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
   }
   
   //XML Options
@@ -883,11 +922,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, targetSheets);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), targetSheets);
     }
     else
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, null);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), null);
     }
   }
   
@@ -896,7 +935,7 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(visualizeData, true, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, newSheets);
+    google.script.run.exportXml(visualizeData, true, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), newSheets);
   }
   
   function exportJson()
@@ -907,11 +946,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, targetSheets);
+      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), targetSheets);
     }
     else
     {
-      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, null);
+      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), null);
     }
   }
   
@@ -920,13 +959,14 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportJson(visualizeData, true, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, newSheets);
+    google.script.run.exportJson(visualizeData, true, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), newSheets);
   }
   
   document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
   document.getElementById('newlineToggle').addEventListener("change",toggleNewline);
   document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
   document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
+  document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
 
   changeExportFormat();
 </script>
