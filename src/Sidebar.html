@@ -244,6 +244,14 @@
   var rootElementXml = "data";
   //XML element name invalid char replacement
   var nameReplacementCharXml = "_";
+  //XML declaration inclusion
+  var includeDeclarationXml = false;
+  //XML declaration version
+  var declarationVersionXml = "1.0";
+  //XML declaration encoding
+  var declarationEncodingXml = "none";
+  //XML declaration standalone
+  var declarationStandaloneXml = "none";
   //Columns using keys starting with a specified string will always be exported as attributes
   var forceAttributesXml = false;
   var forceAttributesPrefixXml = "ATT_";
@@ -372,6 +380,27 @@
     return rootElementXml === "" ? XML_ROOT_DEFAULT : rootElementXml;
   }
   
+  function getDeclarationVersion()
+  {
+    if(includeDeclarationXml === false) return "";
+    
+    return declarationVersionXml;
+  }
+  
+  function getDeclarationEncoding()
+  {
+    if(includeDeclarationXml === false) return "";
+    
+    return declarationEncodingXml === "none" ? "" : declarationEncodingXml;
+  }
+  
+  function getDeclarationStandalone()
+  {
+    if(includeDeclarationXml === false) return "";
+    
+    return declarationStandaloneXml === "none" ? "" : declarationStandaloneXml;
+  }
+  
   function getAttributePrefix()
   {
     if(forceAttributesXml === false) return "";
@@ -417,6 +446,101 @@
   function changeNameReplacementCharXml()
   {
     nameReplacementCharXml = document.getElementById("xmlNameReplaceCharDropdown").value;
+  }
+  
+  function toggleIncludeDeclarationXml()
+  {
+    includeDeclarationXml = !includeDeclarationXml;
+    
+    if(document.getElementById('xmlIncludeDeclarationToggle') != null)
+    {
+      document.getElementById('xmlDeclarationVersionDropdown').removeEventListener("change", changeDeclarationVersionXml);
+      document.getElementById('xmlDeclarationEncodingDropdown').removeEventListener("change", changeDeclarationEncodingXml);
+      document.getElementById('xmlDeclarationStandaloneDropdown').removeEventListener("change", changeDeclarationStandaloneXml);
+    }
+    
+    var advancedXmlText = "";
+    
+    //Declaration Version
+    advancedXmlText += "<div class='sectionWrapper'><p><label for='select'>XML version:</label><select class='dropdown' id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
+    if(includeDeclarationXml === false) advancedXmlText += " disabled";
+    advancedXmlText += "><option value='1.0'";
+    if(declarationVersionXml === "1.0") advancedXmlText += " selected";
+    advancedXmlText += ">1.0</option><option value='1.1'";
+    if(declarationVersionXml === "1.1") advancedXmlText += " selected";
+    advancedXmlText += ">1.1</option></select></p></div>";
+    //Declaration Encoding
+    advancedXmlText += "<div class='sectionWrapper'><p><label for='select'>XML encoding:</label><select class='dropdown' id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
+    if(includeDeclarationXml === false) advancedXmlText += " disabled";
+    advancedXmlText += "><option value='none'";
+    if(declarationEncodingXml === "none") advancedXmlText += " selected";
+    advancedXmlText += ">None</option><option value='UTF-8'";
+    if(declarationEncodingXml === "UTF-8") advancedXmlText += " selected";
+    advancedXmlText += ">UTF-8</option><option value='UTF-16'";
+    if(declarationEncodingXml === "UTF-16") advancedXmlText += " selected";
+    advancedXmlText += ">UTF-16</option><option value='ISO-10646-UCS-2'";
+    if(declarationEncodingXml === "ISO-10646-UCS-2") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-10646-UCS-2</option><option value='ISO-10646-UCS-4'";
+    if(declarationEncodingXml === "ISO-10646-UCS-4") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-10646-UCS-4</option><option value='ISO-8859-1'";
+    if(declarationEncodingXml === "ISO-8859-1") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-1</option><option value='ISO-8859-2'";
+    if(declarationEncodingXml === "ISO-8859-2") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-2</option><option value='ISO-8859-3'";
+    if(declarationEncodingXml === "ISO-8859-3") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-3</option><option value='ISO-8859-4'";
+    if(declarationEncodingXml === "ISO-8859-4") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-4</option><option value='ISO-8859-5'";
+    if(declarationEncodingXml === "ISO-8859-5") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-5</option><option value='ISO-8859-6'";
+    if(declarationEncodingXml === "ISO-8859-6") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-6</option><option value='ISO-8859-7'";
+    if(declarationEncodingXml === "ISO-8859-7") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-7</option><option value='ISO-8859-8'";
+    if(declarationEncodingXml === "ISO-8859-8") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-8</option><option value='ISO-8859-9'";
+    if(declarationEncodingXml === "ISO-8859-9") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-8859-9</option><option value='ISO-2022-JP'";
+    if(declarationEncodingXml === "ISO-2022-JP") advancedXmlText += " selected";
+    advancedXmlText += ">ISO-2022-JP</option><option value='Shift_JIS'";
+    if(declarationEncodingXml === "Shift_JIS") advancedXmlText += " selected";
+    advancedXmlText += ">Shift_JIS</option><option value='EUC-JP'";
+    if(declarationEncodingXml === "EUC-JP") advancedXmlText += " selected";
+    advancedXmlText += ">EUC-JP</option></select></p></div>";
+    //Declaration Standalone
+    advancedXmlText += "<div class='sectionWrapper'><p><label for='select'>Standalone:</label><select class='dropdown' id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
+    if(includeDeclarationXml === false) advancedXmlText += " disabled";
+    advancedXmlText += "><option value='none'";
+    if(declarationStandaloneXml === "none") advancedXmlText += " selected";
+    advancedXmlText += ">None</option><option value='yes'";
+    if(declarationStandaloneXml === "yes") advancedXmlText += " selected";
+    advancedXmlText += ">Yes</option><option value='no'";
+    if(declarationStandaloneXml === "no") advancedXmlText += " selected";
+    advancedXmlText += ">No</option></select></p></div>";
+    
+    document.getElementById("xmlDeclarationSection").innerHTML = advancedXmlText;
+    
+    if(includeDeclarationXml === true)
+    {
+      document.getElementById('xmlDeclarationVersionDropdown').addEventListener("change", changeDeclarationVersionXml);
+      document.getElementById('xmlDeclarationEncodingDropdown').addEventListener("change", changeDeclarationEncodingXml);
+      document.getElementById('xmlDeclarationStandaloneDropdown').addEventListener("change", changeDeclarationStandaloneXml);
+    }
+  }
+  
+  function changeDeclarationVersionXml()
+  {
+    declarationVersionXml = document.getElementById("xmlDeclarationVersionDropdown").value;
+  }
+  
+  function changeDeclarationEncodingXml()
+  {
+    declarationEncodingXml = document.getElementById("xmlDeclarationEncodingDropdown").value;
+  }
+  
+  function changeDeclarationStandaloneXml()
+  {
+    declarationStandaloneXml = document.getElementById("xmlDeclarationStandaloneDropdown").value;
   }
   
   function toggleAttributePrefixXml()
@@ -618,6 +742,69 @@
       advancedXmlText += ">Dash ( - )</option><option value='.'";
       if(nameReplacementCharXml === ".") advancedXmlText += " selected";
       advancedXmlText += ">Dot ( . )</option></select></p><p class='note'>What character to use when replacing illegal characters in XML element names.</p></div>";
+      //Declaration
+      //includeDeclarationXml
+      advancedXmlText += "<div class='sectionWrapper'><p>Inlcude XML declaration at top of exported document: <input id='xmlIncludeDeclarationToggle' type='checkbox' value='false'";
+      if(includeDeclarationXml === true) advancedXmlText += " checked";
+      advancedXmlText += "/></p></div>";
+      //Declaration Version
+      advancedXmlText += "<div id='xmlDeclarationSection'>";
+      advancedXmlText += "<div class='sectionWrapper'><p><label for='select'>XML version:</label><select class='dropdown' id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
+      if(includeDeclarationXml === false) advancedXmlText += " disabled";
+      advancedXmlText += "><option value='1.0'";
+      if(declarationVersionXml === "1.0") advancedXmlText += " selected";
+      advancedXmlText += ">1.0</option><option value='1.1'";
+      if(declarationVersionXml === "1.1") advancedXmlText += " selected";
+      advancedXmlText += ">1.1</option></select></p></div>";
+      //Declaration Encoding
+      advancedXmlText += "<div class='sectionWrapper'><p><label for='select'>XML encoding:</label><select class='dropdown' id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
+      if(includeDeclarationXml === false) advancedXmlText += " disabled";
+      advancedXmlText += "><option value='none'";
+      if(declarationEncodingXml === "none") advancedXmlText += " selected";
+      advancedXmlText += ">None</option><option value='UTF-8'";
+      if(declarationEncodingXml === "UTF-8") advancedXmlText += " selected";
+      advancedXmlText += ">UTF-8</option><option value='UTF-16'";
+      if(declarationEncodingXml === "UTF-16") advancedXmlText += " selected";
+      advancedXmlText += ">UTF-16</option><option value='ISO-10646-UCS-2'";
+      if(declarationEncodingXml === "ISO-10646-UCS-2") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-10646-UCS-2</option><option value='ISO-10646-UCS-4'";
+      if(declarationEncodingXml === "ISO-10646-UCS-4") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-10646-UCS-4</option><option value='ISO-8859-1'";
+      if(declarationEncodingXml === "ISO-8859-1") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-1</option><option value='ISO-8859-2'";
+      if(declarationEncodingXml === "ISO-8859-2") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-2</option><option value='ISO-8859-3'";
+      if(declarationEncodingXml === "ISO-8859-3") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-3</option><option value='ISO-8859-4'";
+      if(declarationEncodingXml === "ISO-8859-4") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-4</option><option value='ISO-8859-5'";
+      if(declarationEncodingXml === "ISO-8859-5") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-5</option><option value='ISO-8859-6'";
+      if(declarationEncodingXml === "ISO-8859-6") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-6</option><option value='ISO-8859-7'";
+      if(declarationEncodingXml === "ISO-8859-7") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-7</option><option value='ISO-8859-8'";
+      if(declarationEncodingXml === "ISO-8859-8") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-8</option><option value='ISO-8859-9'";
+      if(declarationEncodingXml === "ISO-8859-9") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-8859-9</option><option value='ISO-2022-JP'";
+      if(declarationEncodingXml === "ISO-2022-JP") advancedXmlText += " selected";
+      advancedXmlText += ">ISO-2022-JP</option><option value='Shift_JIS'";
+      if(declarationEncodingXml === "Shift_JIS") advancedXmlText += " selected";
+      advancedXmlText += ">Shift_JIS</option><option value='EUC-JP'";
+      if(declarationEncodingXml === "EUC-JP") advancedXmlText += " selected";
+      advancedXmlText += ">EUC-JP</option></select></p></div>";
+      //Declaration Standalone
+      advancedXmlText += "<div class='sectionWrapper'><p><label for='select'>Standalone:</label><select class='dropdown' id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
+      if(includeDeclarationXml === false) advancedXmlText += " disabled";
+      advancedXmlText += "><option value='none'";
+      if(declarationStandaloneXml === "none") advancedXmlText += " selected";
+      advancedXmlText += ">None</option><option value='yes'";
+      if(declarationStandaloneXml === "yes") advancedXmlText += " selected";
+      advancedXmlText += ">Yes</option><option value='no'";
+      if(declarationStandaloneXml === "no") advancedXmlText += " selected";
+      advancedXmlText += ">No</option></select></p></div>";
+      advancedXmlText += "</div>";
       //Force attribute column export
       advancedXmlText += "<div class='sectionWrapper'><p>Export columns with prefix as attributes: <input id='xmlForceAttributeToggle' type='checkbox' value='false'";
       if(forceAttributesXml === true) advancedXmlText += " checked";
@@ -658,6 +845,10 @@
       //Advanced Options
       document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
       document.getElementById('xmlNameReplaceCharDropdown').addEventListener("change", changeNameReplacementCharXml);
+      document.getElementById('xmlIncludeDeclarationToggle').addEventListener("change", toggleIncludeDeclarationXml);
+      document.getElementById('xmlDeclarationVersionDropdown').addEventListener("change", changeDeclarationVersionXml);
+      document.getElementById('xmlDeclarationEncodingDropdown').addEventListener("change", changeDeclarationEncodingXml);
+      document.getElementById('xmlDeclarationStandaloneDropdown').addEventListener("change", changeDeclarationStandaloneXml);
       document.getElementById('xmlForceAttributeToggle').addEventListener("change", toggleAttributePrefixXml);
       if(forceAttributesXml === true) document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
       document.getElementById('xmlForceChildElementToggle').addEventListener("change", toggleChildElementPrefixXml);
@@ -845,6 +1036,15 @@
     {
       document.getElementById('xmlNameReplaceCharDropdown').removeEventListener("change", changeNameReplacementCharXml);
     }
+    
+    if(document.getElementById('xmlIncludeDeclarationToggle') != null)
+    {
+      document.getElementById('xmlIncludeDeclarationToggle').removeEventListener("change", toggleIncludeDeclarationXml);
+      document.getElementById('xmlDeclarationVersionDropdown').removeEventListener("change", changeDeclarationVersionXml);
+      document.getElementById('xmlDeclarationEncodingDropdown').removeEventListener("change", changeDeclarationEncodingXml);
+      document.getElementById('xmlDeclarationStandaloneDropdown').removeEventListener("change", changeDeclarationStandaloneXml);
+    }
+    
     if(document.getElementById('xmlForceAttributeToggle') != null)
     {
       document.getElementById('xmlForceAttributeToggle').removeEventListener("change", toggleAttributePrefixXml);
@@ -922,11 +1122,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), targetSheets);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getDeclarationVersion(), getDeclarationEncoding(), getDeclarationStandalone(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), targetSheets);
     }
     else
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), null);
+      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getDeclarationVersion(), getDeclarationEncoding(), getDeclarationStandalone(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), null);
     }
   }
   
@@ -935,7 +1135,7 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(visualizeData, true, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), newSheets);
+    google.script.run.exportXml(visualizeData, true, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getDeclarationVersion(), getDeclarationEncoding(), getDeclarationStandalone(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), newSheets);
   }
   
   function exportJson()

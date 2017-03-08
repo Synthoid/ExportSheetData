@@ -260,12 +260,19 @@ function stripPrefix(key, prefix)
 }
 
 //Check if a column has columns with keys following it when exporting values for a JSON blob
-function columnIsLast(values, index)
+function columnIsLast(values, index, ignorePrefix)
 {
   index++;
   while(index < values.length)
   {
-    if(values[index] != null && values[index] !== "") return false;
+    if(values[index] != null && values[index] !== "")
+    {
+      //If the last column is supposed to be ignored, return true
+      if(ignorePrefix !== "" && index == values.length - 1 && keyHasPrefix(values[index], ignorePrefix)) return true;
+      
+      return false;
+    }
+    
     index++;
   }
   
@@ -273,11 +280,11 @@ function columnIsLast(values, index)
 }
 
 
-function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
+function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, declarationVersion, declarationEncoding, declarationStandalone, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
 {
   showCompilingMessage('Compiling XML...');
   
-  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets);
+  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, declarationVersion, declarationEncoding, declarationStandalone, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets);
 }
 
 
@@ -289,7 +296,7 @@ function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson,
 }
 
 
-function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
+function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, declarationVersion, declarationEncoding, declarationStandalone, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
@@ -315,7 +322,19 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
   
   var fileName = spreadsheet.getName() + (singleSheet ? (" - " + sheets[0].getName()) : "") + ".xml";
   var sheetValues = [[]];
-  var rawValue = "<" + formatXmlName(rootElement, nameReplacementChar) + ">\n";
+  var rawValue = "";
+  
+  if(declarationVersion !== "")
+  {
+    rawValue = '<?xml version="' + declarationVersion + '"';
+    
+    if(declarationEncoding !== "") rawValue += ' encoding="' + declarationEncoding + '"';
+    if(declarationStandalone !== "") rawValue += ' standalone="' + declarationStandalone + '"';
+    
+    rawValue += '?>\n';
+  }
+  
+  rawValue += "<" + formatXmlName(rootElement, nameReplacementChar) + ">\n";
   
   indentAmount += 1;
                             
@@ -646,7 +665,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
         
         if(k < columns - 1)
         {
-          if(k + 1 < columns && !columnIsLast(values[0], k))
+          if(k + 1 < columns && !columnIsLast(values[0], k, ignorePrefix))
           {
             row += ",";
           }
@@ -714,7 +733,7 @@ function exportDocument(filename, content, type, visualize, replaceFile, exportM
       .setWidth(600)
       .setHeight(525 + exportMessageHeight);
     SpreadsheetApp.getUi()
-      .showModelessDialog(html, 'Visualized Data - ' + filename);
+    .showModelessDialog(html, 'Visualized Data: ' + filename);
   }
   else
   {
