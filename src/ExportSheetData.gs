@@ -582,7 +582,7 @@ function exportSpreadsheetJson(formatSettings)
     
     var row = "";
     
-    if(!singleSheet || sheetArray)
+    if(!singleSheet || sheetArray || (valueArray && columns == 1)) //NOTE: Make sure value array does not cause unexpected formatting issues
     {
       row = getIndent();
       
@@ -590,7 +590,7 @@ function exportSpreadsheetJson(formatSettings)
       
       if(!contentsArray && newline) row += "\n" + getIndent();
       
-      if((sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false)))// || (valueArray && columns == 1))
+      if((sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false)) || (valueArray && columns == 1))
       {
         row += "[\n";
       }
@@ -602,52 +602,161 @@ function exportSpreadsheetJson(formatSettings)
       indentAmount += 1;
     }
     
-    //if(!valueArray || columns > 1)
-    
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
-      if(rows > 2 || unwrap === false) //Only wrap the json for this row if there is more than one row (not counting the keys row)
+      if(!valueArray || columns > 1)
       {
-        //TODO: Need to have spacing formatting when single sheet and content
-        if(!sheetArray && !(singleSheet && contentsArray))
+        if(rows > 2 || unwrap === false) //Only wrap the json for this row if there is more than one row (not counting the keys row)
         {
-          row += getIndent() + '"' + values[j][0] + '"' + " : "; //This uses the first, non-key row, column so the contained objects are less likely to share a key value.
-          
-          if(newline) row += "\n";
-        }
-        
-        if(newline || (singleSheet && contentsArray) || sheetArray) row += getIndent() + "{\n";
-        else row += "{\n";
-        
-        indentAmount += 1;
-      }
-      
-      for(var k=0; k < columns; k++)
-      {
-        if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
-        if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired
-        if(keyHasPrefix(values[0][k], ignorePrefix)) continue; //Skip columns with the ignore prefix
-        
-        if(exportArray && (getCellContentArray(values[j][k], separatorChar).length > 1) || (arrayPrefix != "" && keyHasPrefix(values[0][k], arrayPrefix)))
-        {
-          var content = values[j][k];
-          var cellArray = getCellContentArray(content, separatorChar);
-          
-          if(!(singleSheet && contentsArray))
+          //TODO: Need to have spacing formatting when single sheet and content
+          if(!sheetArray && !(singleSheet && contentsArray))
           {
-            row += getIndent();
+            row += getIndent() + '"' + values[j][0] + '"' + " : "; //This uses the first, non-key row, column so the contained objects are less likely to share a key value.
             
-            if(arrayPrefix != "") row += formatJsonString(stripPrefix(values[0][k].toString(), arrayPrefix), false);
-            else row += formatJsonString(values[0][k].toString(), false);
-            
-            row += " : ";
-          
-            if(newline) row += "\n" + getIndent();
+            if(newline) row += "\n";
           }
           
-          row += "[\n";
+          if(newline || (singleSheet && contentsArray) || sheetArray) row += getIndent() + "{\n";
+          else row += "{\n";
           
           indentAmount += 1;
+        }
+        
+        for(var k=0; k < columns; k++)
+        {
+          if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
+          if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired
+          if(keyHasPrefix(values[0][k], ignorePrefix)) continue; //Skip columns with the ignore prefix
+          
+          if(exportArray && (getCellContentArray(values[j][k], separatorChar).length > 1) || (arrayPrefix != "" && keyHasPrefix(values[0][k], arrayPrefix)))
+          {
+            var content = values[j][k];
+            var cellArray = getCellContentArray(content, separatorChar);
+            
+            if(!(singleSheet && contentsArray))
+            {
+              row += getIndent();
+              
+              if(arrayPrefix != "") row += formatJsonString(stripPrefix(values[0][k].toString(), arrayPrefix), false);
+              else row += formatJsonString(values[0][k].toString(), false);
+              
+              row += " : ";
+              
+              if(newline) row += "\n" + getIndent();
+            }
+            
+            row += "[\n";
+            
+            indentAmount += 1;
+            
+            for(var l=0; l < cellArray.length; l++)
+            {
+              if(cellArray[l] != "")
+              {
+                if(forceString)
+                {
+                  row += getIndent() + formatJsonString(cellArray[l].toString(), exportCellObjectJson);
+                }
+                else
+                {
+                  //Check if string is a float, int, NaN, bool, 
+                  var cellValue = cellArray[l];
+                  var formattedValue = "";
+                  
+                  if(cellValue.toLowerCase() == 'true' || cellValue.toLowerCase() == 'false') //Bools
+                  {
+                    formattedValue = formatJsonString(cellValue, exportCellObjectJson);
+                  }
+                  else if(!isNaN(Number(cellValue)) || cellValue == 'NaN') //Numbers
+                  {
+                    formattedValue = formatJsonString(Number(cellValue), exportCellObjectJson);
+                  }
+                  else //If nothing else, Strings
+                  {
+                    formattedValue = formatJsonString(cellValue, exportCellObjectJson);
+                  }
+                  
+                  row += getIndent() + formattedValue;
+                }
+                
+                if(l == cellArray.length - 1 || (l == cellArray.length - 2 && cellArray[cellArray.length-1] == ""))
+                {
+                  row += '\n';
+                }
+                else row += ',\n';
+              }
+            }
+            
+            indentAmount -= 1;
+            
+            row += getIndent() + ']';
+          }
+          else
+          {
+            if(forceString)
+            {
+              row += getIndent();
+              
+              if(!(singleSheet && contentsArray))
+              {
+                row += formatJsonString(values[0][k].toString(), false) + " : ";
+              }
+              
+              row += formatJsonString(values[j][k].toString(), exportCellObjectJson);
+            }
+            else
+            {
+              row += getIndent();
+              
+              if(!(singleSheet && contentsArray))
+              {
+                row += formatJsonString(values[0][k].toString(), false) + " : ";
+              }
+              
+              row += formatJsonString(values[j][k], exportCellObjectJson);
+            }
+          }
+          
+          if(k < columns - 1)
+          {
+            if(k + 1 < columns && !columnIsLast(values[0], k, ignorePrefix))
+            {
+              row += ",";
+            }
+          }
+          
+          row += "\n";
+        }
+        
+        if(rows > 2 || unwrap == false)
+        {
+          indentAmount -= 1;
+          
+          if(j < rows - 1)
+          {
+            row += getIndent() + "},\n";
+          }
+          else 
+          {
+            row += getIndent() + "}\n";
+          }
+        }
+        
+        sheetValues[i[j-1]] = row;
+      }
+      else
+      {
+        //The sheet has only one column, so export each row as a single value in a JSON array
+        if(values[0][0] === "" || values[0][0] == null) continue; //Skip columns with empty keys
+        if(ignoreEmpty && values[j][0] === "") continue; //Skip empty cells if desired
+        if(keyHasPrefix(values[0][0], ignorePrefix)) continue; //Skip columns with the ignore prefix
+        
+        if(exportArray && (getCellContentArray(values[j][0], separatorChar).length > 1) || (arrayPrefix != "" && keyHasPrefix(values[0][0], arrayPrefix)))
+        {
+          var content = values[j][0];
+          var cellArray = getCellContentArray(content, separatorChar);
+          
+          row += getIndent() + '[';
           
           for(var l=0; l < cellArray.length; l++)
           {
@@ -655,7 +764,7 @@ function exportSpreadsheetJson(formatSettings)
             {
               if(forceString)
               {
-                row += getIndent() + formatJsonString(cellArray[l].toString(), exportCellObjectJson);
+                row += formatJsonString(cellArray[l].toString(), exportCellObjectJson);
               }
               else
               {
@@ -676,81 +785,42 @@ function exportSpreadsheetJson(formatSettings)
                   formattedValue = formatJsonString(cellValue, exportCellObjectJson);
                 }
                 
-                row += getIndent() + formattedValue;
+                row += formattedValue;
               }
               
-              if(l == cellArray.length - 1 || (l == cellArray.length - 2 && cellArray[cellArray.length-1] == ""))
+              if(l === cellArray.length - 1 || (l === cellArray.length - 2 && cellArray[cellArray.length-1] == ""))
               {
-                row += '\n';
+                //row += '\n';
               }
-              else row += ',\n';
+              else row += ', ';
             }
           }
           
-          indentAmount -= 1;
-          
-          row += getIndent() + ']';
+          row += ']';
         }
         else
         {
           if(forceString)
           {
-            row += getIndent();
-            
-            if(!(singleSheet && contentsArray))
-            {
-              row += formatJsonString(values[0][k].toString(), false) + " : ";
-            }
-            
-            row += formatJsonString(values[j][k].toString(), exportCellObjectJson);
+            row += getIndent() + formatJsonString(values[j][0].toString(), exportCellObjectJson);
           }
           else
           {
-            row += getIndent();
-            
-            if(!(singleSheet && contentsArray))
-            {
-              row += formatJsonString(values[0][k].toString(), false) + " : ";
-            }
-            
-            row += formatJsonString(values[j][k], exportCellObjectJson);
+            row += getIndent() + formatJsonString(values[j][0], exportCellObjectJson);
           }
         }
         
-        if(k < columns - 1)
-        {
-          if(k + 1 < columns && !columnIsLast(values[0], k, ignorePrefix))
-          {
-            row += ",";
-          }
-        }
-        
-        row += "\n";
+        if(j < rows - 1) row += ',\n'
+        else row += '\n';
       }
-      
-      if(rows > 2 || unwrap == false)
-      {
-        indentAmount -= 1;
-        
-        if(j < rows - 1)
-        {
-          row += getIndent() + "},\n";
-        }
-        else 
-        {
-          row += getIndent() + "}\n";
-        }
-      }
-      
-      sheetValues[i[j-1]] = row;
     }
     
-    if(!singleSheet || sheetArray)
+    if(!singleSheet || sheetArray || (valueArray && columns == 1))
     {
       indentAmount -= 1;
       row += getIndent();
       
-      if((sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false)))// || (valueArray && columns == 1))
+      if((sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false)) || (valueArray && columns == 1))
       {
         row += "]";
       }
@@ -765,7 +835,7 @@ function exportSpreadsheetJson(formatSettings)
       row += ",";
     }
     
-    if(!singleSheet) row += "\n";
+    if(!singleSheet || (singleSheet && (sheetArray || (valueArray && columns == 1)))) row += "\n";
     rawValue += row;
   }
   
