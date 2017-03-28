@@ -21,8 +21,8 @@
   
   .mainWrapper
   {
-  margin-left: auto;
-  margin-right: auto;
+	margin-left: auto;
+	margin-right: auto;
   }
   
   .sectionWrapper
@@ -267,6 +267,8 @@
   var exportCellArrayJson = false;
   //Export a sheet's contents as an array, with each row being one JSON object element in the array
   var exportSheetArrayJson = false;
+  //Export a sheet's contents as an array of values if the sheet contains only one column
+  var exportValueArrayJson = false;
   //Force every value to be a string instead of the default bool/int/float/etc.
   var forceStringJson = false;
   
@@ -609,6 +611,11 @@
     exportSheetArrayJson = !exportSheetArrayJson;
   }
   
+  function toggleValueArrayJson()
+  {
+    exportValueArrayJson = !exportValueArrayJson;
+  }
+  
   function toggleForceStringJson()
   {
     forceStringJson = !forceStringJson;
@@ -619,7 +626,7 @@
     return (arraySeparatorCharJson === "" || arraySeparatorCharJson === "'" || arraySeparatorCharJson === '"') ? JSON_SEPARATOR_DEFAULT : arraySeparatorCharJson;
   }
   
-  function getForceArayPrefixJson()
+  function getForceArrayPrefixJson()
   {
     if(forceArrayJson === false) return "";
   
@@ -876,6 +883,10 @@
       jsonText += "<div class='sectionWrapper'><p>Export sheet arrays: <input id='sheetArrayToggle' type='checkbox' value='SheetArray'";
       if(exportSheetArrayJson) jsonText += " checked";
       jsonText += "></p><p class='note'>Export a sheet's contents as an array of JSON objects.</p></div>";
+      //Sheet to JSON value array
+      jsonText += "<div class='sectionWrapper'><p>Export value arrays: <input id='valueArrayToggle' type='checkbox' value='ValueArray'";
+      if(exportValueArrayJson) jsonText += " checked";
+      jsonText += "></p><p class='note'>Export a sheet's contents as an array of JSON values if it has only one column.</p></div>";
       
       //Advanced Options
       var advancedJsonText = "<div class='paddedV'><h1>Advanced Options</h1></div>";
@@ -911,6 +922,7 @@
       document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
       document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
       document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
+      document.getElementById('valueArrayToggle').addEventListener("change", toggleValueArrayJson);
       document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
       //Advanced Options
       document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
@@ -1081,6 +1093,10 @@
     {
       document.getElementById('sheetArrayToggle').removeEventListener("change", toggleSheetArrayJson);
     }
+    if(document.getElementById('valueArrayToggle') != null)
+    {
+      document.getElementById('valueArrayToggle').removeEventListener("change", toggleValueArrayJson);
+    }
     if(document.getElementById('forceStringToggle') != null)
     {
       document.getElementById('forceStringToggle').removeEventListener("change", toggleForceStringJson);
@@ -1094,6 +1110,59 @@
       document.getElementById('jsonForceArrayToggle').removeEventListener("change", toggleArrayPrefixJson);
       document.getElementById('jsonForceArrayTextField').removeEventListener("change", updateArrayPrefixJson);
     }
+  }
+  
+  //Creates a JSON blob representing the current XML settings
+  function generateXmlSettings(singleSheet, exportSheets)
+  {
+    var settings = {
+      "visualize" : visualizeData,
+      "singleSheet" : singleSheet,
+      "exportChildElements" : exportChildElementXml,
+      "formatContent" : !formatContentXml,
+      "includeFirstColumn" : includeFirstColumnXml,
+      "rootElement" : getRootElement(),
+      "nameReplacementChar" : nameReplacementCharXml,
+      "declarationVersion" : getDeclarationVersion(),
+      "declarationEncoding" : getDeclarationEncoding(),
+      "declarationStandalone" : getDeclarationStandalone(),
+      "attributePrefix" : getAttributePrefix(),
+      "childElementPrefix" : getChildElementPrefix(),
+      "innerTextPrefix" : getInnerTextPrefix(),
+      "replaceExistingFiles" : replaceExistingFiles,
+      "newlineElements" : newlineElements,
+      "unwrapSingleRows" : unwrapSingleRows,
+      "ignoreEmptyCells" : ignoreEmptyCells,
+      "ignorePrefix" : getIgnorePrefix(),
+      "targetSheets" : exportSheets
+    };
+    
+    return JSON.stringify(settings);
+  }
+  
+  //Creates a JSON blob representing the current XML settings
+  function generateJsonSettings(singleSheet, exportSheets)
+  {
+    var settings = {
+      "visualize" : visualizeData,
+      "singleSheet" : singleSheet,
+      "exportContentsAsArray" : exportContentsAsArrayJson,
+      "exportCellObject" : exportCellObjectJson,
+      "exportCellArray" : exportCellArrayJson,
+      "exportSheetArray" : exportSheetArrayJson,
+      "exportValueArray" : exportValueArrayJson,
+      "forceString" : forceStringJson,
+      "separatorChar" : getSeparatorCharJson(),
+      "forceArrayPrefix" : getForceArrayPrefixJson(),
+      "replaceExistingFiles" : replaceExistingFiles,
+      "newlineElements" : newlineElements,
+      "unwrapSingleRows" : unwrapSingleRows,
+      "ignoreEmptyCells" : ignoreEmptyCells,
+      "ignorePrefix" : getIgnorePrefix(),
+      "targetSheets" : exportSheets
+    };
+    
+    return JSON.stringify(settings);
   }
   
   //Set selected sheets to be visualized with the current options
@@ -1122,11 +1191,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getDeclarationVersion(), getDeclarationEncoding(), getDeclarationStandalone(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), targetSheets);
+      google.script.run.exportXml(generateXmlSettings(false, targetSheets));
     }
     else
     {
-      google.script.run.exportXml(visualizeData, false, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getDeclarationVersion(), getDeclarationEncoding(), getDeclarationStandalone(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), null);
+      google.script.run.exportXml(generateXmlSettings(false, null));
     }
   }
   
@@ -1135,7 +1204,7 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(visualizeData, true, exportChildElementXml, !formatContentXml, includeFirstColumnXml, getRootElement(), nameReplacementCharXml, getDeclarationVersion(), getDeclarationEncoding(), getDeclarationStandalone(), getAttributePrefix(), getChildElementPrefix(), getInnerTextPrefix(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), newSheets);
+    google.script.run.exportXml(generateXmlSettings(true, newSheets));
   }
   
   function exportJson()
@@ -1146,11 +1215,11 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), targetSheets);
+      google.script.run.exportJson(generateJsonSettings(false, targetSheets));
     }
     else
     {
-      google.script.run.exportJson(visualizeData, false, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), null);
+      google.script.run.exportJson(generateJsonSettings(false, null));
     }
   }
   
@@ -1159,7 +1228,7 @@
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportJson(visualizeData, true, exportContentsAsArrayJson, exportCellObjectJson, exportCellArrayJson, exportSheetArrayJson, forceStringJson, getSeparatorCharJson(), getForceArayPrefixJson(), replaceExistingFiles, newlineElements, unwrapSingleRows, ignoreEmptyCells, getIgnorePrefix(), newSheets);
+    google.script.run.exportJson(generateJsonSettings(true, newSheets));
   }
   
   document.getElementById('replaceToggle').addEventListener("change",toggleReplace);

@@ -280,24 +280,51 @@ function columnIsLast(values, index, ignorePrefix)
 }
 
 
-function exportXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, declarationVersion, declarationEncoding, declarationStandalone, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
+function exportXml(formatSettings)
 {
   showCompilingMessage('Compiling XML...');
   
-  exportSpreadsheetXml(visualize, singleSheet, childElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, declarationVersion, declarationEncoding, declarationStandalone, attributePrefix, childElementPrefix, innerTextPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets);
+  exportSpreadsheetXml(formatSettings);
 }
 
 
-function exportJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
+function exportJson(formatSettings)
 {
   showCompilingMessage('Compiling JSON...');
   
-  exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, cellArray, sheetArray, forceString, separatorChar, arrayPrefix, replace, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets);
+  exportSpreadsheetJson(formatSettings);
 }
 
 
-function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceIllegal, includeFirstColumnXml, rootElement, nameReplacementChar, declarationVersion, declarationEncoding, declarationStandalone, attributePrefix, childElementPrefix, innerTextPrefix, replaceFile, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
+function exportSpreadsheetXml(formatSettings)
 {
+  //Settings
+  var settings = JSON.parse(formatSettings);
+  
+  //File settings
+  var visualize = settings["visualize"];
+  var singleSheet = settings["singleSheet"];
+  var replaceFile = settings["replaceExistingFiles"];
+  var newline = settings["newlineElements"];
+  var unwrap = settings["unwrapSingleRows"];
+  var ignoreEmpty = settings["ignoreEmptyCells"];
+  var ignorePrefix = settings["ignorePrefix"];
+  var customSheets = settings["targetSheets"];
+  
+  //XML settings
+  var useChildElements = settings["exportChildElements"];
+  var replaceIllegal = settings["formatContent"];
+  var includeFirstColumnXml = settings["includeFirstColumn"];
+  var rootElement = settings["rootElement"];
+  var nameReplacementChar = settings["nameReplacementChar"];
+  var declarationVersion = settings["declarationVersion"];
+  var declarationEncoding = settings["declarationEncoding"];
+  var declarationStandalone = settings["declarationStandalone"];
+  var attributePrefix = settings["attributePrefix"];
+  var childElementPrefix = settings["childElementPrefix"];
+  var innerTextPrefix = settings["innerTextPrefix"];
+  
+  //Sheets info
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
   var exportMessage = "";
@@ -490,8 +517,33 @@ function exportSpreadsheetXml(visualize, singleSheet, useChildElements, replaceI
 }
 
 
-function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, separatorChar, arrayPrefix, replaceFile, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
+//function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, separatorChar, arrayPrefix, replaceFile, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
+function exportSpreadsheetJson(formatSettings)
 {
+  //Settings
+  var settings = JSON.parse(formatSettings);
+  
+  //File settings
+  var visualize = settings["visualize"];
+  var singleSheet = settings["singleSheet"];
+  var replaceFile = settings["replaceExistingFiles"];
+  var newline = settings["newlineElements"];
+  var unwrap = settings["unwrapSingleRows"];
+  var ignoreEmpty = settings["ignoreEmptyCells"];
+  var ignorePrefix = settings["ignorePrefix"];
+  var customSheets = settings["targetSheets"];
+  
+  //JSON settings
+  var contentsArray = settings["exportContentsAsArray"];
+  var exportCellObjectJson = settings["exportCellObject"];
+  var exportArray = settings["exportCellArray"];
+  var sheetArray = settings["exportSheetArray"];
+  var valueArray = settings["exportValueArray"];
+  var forceString = settings["forceString"];
+  var separatorChar = settings["separatorChar"];
+  var arrayPrefix = settings["forceArrayPrefix"];
+  
+  //Sheets info
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
   
@@ -538,7 +590,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
       
       if(!contentsArray && newline) row += "\n" + getIndent();
       
-      if(sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false))
+      if((sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false)))// || (valueArray && columns == 1))
       {
         row += "[\n";
       }
@@ -549,6 +601,8 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
       
       indentAmount += 1;
     }
+    
+    //if(!valueArray || columns > 1)
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
@@ -696,7 +750,7 @@ function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCell
       indentAmount -= 1;
       row += getIndent();
       
-      if(sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false))
+      if((sheetArray && (!(rows <= 2 && unwrap == true) || rows > 2 || unwrap == false)))// || (valueArray && columns == 1))
       {
         row += "]";
       }
