@@ -1,6 +1,22 @@
 var indentValue = "  ";
 var indentAmount = 0;
 
+//Gets the last settings for ESD.
+function getProperties()
+{
+  var properties = PropertiesService.getDocumentProperties();
+  
+  return JSON.stringify(properties.getProperties());
+}
+
+//Saves the settings last used for ESD so the user doesn't need to reselect them next time ESD is opened.
+function setProperties(newProperties)
+{
+  var properties = PropertiesService.getDocumentProperties();
+  
+  properties.setProperties(JSON.parse(newProperties));
+}
+
 //Gets the number of indents to use when formatting
 function getIndent()
 {
@@ -295,7 +311,7 @@ function exportJson(formatSettings)
   exportSpreadsheetJson(formatSettings);
 }
 
-
+//TODO: Declaration version doesn't seem to export currently
 function exportSpreadsheetXml(formatSettings)
 {
   //Settings
