@@ -158,41 +158,12 @@
     </div>
   </div>
   <div id='xmlOptions'>
-    <div class='paddedV'>
-    <h1>XML Options</h1>
-    </div>
-    <div class='sectionWrapper'>
-      <p>
-      Export columns as child elements: <input id='elementToggle' type='checkbox' value='false' />
-      </p>
-      <p class='note'>
-      Export a sheet's columns as child elements instead of attributes for each row.
-      </p>
-    </div>
   </div>
   <div id='jsonOptions'>
-    <div class='paddedV'>
-    <h1>JSON Options</h1>
-    </div>
-    <div class='sectionWrapper'>
-      <p>
-      Unwrap single row JSON: <input id='unwrapToggle' type='checkbox' value='Unwrap' />
-      </p>
-      <p class='note'>
-      Don't wrap a sheet's rows in separate JSON objects if the sheet contains only one row. (not counting keys)
-      </p>
-    </div>
   </div>
   <div id='advancedOptions'>
-    <div class='paddedV'>
-      <h1>Advanced Options</h1>
-    </div>
-    <div class='sectionWrapper'>
-      
-    </div>
   </div>
   <div class='buttonPlaceholder'></div>
-  
   <div class='buttonWrapper'>
   <div class='buttonPadding'></div>
   <div class='centerWrapper'>
@@ -301,8 +272,6 @@
   //Saves the properties for the user's last export for this document so they are automatically set the next time the document opens..
   function setProperties()
   {
-    console.log("Setting properties.");
-  
     return google.script.run.setProperties(generateProperties());
   }
   
@@ -310,14 +279,12 @@
   function updateProperties(properties)
   {
     //https://developers.google.com/apps-script/reference/properties/properties-service#getScriptProperties()
-    console.log("test");
     var settings = JSON.parse(properties);
-    
-    console.log(generateProperties());
     
     //General
     exportType = settings["exportType"] != null ? settings["exportType"] : exportType;
     exportSheets = settings["exportSheets"] != null ? (settings["exportSheets"] === "" ? exportSheets : settings["exportSheets"]) : exportSheets;
+    targetSheets = settings["targetSheets"] != null ? (settings["targetSheets"] === "" ? targetSheets : JSON.parse(settings["targetSheets"])) : targetSheets;
     replaceExistingFiles = settings["replaceExistingFiles"] != null ? settings["replaceExistingFiles"] === 'true' : false;
     newlineElements = settings["newlineElements"] != null ? settings["newlineElements"] === 'true' : false;
     unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === 'true' : false;
@@ -356,8 +323,6 @@
     //TODO: changeExportFormat doesn't refresh the non-JSON/XML stuff
     //Also, values seem to be reversed.
     refreshSideBar();
-    console.log(settings);
-    console.log(generateProperties());
   }
   
   //Generate the JSON blob representation of the document's settings.
@@ -365,15 +330,14 @@
   {
     var properties = {
       //General settings
-      //"visualize" : visualizeData,
-      //"singleSheet" : singleSheet,
-      //"targetSheets" : exportSheets,
       "exportType" : exportType,
       "exportSheets" : exportSheets,
+      "targetSheets" : JSON.stringify(targetSheets),
       "replaceExistingFiles" : replaceExistingFiles,
       "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
+      "ignoreColumnsWithPrefix" : ignoreColumnsWithPrefix,
       "ignorePrefix" : (ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix),
       //JSON
       "exportContentsAsArray" : exportContentsAsArrayJson,
@@ -779,8 +743,8 @@
   {
     var value = document.getElementById('allSheetsToggle').value;
     
-    if(value === 'false') generateSheetToggles(sheets, 'true');
-    else generateSheetToggles(sheets, 'false');
+    if(value === 'false') generateSheetToggles(sheets, true);
+    else generateSheetToggles(sheets, false);
   }
   
   //Updates the toggle for all sheets so that it is only checked when all sheets are set for export
@@ -801,13 +765,13 @@
   //Sets all sheets to be exported
   function selectAllSheets()
   {
-    generateSheetToggles(sheets, 'true');
+    generateSheetToggles(sheets, true);
   }
   
   //Sets no sheets to be exported
   function selectNoneSheets()
   {
-    generateSheetToggles(sheets, 'false');
+    generateSheetToggles(sheets, false);
   }
   
   //Toggles a sheet for export
@@ -825,6 +789,7 @@
     updateAllSheetsToggle();
   }
   
+  //Function to rebuild the sidebar after loading export parameters
   function refreshSideBar()
   {
     removeGeneralListeners();
@@ -848,6 +813,7 @@
     //Custom Sheets
     generalText += "<div id='customSheetSelect'>";
     //TODO: Fill in custom sheet selection
+    
     generalText += "</div></div>";
     //General Options
     generalText += "<div class='paddedV'><h1>General Options</h1></div>";
@@ -889,6 +855,8 @@
     document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
     document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
     if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
+    
+    if(exportSheets === "custom") getNames(showSheets);
     
     exportType = document.getElementById("formatSelect").value;
     
@@ -1357,20 +1325,31 @@
   {
     sheets = sheetNames;
     
-    generateSheetToggles(sheetNames, 'false');
+    generateAutoSheetToggles(sheetNames); //TODO: Sheet names are getting culled on load sometimes... (seems to be after all are toggled on then one is toggled off as the off sheet is the only name returned...)
   }
   
   //Generates toggle elements determining which sheets should be exported
-  function generateSheetToggles(sheetNames, defaultValue)
+  function generateAutoSheetToggles(sheetNames)
   {
+    var cachedToggles = targetSheets;
+    
     clearSheetToggles();
     
-    var text = "<div id='allToggleContainer'><input id='allSheetsToggle' type='checkbox' value='" + defaultValue + "' onChange='toggleAllSheets()' ";
+    //Check if all sheets are being exported
+    var allActive = true;
     
-    if(defaultValue === 'true')
+    for(var i=0; i < sheetNames.length; i++)
     {
-      text += "checked ";
+      if(cachedToggles[sheetNames[i]] == null || cachedToggles[sheetNames[i]] === false || cachedToggles[sheetNames[i]] === 'false')
+      {
+        allActive = false;
+        break;
+      }
     }
+    
+    var text = "<div id='allToggleContainer'><input id='allSheetsToggle' type='checkbox' value='" + allActive + "' onChange='toggleAllSheets()' ";
+    
+    if(allActive === true) text += "checked ";
     
     text += "/> All</div><hr><div class='scrollWrapper'>";
     
@@ -1378,7 +1357,46 @@
     {
       text += "<p>";
       
-      if(defaultValue === 'true')
+      if(cachedToggles[sheetNames[i]] != null)
+      {
+        text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='true'";
+        if(cachedToggles[sheetNames[i]] === 'true' || cachedToggles[sheetNames[i]] === true) text += " checked";
+        text += "/> " + sheetNames[i];
+        
+        targetSheets[sheetNames[i]] = (cachedToggles[sheetNames[i]] === 'true' ? 'true' : 'false');
+      }
+      else
+      {
+        text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='false'/> " + sheetNames[i];
+        targetSheets[sheetNames[i]] = 'false';
+      }
+      
+      text += "</p>";
+    }
+    
+    text += "</div><hr>";
+    
+    document.getElementById("customSheetSelect").innerHTML = text;
+    
+    createSheetToggleListeners()
+  }
+  
+  //Generates toggle elements determining which sheets should be exported and sets their export value to be the given default value
+  function generateSheetToggles(sheetNames, defaultValue)
+  {
+    clearSheetToggles();
+    
+    var text = "<div id='allToggleContainer'><input id='allSheetsToggle' type='checkbox' value='" + defaultValue + "' onChange='toggleAllSheets()' ";
+    
+    if(defaultValue === true) text += "checked ";
+    
+    text += "/> All</div><hr><div class='scrollWrapper'>";
+    
+    for(var i=0; i < sheetNames.length; i++)
+    {
+      text += "<p>";
+      
+      if(defaultValue === true)
       {
         text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='true' checked /> " + sheetNames[i];
         targetSheets[sheetNames[i]] = 'true';
@@ -1435,6 +1453,14 @@
   //Removes event listeners for general option toggles
   function removeGeneralListeners()
   {
+    if(document.getElementById('formatSelect') != null)
+    {
+      document.getElementById('formatSelect').addEventListener("change", changeExportFormat);
+    }
+    if(document.getElementById('sheetSelect') != null)
+    {
+      document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
+    }
     if(document.getElementById('replaceToggle') != null)
     {
       document.getElementById('replaceToggle').removeEventListener("change", toggleReplace);
