@@ -25,6 +25,7 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
 **XML**
 * Exporting columns as attributes, child elements, or inner text of a row
 * Formatting XML illegal characters like &, <, and >
+* XML declaration support
  
 **General**
 * Visualize data before exporting
