@@ -324,6 +324,7 @@ function exportSpreadsheetXml(formatSettings)
   var newline = settings["newlineElements"];
   var unwrap = settings["unwrapSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
+  var nestedElements = settings["nestedElements"];
   var ignorePrefix = settings["ignorePrefix"];
   var customSheets = settings["targetSheets"];
   
@@ -546,6 +547,7 @@ function exportSpreadsheetJson(formatSettings)
   var newline = settings["newlineElements"];
   var unwrap = settings["unwrapSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
+  var nestedElements = settings["nestedElements"];
   var ignorePrefix = settings["ignorePrefix"];
   var customSheets = settings["targetSheets"];
   

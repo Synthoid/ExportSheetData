@@ -80,10 +80,14 @@
     z-index: 1;
     top: 100%;
     left: 0%;
-    margin-left: 20px;
     
     opacity: 0;
     transition: opacity 0.5s;
+  }
+  
+  .option .padded
+  {
+    margin-left: 20px;
   }
   
   .option:hover .tooltip
@@ -166,6 +170,11 @@
     </div>
     <div class='sectionWrapper'>
       <p>
+      <input id='nestedElementsToggle' type='checkbox' value='false' />Nested Elements
+      </p>
+    </div>
+    <div class='sectionWrapper'>
+      <p>
       <input id='ignoreColumnsToggle' type='checkbox' value='false'/>Don't export columns with prefix
       </p>
       <p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value="NOEX_" placeholder="NOEX_" disabled/></p>
@@ -214,6 +223,8 @@
   var unwrapSingleRows = false;
   //Don't export cells that are empty (helps reduce file size)
   var ignoreEmptyCells = false;
+  //Support complex nested elements by using special key formatting
+  var nestedElements = false;
   //Don't export columns with the ignore prefix
   var ignoreColumnsWithPrefix = false;
   var ignoreColumnsPrefix = "NOEX_";
@@ -303,6 +314,7 @@
     newlineElements = settings["newlineElements"] != null ? settings["newlineElements"] === 'true' : false;
     unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === 'true' : false;
     ignoreEmptyCells = settings["ignoreEmptyCells"] != null ? settings["ignoreEmptyCells"] === 'true' : false;
+    nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === 'true' : false;
     ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === 'true' : false;
     ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
     
@@ -351,6 +363,7 @@
       "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
+      "nestedElements" : nestedElements,
       "ignoreColumnsWithPrefix" : ignoreColumnsWithPrefix,
       "ignorePrefix" : (ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix),
       //JSON
@@ -426,6 +439,11 @@
   function toggleIgnoreEmptyCells()
   {
     ignoreEmptyCells = !ignoreEmptyCells;
+  }
+  
+  function toggleNestedElements()
+  {
+    nestedElements = !nestedElements;
   }
   
   function getIgnorePrefix()
@@ -811,13 +829,13 @@
     var generalText = "<div class='paddedV'><h1>Format</h1></div>";
     //Export Settings
     //Format
-    generalText += "<p><div class='block form-group sectionWrapper'><div class='option'><label for='select'><b>Select Format</b></label><div class='tooltip note'>Data format to export.</div></div><select class='dropdown' id='formatSelect'><option value='jsonFormat'";
+    generalText += "<p><div class='block form-group sectionWrapper'><div class='option'><label for='select'><b>Select Format</b></label><div class='tooltip note padded'>Data format to export.</div></div><select class='dropdown' id='formatSelect'><option value='jsonFormat'";
     if(exportType === "jsonFormat") generalText += " selected";
     generalText += ">JSON</option><option value='xmlFormat'";
     if(exportType !== "jsonFormat") generalText += " selected";
     generalText += ">XML</option></select></p>";
     //Sheets
-    generalText += "<p><div class='option'><label for='select'><b>Select Sheet(s)</b></label><div class='tooltip note'>The sheets to export.</div></div><select class='dropdown' id='sheetSelect'><option value='allSheets'";
+    generalText += "<p><div class='option'><label for='select'><b>Select Sheet(s)</b></label><div class='tooltip note padded'>The sheets to export.</div></div><select class='dropdown' id='sheetSelect'><option value='allSheets'";
     if(exportSheets === "allSheets") generalText += " selected";
     generalText += ">All sheets</option><option value='currentSheet'";
     if(exportSheets === "currentSheet") generalText += " selected";
@@ -826,28 +844,33 @@
     generalText += ">Custom</option></select></p>";
     //Custom Sheets
     generalText += "<div id='customSheetSelect'></div></div>"; //Sheet selection is filled automatically at end of refresh process.
+    
     //General Options
     generalText += "<div class='paddedV'><h1>General Options</h1></div>";
     //Replace existing files
-    generalText += "<div class='sectionWrapper'><div class='option'><input id='replaceToggle' type='checkbox' value='Replace'";
+    generalText += "<div class='sectionWrapper'><input id='replaceToggle' type='checkbox' value='Replace'";
     if(replaceExistingFiles) generalText += " checked";
-    generalText += "/>Replace existing file(s)<div class='tooltip note'>Trash files in the export folder with the same name and extension as the exported file.</div></div></div>";
+    generalText += "/><div class='option'>Replace existing file(s)<div class='tooltip note'>Trash files in the export folder with the same name and extension as the exported file.</div></div></div>";
     //Newline elements
-    generalText += "<div class='sectionWrapper'><div class='option'><input id='newlineToggle' type='checkbox' value='Newline'";
+    generalText += "<div class='sectionWrapper'><input id='newlineToggle' type='checkbox' value='Newline'";
     if(newlineElements) generalText += " checked";
-    generalText += "/>Newline elements<div class='tooltip note'>Use newlines when formatting data.</div></div></div>";
+    generalText += "/><div class='option'>Newline elements<div class='tooltip note'>Use newlines when formatting data.</div></div></div>";
     //Unwrap Single Rows
-    generalText += "<div class='sectionWrapper'><div class='option'><input id='unwrapSingleRowToggle' type='checkbox' value='false'";
+    generalText += "<div class='sectionWrapper'><input id='unwrapSingleRowToggle' type='checkbox' value='false'";
     if(unwrapSingleRows) generalText += " checked";
-    generalText += "/>Unwrap single row sheets<div class='tooltip note'>Don't wrap a sheet's contents with a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
+    generalText += "/><div class='option'>Unwrap single row sheets<div class='tooltip note'>Don't wrap a sheet's contents with a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
     //Ignore empty cells
-    generalText += "<div class='sectionWrapper'><div class='option'><input id='ignoreEmptyCellsToggle' type='checkbox' value='false'";
+    generalText += "<div class='sectionWrapper'><input id='ignoreEmptyCellsToggle' type='checkbox' value='false'";
     if(ignoreEmptyCells) generalText += " checked";
-    generalText += "/>Ignore empty cells<div class='tooltip note'>Don't export cells that are empty.</div></div></div>";
+    generalText += "/><div class='option'>Ignore empty cells<div class='tooltip note'>Don't export cells that are empty.</div></div></div>";
+    //Nested Elements
+    generalText += "<div class='sectionWrapper'><input id='nestedElementsToggle' type='checkbox' value='false'";
+    if(nestedElements) generalText += " checked";
+    generalText += "/><div class='option'>Nested Elements<div class='tooltip note'>Export nested elements by using specific formatting in keys.</div></div></div>";
     //Ignore columns prefix
-    generalText += "<div class='sectionWrapper'><div class='option'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
+    generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
     if(ignoreColumnsWithPrefix) generalText += " checked";
-    generalText += "/>Don't export columns with prefix<div class='tooltip note'>Don't export columns with keys using the specified prefix.</div></div><p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value='";
+    generalText += "/><div class='option'>Ignore prefix<div class='tooltip note'>Don't export columns with keys using the specified prefix.</div></div><p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value='";
     generalText += ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
     generalText += "' placeholder='NOEX_'";
     if(ignoreColumnsWithPrefix === false) generalText += " disabled";
@@ -864,6 +887,7 @@
     document.getElementById('newlineToggle').addEventListener("change",toggleNewline);
     document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
     document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
+    document.getElementById('nestedElementsToggle').addEventListener("change",toggleNestedElements);
     document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
     if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
     
@@ -882,27 +906,27 @@
       
       var xmlText = "<div class='paddedV'><h1>XML Options</h1></div>";
       //Export child elements
-      xmlText += "<div class='sectionWrapper'><div class='option'><input id='elementToggle' type='checkbox' value='false'";
+      xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
-      xmlText += "/>Export columns as child elements<div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
+      xmlText += "/><div class='option'>Export columns as child elements<div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
       //Format xml content
-      xmlText += "<div class='sectionWrapper'><div class='option'><input id='formatToggle' type='checkbox' value='false'";
+      xmlText += "<div class='sectionWrapper'><input id='formatToggle' type='checkbox' value='false'";
       if(formatContentXml) xmlText += " checked";
-      xmlText += "/>Don't format illegal characters<div class='tooltip note'>Don't replace illegal XML characters in values with their appropriate XML encoding. (keys are always encoded)</div></div></div>";
+      xmlText += "/><div class='option'>Don't format illegal characters<div class='tooltip note'>Don't replace illegal XML characters in values with their appropriate XML encoding. (keys are always encoded)</div></div></div>";
       //Include first column in export
-      xmlText += "<div class='sectionWrapper'><div class='option'><input id='firstColumnXmlToggle' type='checkbox' value='false'";
+      xmlText += "<div class='sectionWrapper'><input id='firstColumnXmlToggle' type='checkbox' value='false'";
       if(includeFirstColumnXml) xmlText += " checked";
-      xmlText += "/>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to the name of the row element.</div></div></div>";
+      xmlText += "/><div class='option'>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to the name of the row element.</div></div></div>";
       
       //Advanced Options
       var advancedXmlText = "<div class='paddedV'><h1>Advanced Options</h1></div>";
       //Root element value
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note padded'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
       advancedXmlText += "'" + rootElementXml + "'";
       advancedXmlText += " placeholder='" + XML_ROOT_DEFAULT + "'";
       advancedXmlText += "/></div>";
       //Invalid element name char replacement
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Name replacement char</label><div class='tooltip note'>What character to use when replacing illegal characters in XML element names.</div></div><select class='dropdown' id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Name replacement char</label><div class='tooltip note padded'>What character to use when replacing illegal characters in XML element names.</div></div><select class='dropdown' id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
       if(nameReplacementCharXml === "_") advancedXmlText += " selected";
       advancedXmlText += ">Underscore ( _ )</option><option value='-'";
       if(nameReplacementCharXml === "-") advancedXmlText += " selected";
@@ -911,12 +935,12 @@
       advancedXmlText += ">Dot ( . )</option></select></div>";
       //Declaration
       //includeDeclarationXml
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><input id='xmlIncludeDeclarationToggle' type='checkbox' value='false'";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlIncludeDeclarationToggle' type='checkbox' value='false'";
       if(includeDeclarationXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/>Include XML declaration at top of exported document<div class='tooltip note'>Include a customized XML declaration in exported XML files using the parameters set below.</div></div></div>";
+      advancedXmlText += "/><div class='option'>Include XML declaration<div class='tooltip note'>Include a customized XML declaration at the top of exported XML files using the parameters set below.</div></div></div>";
       //Declaration Version
       advancedXmlText += "<div id='xmlDeclarationSection'>";
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML version</label><div class='tooltip note'>Version of the XML standard that the XML document conforms to.</div></div><select class='dropdown' id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML version</label><div class='tooltip note padded'>Version of the XML standard that the XML document conforms to.</div></div><select class='dropdown' id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
       advancedXmlText += "><option value='1.0'";
       if(declarationVersionXml === "1.0") advancedXmlText += " selected";
@@ -924,7 +948,7 @@
       if(declarationVersionXml === "1.1") advancedXmlText += " selected";
       advancedXmlText += ">1.1</option></select></p></div>";
       //Declaration Encoding
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML encoding</label><div class='tooltip note'>Identifies which encoding is used to represent the characters in the document.</div></div><select class='dropdown' id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML encoding</label><div class='tooltip note padded'>Identifies which encoding is used to represent the characters in the document.</div></div><select class='dropdown' id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
       advancedXmlText += "><option value='none'";
       if(declarationEncodingXml === "none") advancedXmlText += " selected";
@@ -962,7 +986,7 @@
       if(declarationEncodingXml === "EUC-JP") advancedXmlText += " selected";
       advancedXmlText += ">EUC-JP</option></select></div>";
       //Declaration Standalone
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Standalone</label><div class='tooltip note'>Indicates whether a document relies on information from an external source, such as external document type definition (DTD).</div></div><select class='dropdown' id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Standalone</label><div class='tooltip note padded'>Indicates whether a document relies on information from an external source, such as external document type definition (DTD).</div></div><select class='dropdown' id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
       advancedXmlText += "><option value='none'";
       if(declarationStandaloneXml === "none") advancedXmlText += " selected";
@@ -973,27 +997,27 @@
       advancedXmlText += ">No</option></select></div>";
       advancedXmlText += "</div>";
       //Force attribute column export
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><input id='xmlForceAttributeToggle' type='checkbox' value='false'";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceAttributeToggle' type='checkbox' value='false'";
       if(forceAttributesXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/>Export columns with prefix as attributes<div class='tooltip note'>Force columns with keys using the specified prefix to export as attributes.</div></div>";
+      advancedXmlText += "/><div class='option'>Attributes prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as attributes.</div></div>";
       advancedXmlText += "<p id='xmlForceAttributeText'><input id='xmlForceAttributesTextField' type='text' value=";
       advancedXmlText += "'" + forceAttributesPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_ATT_DEFAULT + "'";
       if(forceAttributesXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div>";
       //Force child element column export
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><input id='xmlForceChildElementToggle' type='checkbox' value='false'";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceChildElementToggle' type='checkbox' value='false'";
       if(forceChildElementsXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/>Export columns with prefix as child elements<div class='tooltip note'>Force columns with keys using the specified prefix to export as child elements.</div></div>";
+      advancedXmlText += "/><div class='option'>Child elements prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as child elements.</div></div>";
       advancedXmlText += "<p id='xmlForceChildElementsText'><input id='xmlForceChildElementsTextField' type='text' value=";
       advancedXmlText += "'" + forceChildElementsPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_CE_DEFAULT + "'";
       if(forceChildElementsXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div>";
       //Force inner text column export
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><input id='xmlForceInnerTextToggle' type='checkbox' value='false'";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceInnerTextToggle' type='checkbox' value='false'";
       if(forceInnerTextXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/>Export columns with prefix as inner text<div class='tooltip note'>Force columns with keys using the specified prefix to export as inner text of the row element.</div></div>";
+      advancedXmlText += "/><div class='option'>Inner text prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as inner text of the row element.</div></div>";
       advancedXmlText += "<p id='xmlForceInnerTextText'><input id='xmlForceInnerTextTextField' type='text' value=";
       advancedXmlText += "'" + forceInnerTextPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_IT_DEFAULT + "'";
@@ -1031,41 +1055,41 @@
       //JSON Options
       var jsonText = "<div class='paddedV'><h1>JSON Options</h1></div>";
       //Force string Json
-      jsonText += "<div class='sectionWrapper'><div class='option'><input id='forceStringToggle' type='checkbox' value='Force'";
+      jsonText += "<div class='sectionWrapper'><input id='forceStringToggle' type='checkbox' value='Force'";
       if(forceStringJson) jsonText += " checked";
-      jsonText += ">Force string values<div class='tooltip note'>Force exported values to be strings.</div></div></div>";
+      jsonText += "><div class='option'>Force string values<div class='tooltip note'>Force exported values to be strings.</div></div></div>";
       //Commas to array JSON
-      jsonText += "<div class='sectionWrapper'><div class='option'><input id='arrayToggle' type='checkbox' value='Array'";
+      jsonText += "<div class='sectionWrapper'><input id='arrayToggle' type='checkbox' value='Array'";
       if(exportCellArrayJson) jsonText += " checked";
-      jsonText += ">Export cell arrays<div class='tooltip note'>Export a cell's contents as a JSON array if it contains commas. (Wrap content in quotation marks to prevent mid-content breaking)</div></div></div>";
+      jsonText += "><div class='option'>Export cell arrays<div class='tooltip note'>Export a cell's contents as a JSON array if it contains commas. (Wrap content in quotation marks to prevent mid-content breaking)</div></div></div>";
       //Sheet to JSON object array
-      jsonText += "<div class='sectionWrapper'><div class='option'><input id='sheetArrayToggle' type='checkbox' value='SheetArray'";
+      jsonText += "<div class='sectionWrapper'><input id='sheetArrayToggle' type='checkbox' value='SheetArray'";
       if(exportSheetArrayJson) jsonText += " checked";
-      jsonText += ">Export sheet arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON objects.</div></div></div>";
+      jsonText += "><div class='option'>Export sheet arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON objects.</div></div></div>";
       //Sheet to JSON value array
-      jsonText += "<div class='sectionWrapper'><div class='option'><input id='valueArrayToggle' type='checkbox' value='ValueArray'";
+      jsonText += "<div class='sectionWrapper'><input id='valueArrayToggle' type='checkbox' value='ValueArray'";
       if(exportValueArrayJson) jsonText += " checked";
-      jsonText += ">Export value arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div>";
+      jsonText += "><div class='option'>Export value arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div>";
       
       //Advanced Options
       var advancedJsonText = "<div class='paddedV'><h1>Advanced Options</h1></div>";
       //Content to array JSON
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
+      advancedJsonText += "<div class='sectionWrapper'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
       if(exportContentsAsArrayJson) advancedJsonText += " checked";
-      advancedJsonText += ">Export contents as array<div class='tooltip note'>Export total contents as a raw JSON array. (WARNING: This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
+      advancedJsonText += "><div class='option'>Export contents as array<div class='tooltip note'>Export total contents as a raw JSON array. (WARNING: This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
       //Braces to object JSON
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
+      advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
-      advancedJsonText += ">Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will not be formatted automatically.)</div></div></div>";
+      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will not be formatted automatically.)</div></div></div>";
       //Serparator char value
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
+      advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
       advancedJsonText += " placeholder='" + JSON_SEPARATOR_DEFAULT + "'";
       advancedJsonText += "/></div>";
       //Force array column export
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'><input id='jsonForceArrayToggle' type='checkbox' value='false'";
+      advancedJsonText += "<div class='sectionWrapper'><input id='jsonForceArrayToggle' type='checkbox' value='false'";
       if(forceArrayJson === true) advancedJsonText += " checked";
-      advancedJsonText += "/>Export cells in columns with prefix as array<div class='tooltip note'>Force cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
+      advancedJsonText += "/><div class='option'>Array prefix<div class='tooltip note'>Force cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
       advancedJsonText += "<p id='jsonForceArrayText'><input id='jsonForceArrayTextField' type='text' value=";
       advancedJsonText += "'" + forceArrayPrefixJson + "'";
       advancedJsonText += " placeholder='" + JSON_JA_DEFAULT + "'";
@@ -1102,27 +1126,27 @@
       
       var xmlText = "<div class='paddedV'><h1>XML Options</h1></div>";
       //Export child elements
-      xmlText += "<div class='sectionWrapper'><div class='option'><input id='elementToggle' type='checkbox' value='false'";
+      xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
-      xmlText += "/>Export columns as child elements<div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
+      xmlText += "/><div class='option'>Export columns as child elements<div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
       //Format xml content
-      xmlText += "<div class='sectionWrapper'><div class='option'><input id='formatToggle' type='checkbox' value='false'";
+      xmlText += "<div class='sectionWrapper'><input id='formatToggle' type='checkbox' value='false'";
       if(formatContentXml) xmlText += " checked";
-      xmlText += "/>Don't format illegal characters<div class='tooltip note'>Don't replace illegal XML characters in values with their appropriate XML encoding. (keys are always encoded)</div></div></div>";
+      xmlText += "/><div class='option'>Don't format illegal characters<div class='tooltip note'>Don't replace illegal XML characters in values with their appropriate XML encoding. (keys are always encoded)</div></div></div>";
       //Include first column in export
-      xmlText += "<div class='sectionWrapper'><div class='option'><input id='firstColumnXmlToggle' type='checkbox' value='false'";
+      xmlText += "<div class='sectionWrapper'><input id='firstColumnXmlToggle' type='checkbox' value='false'";
       if(includeFirstColumnXml) xmlText += " checked";
-      xmlText += "/>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to the name of the row element.</div></div></div>";
+      xmlText += "/><div class='option'>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to the name of the row element.</div></div></div>";
       
       //Advanced Options
       var advancedXmlText = "<div class='paddedV'><h1>Advanced Options</h1></div>";
       //Root element value
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note padded'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
       advancedXmlText += "'" + rootElementXml + "'";
       advancedXmlText += " placeholder='" + XML_ROOT_DEFAULT + "'";
       advancedXmlText += "/></div>";
       //Invalid element name char replacement
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Name replacement char</label><div class='tooltip note'>What character to use when replacing illegal characters in XML element names.</div></div><select class='dropdown' id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Name replacement char</label><div class='tooltip note padded'>What character to use when replacing illegal characters in XML element names.</div></div><select class='dropdown' id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
       if(nameReplacementCharXml === "_") advancedXmlText += " selected";
       advancedXmlText += ">Underscore ( _ )</option><option value='-'";
       if(nameReplacementCharXml === "-") advancedXmlText += " selected";
@@ -1131,12 +1155,12 @@
       advancedXmlText += ">Dot ( . )</option></select></div>";
       //Declaration
       //includeDeclarationXml
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><input id='xmlIncludeDeclarationToggle' type='checkbox' value='false'";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlIncludeDeclarationToggle' type='checkbox' value='false'";
       if(includeDeclarationXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/>Inlcude XML declaration at top of exported document<div class='tooltip note'>Include a customized XML declaration in exported XML files using the parameters set below.</div></div></div>";
+      advancedXmlText += "/><div class='option'>Inlcude XML declaration<div class='tooltip note'>Include a customized XML declaration at the top of exported XML files using the parameters set below.</div></div></div>";
       //Declaration Version
       advancedXmlText += "<div id='xmlDeclarationSection'>";
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML version</label><div class='tooltip note'>Version of the XML standard that the XML document conforms to.</div></div><select class='dropdown' id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML version</label><div class='tooltip note padded'>Version of the XML standard that the XML document conforms to.</div></div><select class='dropdown' id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
       advancedXmlText += "><option value='1.0'";
       if(declarationVersionXml === "1.0") advancedXmlText += " selected";
@@ -1144,7 +1168,7 @@
       if(declarationVersionXml === "1.1") advancedXmlText += " selected";
       advancedXmlText += ">1.1</option></select></div>";
       //Declaration Encoding
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML encoding</label><div class='tooltip note'>Identifies which encoding is used to represent the characters in the document.</div></div><select class='dropdown' id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML encoding</label><div class='tooltip note padded'>Identifies which encoding is used to represent the characters in the document.</div></div><select class='dropdown' id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
       advancedXmlText += "><option value='none'";
       if(declarationEncodingXml === "none") advancedXmlText += " selected";
@@ -1182,7 +1206,7 @@
       if(declarationEncodingXml === "EUC-JP") advancedXmlText += " selected";
       advancedXmlText += ">EUC-JP</option></select></div>";
       //Declaration Standalone
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Standalone</label><div class='tooltip note'>Indicates whether a document relies on information from an external source, such as external document type definition (DTD).</div></div><select class='dropdown' id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Standalone</label><div class='tooltip note padded'>Indicates whether a document relies on information from an external source, such as external document type definition (DTD).</div></div><select class='dropdown' id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
       advancedXmlText += "><option value='none'";
       if(declarationStandaloneXml === "none") advancedXmlText += " selected";
@@ -1193,27 +1217,27 @@
       advancedXmlText += ">No</option></select></div>";
       advancedXmlText += "</div>";
       //Force attribute column export
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><input id='xmlForceAttributeToggle' type='checkbox' value='false'";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceAttributeToggle' type='checkbox' value='false'";
       if(forceAttributesXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/>Export columns with prefix as attributes<div class='tooltip note'>Force columns with keys using the specified prefix to export as attributes.</div></div>";
+      advancedXmlText += "/><div class='option'>Attributes prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as attributes.</div></div>";
       advancedXmlText += "<p id='xmlForceAttributeText'><input id='xmlForceAttributesTextField' type='text' value=";
       advancedXmlText += "'" + forceAttributesPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_ATT_DEFAULT + "'";
       if(forceAttributesXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div>";
       //Force child element column export
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><input id='xmlForceChildElementToggle' type='checkbox' value='false'";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceChildElementToggle' type='checkbox' value='false'";
       if(forceChildElementsXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/>Export columns with prefix as child elements<div class='tooltip note'>Force columns with keys using the specified prefix to export as child elements.</div></div>";
+      advancedXmlText += "/><div class='option'>Child elements prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as child elements.</div></div>";
       advancedXmlText += "<p id='xmlForceChildElementsText'><input id='xmlForceChildElementsTextField' type='text' value=";
       advancedXmlText += "'" + forceChildElementsPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_CE_DEFAULT + "'";
       if(forceChildElementsXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div>";
       //Force inner text column export
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><input id='xmlForceInnerTextToggle' type='checkbox' value='false'";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceInnerTextToggle' type='checkbox' value='false'";
       if(forceInnerTextXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/>Export columns with prefix as inner text<div class='tooltip note'>Force columns with keys using the specified prefix to export as inner text of the row element.</div></div>";
+      advancedXmlText += "/><div class='option'>Inner text prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as inner text of the row element.</div></div>";
       advancedXmlText += "<p id='xmlForceInnerTextText'><input id='xmlForceInnerTextTextField' type='text' value=";
       advancedXmlText += "'" + forceInnerTextPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_IT_DEFAULT + "'";
@@ -1250,41 +1274,41 @@
       //JSON Options
       var jsonText = "<div class='paddedV'><h1>JSON Options</h1></div>";
       //Force string Json
-      jsonText += "<div class='sectionWrapper'><div class='option'><input id='forceStringToggle' type='checkbox' value='Force'";
+      jsonText += "<div class='sectionWrapper'><input id='forceStringToggle' type='checkbox' value='Force'";
       if(forceStringJson) jsonText += " checked";
-      jsonText += ">Force string values<div class='tooltip note'>Force exported values to be strings.</div></div></div>";
+      jsonText += "><div class='option'>Force string values<div class='tooltip note'>Force exported values to be strings.</div></div></div>";
       //Commas to array JSON
-      jsonText += "<div class='sectionWrapper'><div class='option'><input id='arrayToggle' type='checkbox' value='Array'";
+      jsonText += "<div class='sectionWrapper'><input id='arrayToggle' type='checkbox' value='Array'";
       if(exportCellArrayJson) jsonText += " checked";
-      jsonText += ">Export cell arrays<div class='tooltip note'>Export a cell's contents as a JSON array if it contains commas. (Wrap content in quotation marks to prevent mid-content breaking)</div></div></div>";
+      jsonText += "><div class='option'>Export cell arrays<div class='tooltip note'>Export a cell's contents as a JSON array if it contains commas. (Wrap content in quotation marks to prevent mid-content breaking)</div></div></div>";
       //Sheet to JSON object array
-      jsonText += "<div class='sectionWrapper'><div class='option'><input id='sheetArrayToggle' type='checkbox' value='SheetArray'";
+      jsonText += "<div class='sectionWrapper'><input id='sheetArrayToggle' type='checkbox' value='SheetArray'";
       if(exportSheetArrayJson) jsonText += " checked";
-      jsonText += ">Export sheet arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON objects.</div></div></div>";
+      jsonText += "><div class='option'>Export sheet arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON objects.</div></div></div>";
       //Sheet to JSON value array
-      jsonText += "<div class='sectionWrapper'><div class='option'><input id='valueArrayToggle' type='checkbox' value='ValueArray'";
+      jsonText += "<div class='sectionWrapper'><input id='valueArrayToggle' type='checkbox' value='ValueArray'";
       if(exportValueArrayJson) jsonText += " checked";
-      jsonText += ">Export value arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div>";
+      jsonText += "><div class='option'>Export value arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div>";
       
       //Advanced Options
       var advancedJsonText = "<div class='paddedV'><h1>Advanced Options</h1></div>";
       //Content to array JSON
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
+      advancedJsonText += "<div class='sectionWrapper'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
       if(exportContentsAsArrayJson) advancedJsonText += " checked";
-      advancedJsonText += ">Export contents as array<div class='tooltip note'>Export total contents as a raw JSON array. (WARNING: This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
+      advancedJsonText += "><div class='option'>Export contents as array<div class='tooltip note'>Export total contents as a raw JSON array. (WARNING: This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
       //Braces to object JSON
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
+      advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
-      advancedJsonText += ">Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will not be formatted automatically.)</div></div></div>";
+      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will not be formatted automatically.)</div></div></div>";
       //Serparator char value
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
+      advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
       advancedJsonText += " placeholder='" + JSON_SEPARATOR_DEFAULT + "'";
       advancedJsonText += "/></div>";
       //Force array column export
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'><input id='jsonForceArrayToggle' type='checkbox' value='false'";
+      advancedJsonText += "<div class='sectionWrapper'><input id='jsonForceArrayToggle' type='checkbox' value='false'";
       if(forceArrayJson === true) advancedJsonText += " checked";
-      advancedJsonText += "/>Export cells in columns with prefix as array<div class='tooltip note'>Force cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
+      advancedJsonText += "/><div class='option'>Export cells in columns with prefix as array<div class='tooltip note'>Force cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
       advancedJsonText += "<p id='jsonForceArrayText'><input id='jsonForceArrayTextField' type='text' value=";
       advancedJsonText += "'" + forceArrayPrefixJson + "'";
       advancedJsonText += " placeholder='" + JSON_JA_DEFAULT + "'";
@@ -1478,6 +1502,10 @@
     {
       document.getElementById('ignoreEmptyCellsToggle').removeEventListener("change", toggleIgnoreEmptyCells);
     }
+    if(document.getElementById('nestedElementsToggle') != null)
+    {
+      document.getElementById('nestedElementsToggle').removeEventListener("change", toggleNestedElements);
+    }
     if(document.getElementById('ignoreColumnsToggle') != null)
     {
       document.getElementById('ignoreColumnsToggle').removeEventListener("change", toggleIgnoreColumnsWithPrefix);
@@ -1578,6 +1606,13 @@
     var settings = {
       "visualize" : visualizeData,
       "singleSheet" : singleSheet,
+      "replaceExistingFiles" : replaceExistingFiles,
+      "newlineElements" : newlineElements,
+      "unwrapSingleRows" : unwrapSingleRows,
+      "ignoreEmptyCells" : ignoreEmptyCells,
+      "nestedElements" : nestedElements,
+      "ignorePrefix" : getIgnorePrefix(),
+      "targetSheets" : exportSheets,
       "exportChildElements" : exportChildElementXml,
       "formatContent" : !formatContentXml,
       "includeFirstColumn" : includeFirstColumnXml,
@@ -1588,13 +1623,7 @@
       "declarationStandalone" : getDeclarationStandalone(),
       "attributePrefix" : getAttributePrefix(),
       "childElementPrefix" : getChildElementPrefix(),
-      "innerTextPrefix" : getInnerTextPrefix(),
-      "replaceExistingFiles" : replaceExistingFiles,
-      "newlineElements" : newlineElements,
-      "unwrapSingleRows" : unwrapSingleRows,
-      "ignoreEmptyCells" : ignoreEmptyCells,
-      "ignorePrefix" : getIgnorePrefix(),
-      "targetSheets" : exportSheets
+      "innerTextPrefix" : getInnerTextPrefix()
     };
     
     return JSON.stringify(settings);
@@ -1606,20 +1635,21 @@
     var settings = {
       "visualize" : visualizeData,
       "singleSheet" : singleSheet,
-      "exportContentsAsArray" : exportContentsAsArrayJson,
-      "exportCellObject" : exportCellObjectJson,
-      "exportCellArray" : exportCellArrayJson,
-      "exportSheetArray" : exportSheetArrayJson,
-      "exportValueArray" : exportValueArrayJson,
-      "forceString" : forceStringJson,
-      "separatorChar" : getSeparatorCharJson(),
-      "forceArrayPrefix" : getForceArrayPrefixJson(),
       "replaceExistingFiles" : replaceExistingFiles,
       "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
+      "nestedElements" : nestedElements,
       "ignorePrefix" : getIgnorePrefix(),
-      "targetSheets" : exportSheets
+      "targetSheets" : exportSheets,
+      "forceString" : forceStringJson,
+      "exportCellArray" : exportCellArrayJson,
+      "exportSheetArray" : exportSheetArrayJson,
+      "exportValueArray" : exportValueArrayJson,
+      "exportContentsAsArray" : exportContentsAsArrayJson,
+      "exportCellObject" : exportCellObjectJson,
+      "separatorChar" : getSeparatorCharJson(),
+      "forceArrayPrefix" : getForceArrayPrefixJson()
     };
     
     return JSON.stringify(settings);
