@@ -170,6 +170,12 @@
       </p>
       <p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value="NOEX_" placeholder="NOEX_" disabled/></p>
     </div>
+    <div class='sectionWrapper'>
+      <p>
+      <input id='ignoreRowsToggle' type='checkbox' value='false'/>Don't export rows with prefix
+      </p>
+      <p id='ignoreRowsText'><input id='ignoreRowsPrefixTextField' type='text' value="###" placeholder="###" disabled/></p>
+    </div>
   </div>
   <div id='xmlOptions'>
   </div>
@@ -193,6 +199,7 @@
   var EXP_SHEET_SINGLE = "currentSheet";
   var EXP_TYPE_XML = "xmlFormat";
   var IGNORE_COLUMN_DEFAULT = "NOEX_";
+  var IGNORE_ROW_DEFAULT = "###";
   //XML
   var XML_ROOT_DEFAULT = "data";
   var XML_ATT_DEFAULT = "ATT_";
@@ -217,6 +224,8 @@
   //Don't export columns with the ignore prefix
   var ignoreColumnsWithPrefix = false;
   var ignoreColumnsPrefix = "NOEX_";
+  var ignoreRowsWithPrefix = false;
+  var ignoreRowsPrefix = "###";
   
   //XML Options
   //Export values as child elements instead of attributes
@@ -305,6 +314,8 @@
     ignoreEmptyCells = settings["ignoreEmptyCells"] != null ? settings["ignoreEmptyCells"] === 'true' : false;
     ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === 'true' : false;
     ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
+    ignoreRowsWithPrefix = settings["ignoreRowsWithPrefix"] != null ? settings["ignoreRowsWithPrefix"] === 'true' : false;
+    ignoreRowsPrefix = settings["ignoreRowsPrefix"] != null ? (settings["ignoreRowsPrefix"] === "" ? IGNORE_ROW_DEFAULT : settings["ignoreRowsPrefix"]) : IGNORE_ROW_DEFAULT;
     
     //JSON
     exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === 'true' : exportContentsAsArrayJson;
@@ -353,6 +364,8 @@
       "ignoreEmptyCells" : ignoreEmptyCells,
       "ignoreColumnsWithPrefix" : ignoreColumnsWithPrefix,
       "ignorePrefix" : (ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix),
+      "ignoreRowsWithPrefix" : ignoreRowsWithPrefix,
+      "ignoreRowsPrefix" : (ignoreRowsPrefix === "" ? IGNORE_ROW_DEFAULT : ignoreRowsPrefix),
       //JSON
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
@@ -435,11 +448,23 @@
     return ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
   }
   
+  function getIgnoreRowsPrefix()
+  {
+    if(ignoreRowsWithPrefix === false) return "";
+  
+    return ignoreRowsPrefix === "" ? IGNORE_ROW_DEFAULT : ignoreRowsPrefix;
+  }
+
   function updateIgnorePrefix()
   {
     ignoreColumnsPrefix = document.getElementById("ignoreColumnsPrefixTextField").value;
   }
-  
+
+  function updateIgnoreRowsPrefix()
+  {
+    ignoreRowsPrefix = document.getElementById("ignoreRowsPrefixTextField").value;
+  }
+
   function toggleIgnoreColumnsWithPrefix()
   {
     ignoreColumnsWithPrefix = !ignoreColumnsWithPrefix;
@@ -454,7 +479,22 @@
     
     if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
   }
-  
+
+  function toggleIgnoreRowsWithPrefix()
+  {
+    ignoreRowsWithPrefix = !ignoreRowsWithPrefix;
+    
+    var text = "<input id='ignoreRowsPrefixTextField' type='text' value=";
+    text += "'" + ignoreRowsPrefix + "'";
+    text += " placeholder='" + IGNORE_ROW_DEFAULT + "'";
+    if(ignoreRowsWithPrefix === false) text += " disabled";
+    text += "/>";
+    
+    document.getElementById("ignoreRowsText").innerHTML = text;
+    
+    if(ignoreRowsWithPrefix === true) document.getElementById('ignoreRowsPrefixTextField').addEventListener("change", updateIgnoreRowsPrefix);
+  }
+    
   //XML Options
   function toggleElement()
   {
@@ -852,6 +892,14 @@
     generalText += "' placeholder='NOEX_'";
     if(ignoreColumnsWithPrefix === false) generalText += " disabled";
     generalText += "/></p><p class='note'></p></div>";
+    //Ignore rows prefix
+    generalText += "<div class='sectionWrapper'><div class='option'><input id='ignoreRowsToggle' type='checkbox' value='false'";
+    if(ignoreRowsWithPrefix) generalText += " checked";
+    generalText += "/>Don't export rows with prefix<div class='tooltip note'>Don't export rows with keys using the specified prefix.</div></div><p id='ignoreRowsText'><input id='ignoreRowsPrefixTextField' type='text' value='";
+    generalText += ignoreRowsPrefix === "" ? IGNORE_ROW_DEFAULT : ignoreRowsPrefix;
+    generalText += "' placeholder='NOEX_'";
+    if(ignoreRowsWithPrefix === false) generalText += " disabled";
+    generalText += "/></p><p class='note'></p></div>";
     
     document.getElementById("generalOptions").innerHTML = generalText;
     
@@ -865,7 +913,9 @@
     document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
     document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
     document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
+    document.getElementById('ignoreRowsToggle').addEventListener("change",toggleIgnoreRowsWithPrefix);
     if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
+    if(ignoreRowsWithPrefix === true) document.getElementById('ignoreRowsPrefixTextField').addEventListener("change", updateIgnoreRowsPrefix);
     
     if(exportSheets === "custom") getNames(showSheets);
     
@@ -1483,6 +1533,11 @@
       document.getElementById('ignoreColumnsToggle').removeEventListener("change", toggleIgnoreColumnsWithPrefix);
       document.getElementById('ignoreColumnsPrefixTextField').removeEventListener("change", updateIgnorePrefix);
     }
+    if(document.getElementById('ignoreRowsToggle') != null)
+    {
+      document.getElementById('ignoreRowsToggle').removeEventListener("change", toggleIgnoreRowsWithPrefix);
+      document.getElementById('ignoreRowsPrefixTextField').removeEventListener("change", updateIgnoreRowsPrefix);
+    }
   }
   
   //Removes event listeners for XML option toggles
@@ -1594,6 +1649,7 @@
       "unwrapSingleRows" : unwrapSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
       "ignorePrefix" : getIgnorePrefix(),
+      "ignoreRowsPrefix" : getIgnoreRowsPrefix(),
       "targetSheets" : exportSheets
     };
     
@@ -1619,6 +1675,7 @@
       "unwrapSingleRows" : unwrapSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
       "ignorePrefix" : getIgnorePrefix(),
+      "ignoreRowsPrefix" : getIgnoreRowsPrefix(),
       "targetSheets" : exportSheets
     };
     

@@ -325,6 +325,7 @@ function exportSpreadsheetXml(formatSettings)
   var unwrap = settings["unwrapSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
   var ignorePrefix = settings["ignorePrefix"];
+  var ignoreRowsPrefix = settings["ignoreRowsPrefix"];
   var customSheets = settings["targetSheets"];
   
   //XML settings
@@ -410,6 +411,8 @@ function exportSpreadsheetXml(formatSettings)
       
       //Separate columns into those that export as child elements or attributes
       var startIndex = includeFirstColumnXml ? 0 : 1; //Exclude the first column by default since it is used as the name of the row element
+
+      if (keyHasPrefix(values[j][0], ignoreRowsPrefix)) continue; // Skip rows with the ignore prefix
       
       for(var k=startIndex; k < columns; k++)
       {
@@ -547,6 +550,7 @@ function exportSpreadsheetJson(formatSettings)
   var unwrap = settings["unwrapSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
   var ignorePrefix = settings["ignorePrefix"];
+  var ignoreRowsPrefix = settings["ignoreRowsPrefix"];
   var customSheets = settings["targetSheets"];
   
   //JSON settings
@@ -620,6 +624,8 @@ function exportSpreadsheetJson(formatSettings)
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
+      if(keyHasPrefix(values[j][0], ignoreRowsPrefix)) continue; //Skip row with the ignore prefix
+
       if(!valueArray || columns > 1)
       {
         if(rows > 2 || unwrap === false) //Only wrap the json for this row if there is more than one row (not counting the keys row)
