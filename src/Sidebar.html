@@ -50,6 +50,7 @@
     bottom: 0;
     left: 0;
     padding-bottom: 20px;
+    z-index: 2;
   }
   
   .dropdown
@@ -197,6 +198,9 @@
 </div>
 
 <script type="text/javascript">
+  //Version info
+  var esdVersion = 0;
+  var esdVersionPrev = 0;
   //Consts
   var EXP_SHEET_CUSTOM = "custom";
   var EXP_SHEET_SINGLE = "currentSheet";
@@ -300,6 +304,18 @@
     return google.script.run.setProperties(generateProperties());
   }
   
+  //Get the properties for the user.
+  function getUserProperties(onSuccess)
+  {
+    return google.script.run.withSuccessHandler(onSuccess).getProperties();
+  }
+  
+  //Saves the properties for the user.
+  function setUserProperties()
+  {
+    return google.script.run.setProperties(generateUserProperties());
+  }
+  
   //Actually sets the local properties based on stored settings.
   function updateProperties(properties)
   {
@@ -346,8 +362,6 @@
     forceInnerTextXml = settings["forceInnerText"] != null ? settings["forceInnerText"] === 'true' : forceInnerTextXml;
     forceInnerTextPrefixXml = settings["innerTextPrefix"] != null ? (settings["innerTextPrefix"] === "" ? forceInnerTextPrefixXml : settings["innerTextPrefix"]) : forceInnerTextPrefixXml;
     
-    //TODO: changeExportFormat doesn't refresh the non-JSON/XML stuff
-    //Also, values seem to be reversed.
     refreshSideBar();
   }
   
@@ -395,6 +409,50 @@
     };
     
     return JSON.stringify(properties);
+  }
+  
+  //Actually sets the user properties based on stored settings.
+  function updateUserProperties(properties)
+  {
+    var settings = JSON.parse(properties);
+    
+    esdVersionPrev = settings["esdVersionPrev"] != null ? settings["esdVersionPrev"] : esdVersionPrev;
+    
+    getVersion(setVersion);
+  }
+  
+  //Generate the JSON blob representation of the user's settings.
+  function generateUserProperties()
+  {
+    var properties = {
+      "esdVersionPrev" : esdVersion
+    };
+  
+    return JSON.stringify(properties);
+  }
+  
+  //Gets the current version of ESD.
+  function getVersion(onSuccess)
+  {
+    return google.script.run.withSuccessHandler(onSuccess).getVersion();
+  }
+  
+  //Sets the local version of ESD.
+  function setVersion(version)
+  {
+    esdVersion = version;
+    
+    checkVersion();
+    setUserProperties();
+  }
+  
+  //Checks if the user has used the current version of ESD, and displays an update popup window if not.
+  function checkVersion()
+  {
+    if(esdVersion != esdVersionPrev)
+    {
+      google.script.run.openUpdateWindow();
+    }
   }
   
   //Get the names of all sheets in the current document
@@ -829,13 +887,13 @@
     var generalText = "<div class='paddedV'><h1>Format</h1></div>";
     //Export Settings
     //Format
-    generalText += "<p><div class='block form-group sectionWrapper'><div class='option'><label for='select'><b>Select Format</b></label><div class='tooltip note padded'>Data format to export.</div></div><select class='dropdown' id='formatSelect'><option value='jsonFormat'";
+    generalText += "<p><div class='block form-group sectionWrapper'><div class='option'><label for='select'><b>Select Format</b></label></div><select class='dropdown' id='formatSelect'><option value='jsonFormat'";
     if(exportType === "jsonFormat") generalText += " selected";
     generalText += ">JSON</option><option value='xmlFormat'";
     if(exportType !== "jsonFormat") generalText += " selected";
     generalText += ">XML</option></select></p>";
     //Sheets
-    generalText += "<p><div class='option'><label for='select'><b>Select Sheet(s)</b></label><div class='tooltip note padded'>The sheets to export.</div></div><select class='dropdown' id='sheetSelect'><option value='allSheets'";
+    generalText += "<p><div class='option'><label for='select'><b>Select Sheet(s)</b></label></div><select class='dropdown' id='sheetSelect'><option value='allSheets'";
     if(exportSheets === "allSheets") generalText += " selected";
     generalText += ">All sheets</option><option value='currentSheet'";
     if(exportSheets === "currentSheet") generalText += " selected";
@@ -866,7 +924,10 @@
     //Nested Elements
     generalText += "<div class='sectionWrapper'><input id='nestedElementsToggle' type='checkbox' value='false'";
     if(nestedElements) generalText += " checked";
-    generalText += "/><div class='option'>Nested Elements<div class='tooltip note'>Export nested elements by using specific formatting in keys.</div></div></div>";
+    if(exportType != "jsonFormat") generalText += " disabled";
+    generalText += "/><div class='option'>Nested Elements<div class='tooltip note'>Export nested elements by using specific formatting in keys.";
+    if(exportType != "jsonFormat") generalText += " XML support coming soon!";
+    generalText += "</div></div></div>";
     //Ignore columns prefix
     generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
     if(ignoreColumnsWithPrefix) generalText += " checked";
@@ -1080,7 +1141,7 @@
       //Braces to object JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will not be formatted automatically.)</div></div></div>";
+      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will export an empty object if not properly formatted.)</div></div></div>";
       //Serparator char value
       advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
@@ -1117,7 +1178,9 @@
   {
     exportType = document.getElementById("formatSelect").value;
     
-    if(exportType != "jsonFormat")
+    refreshSideBar();
+    
+    /*if(exportType != "jsonFormat")
     {
       //removeXmlListeners();
       removeJsonListeners();
@@ -1328,7 +1391,7 @@
       document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
       document.getElementById('jsonForceArrayToggle').addEventListener("change", toggleArrayPrefixJson);
       if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
-    }
+    }*/
   }
   
   //Updates the method for selecting sheets for export
@@ -1723,6 +1786,6 @@
     google.script.run.exportJson(generateJsonSettings(true, newSheets));
   }
   
-  changeExportFormat();
   getProperties(updateProperties);
+  //getUserProperties(updateUserProperties);
 </script>
