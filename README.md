@@ -13,7 +13,7 @@ You can install Export Sheet Data [here](https://chrome.google.com/webstore/deta
 How to use
 ----------
 
-Currently the best way to figure out how to use ESD is by opening the sidebar, reading the toolbars of various options and experimenting with the output using the Visualize option.
+Currently the best way to figure out how to use ESD is by opening the sidebar, reading the tooltips of various options and experimenting with the output using the Visualize option.
 
 If you want to create more advanced data structures, make sure to read the Wiki page about [Nested Elements](https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements).
 
