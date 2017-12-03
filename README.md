@@ -6,11 +6,16 @@ Goals
 
 **Customizable:** Options and formats can be tweaked to reflect personal taste. Newline or sameline braces for JSON. Attributes or child elements for XML. Format your data the way you want.
 
-
-
 Install
 -------
 You can install Export Sheet Data [here](https://chrome.google.com/webstore/detail/export-sheet-data/bfdcopkbamihhchdnjghdknibmcnfplk?utm_source=permalink)
+
+How to use
+----------
+
+Currently the best way to figure out how to use ESD is by opening the sidebar, reading the tooltips of various options and experimenting with the output using the Visualize option.
+
+If you want to create more advanced data structures, make sure to read the Wiki page about [Nested Elements](https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements).
 
 Development Status
 ------------------
