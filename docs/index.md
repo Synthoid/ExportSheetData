@@ -1,3 +1,10 @@
+---
+layout: docs
+title: Index
+description: Index page for Export Sheet Data's documentation.
+group: overview
+---
+
 Welcome to the Export Sheet Data documentation compendium!
 ----------------------------------------------------------
 
