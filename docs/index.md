@@ -23,7 +23,7 @@ General Settings
 ----------------
 These settings affect both JSON and XML data.
 
-- Replace existing file(s)
+- [Replace existing file(s)](general/replaceexistingfiles.md)
 - Unwrap single row sheets
 - Ignore empty cells
 - Nested Elements
