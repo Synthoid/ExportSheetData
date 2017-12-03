@@ -1,3 +1,10 @@
+---
+layout: docs
+title: Select Format
+description: Documentation for Export Sheet Data's 'Select Format' option.
+group: format
+---
+
 Select Format
 -------------
 
