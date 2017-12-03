@@ -9,7 +9,7 @@ Format Settings
 ---------------
 These settings determine which format (JSON or XML) to export your data to, as well as the target sheets to export.
 
-- Select Format - Select the data format to export to (JSON or XML)
+- [Select Format](format/selectformat.md) - Select the data format to export to (JSON or XML)
 - Select Sheet(s) - Select the data range to include in the exported data
 
 General Settings
