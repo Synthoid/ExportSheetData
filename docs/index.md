@@ -35,7 +35,7 @@ These settings only affect exported JSON data.
 
 ### Basic
 
-- Force string values
+- [Force string values](json/forcestringvalues.md)
 - Export cell arrays
 - Export sheet arrays
 - Export value arrays
