@@ -4,7 +4,7 @@ Goals
 -----
 **Convenient:** Export Sheet Data is meant to be simple to use but very powerful. No more exporting multiple CSVs then compiling data.
 
-**Customizable:** Options and formats can be tweaked to reflect personal taste. Newline or sameline braces for JSON. Attributes or child elements for XML. Format your data the way you want.
+**Customizable:** Options and formats can be tweaked to reflect personal taste. Default or stringified values for JSON. Attributes or child elements for XML. Format your data the way you want.
 
 Install
 -------
@@ -25,7 +25,7 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
 * Forcing all data to string values
 * Exporting individual cells as JSON arrays
 * Exporting a sheet's contents as an array of JSON objects
-* Unwrapping a sheet's JSON for easier access after exporting
+* Creating complex data structures via Nested Elements
 
 **XML**
 * Exporting columns as attributes, child elements, or inner text of a row
@@ -36,6 +36,7 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
 * Visualize data before exporting
 * Newline or sameline formatting
 * Exporting specific sheets
+* Unwrapping a sheet's data for easier access after exporting
  
 Contributing
 ------------
