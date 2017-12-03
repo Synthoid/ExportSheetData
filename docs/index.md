@@ -53,7 +53,7 @@ These settings only affect exported XML data.
 
 ### Basic
 
-- Export coumns as child elements
+- [Export columns](xml/exportcolumnsaschildelements.md) as child elements
 - Don't format illegal characters
 - Include first column in export
 
