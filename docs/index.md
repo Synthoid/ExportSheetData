@@ -12,6 +12,11 @@ Here you can find detailed descriptions for each of ESD's various options and se
 
 **This documentation is still being written, so please bear with us and forgive any missing content while it is being completed.**
 
+[1. Format Settings](#format-settings)<br>
+[2. General Settings](#general-settings)<br>
+[3. JSON Settings](#json-settings)<br>
+[4. XML Settings](#xml-settings)
+
 Format Settings
 ---------------
 These settings determine which format (JSON or XML) to export your data to, as well as the target sheets to export.
@@ -35,17 +40,17 @@ These settings only affect exported JSON data.
 
 ### Basic
 
-- [Force string values](json/forcestringvalues.md)
-- Export cell arrays
-- Export sheet arrays
-- Export value arrays
+- [Force string values](json/forcestringvalues.md) - Export all values as their string version
+- [Export cell arrays](json/exportcellarrays.md) - Export JSON arrays when a cell contains a specific character
+- [Export sheet arrays](json/exportsheetarrays.md) - Export sheets as JSON arrays with each row creating a single element
+- [Export value arrays](json/exportvaluearrays.md) - Export a sheet as a JSON array if it has only one column
 
 ### Advanced
 
-- Export contents as array
-- Export cell objects
-- Array separator character
-- Array prefix
+- [Export contents as array](json/exportcontentsasarray.md) - Convert exported standalone JSON to a raw JSON array
+- [Export cell objects](json/exportcellobjects.md) - Export a cell's value as a JSON object if it is properly formatted
+- [Array separator character](json/arrayseparatorcharacter.md) - Adjust the character used to separate values in a cell array
+- [Array prefix](json/arrayprefix.md) - Force elements in a given column to export as JSON arrays
 
 XML Settings
 ------------
