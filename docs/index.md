@@ -17,17 +17,17 @@ Format Settings
 These settings determine which format (JSON or XML) to export your data to, as well as the target sheets to export.
 
 - [Select Format](format/selectformat.md) - Select the data format to export to (JSON or XML)
-- Select Sheet(s) - Select the data range to include in the exported data
+- [Select Sheet(s)](format/selectsheets.md) - Select the data range to include in the exported data
 
 General Settings
 ----------------
 These settings affect both JSON and XML data.
 
-- [Replace existing file(s)](general/replaceexistingfiles.md)
-- Unwrap single row sheets
-- Ignore empty cells
-- Nested Elements
-- Ignore prefix
+- [Replace existing file(s)](general/replaceexistingfiles.md) - Trash files with the same name in the output folder as the exported data
+- [Unwrap single row sheets](general/unwrapsinglerowsheets.md) - Place elements from a sheet containing one row in the root element
+- [Ignore empty cells](general/ignoreemptycells.md) - Don't export cells with no value
+- [Nested Elements](general/nestedelements.md) - Create complex data sets by using specific key syntax
+- [Ignore prefix](general/ignoreprefix.md) - Don't export columns whose keys start with a specific string
 
 JSON Settings
 -------------
