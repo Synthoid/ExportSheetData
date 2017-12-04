@@ -58,9 +58,9 @@ These settings only affect exported XML data.
 
 ### Basic
 
-- [Export columns as child elements](xml/exportcolumnsaschildelements.md)
-- Don't format illegal characters
-- Include first column in export
+- [Export columns as child elements](xml/exportcolumnsaschildelements.md) - Export columns as child elements of their row's XML element
+- [Don't format illegal characters](xml/dontformatillegalcharacters.md) - Don't encode illegal XML characters
+- [Include first column in export](xml/includefirstcolumninexport.md) - Export the first column of a row as a distinct XML element
 
 ### Advanced
 
