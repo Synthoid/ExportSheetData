@@ -11,6 +11,10 @@ Determines if a customized XML declaration should be included at the top of expo
 
 See also
 --------
-- XML version
-- XML encoding
-- Standalone
+- [XML version](xmlversion.md)
+- [XML encoding](xmlencoding.md)
+- [Standalone](standalone.md)
+
+External references
+-------------------
+- [XML declaration on MSDN](https://msdn.microsoft.com/en-us/library/ms256048(v=vs.110).aspx)
