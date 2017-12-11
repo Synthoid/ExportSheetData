@@ -18,10 +18,6 @@ There are two possible values:
 
 See also
 --------
-- Include XML declaration
-- XML encoding
-- Standalone
-
-External resources
-------------------
-- [XML Declaration at MSDN](https://msdn.microsoft.com/en-us/library/ms256048(v=vs.110).aspx)
+- [Include XML declaration](includexmldeclaration.md)
+- [XML encoding](xmlencoding.md)
+- [Standalone](standalone.md)
