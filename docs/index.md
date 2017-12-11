@@ -50,7 +50,7 @@ These settings only affect exported JSON data.
 - [Export contents as array](json/exportcontentsasarray.md) - Convert exported standalone JSON to a raw JSON array
 - [Export cell objects](json/exportcellobjects.md) - Export a cell's value as a JSON object if it is properly formatted
 - [Array separator character](json/arrayseparatorcharacter.md) - Adjust the character used to separate values in a cell array
-- [Array prefix](json/arrayprefix.md) - Force elements in a given column to export as JSON arrays
+- [Array prefix](json/arrayprefix.md) - Force elements in a column to export as JSON arrays
 
 XML Settings
 ------------
@@ -64,12 +64,12 @@ These settings only affect exported XML data.
 
 ### Advanced
 
-- Root element
-- Name replacement char
-- Include XML declaration
-  - XML version
-  - XML encoding
-  - Standalone
-- Attributes prefix
-- Child elements prefix
-- Inner text prefix
+- [Root element](xml/rootelement.md) - Name for the exported XML document's root element
+- [Name replacement character](xml/namereplacementcharacter.md) - Character used when replacing illegal chars in element names
+- [Include XML declaration](xml/includexmldeclaration.md)- Include a customized XML declaration in the exported document
+  - [XML version](xml/xmlversion.md) - Version of the XML standard used by the exported document
+  - [XML encoding](xml/xmlencoding.md) - Encoding used by the exported document
+  - [Standalone](xml/standalone.md) - Specifies if the exported document depends on external resources
+- [Attributes prefix](xml/attributesprefix.md) - Force elements in a column to export as attributes for their row element
+- [Child elements prefix](xml/childelementsprefix.md) - Force elements in a column to export as child elements of their row element
+- [Inner text prefix](xml/innertextprefix.md) - Force elements in a column to export as inner text for their row element
