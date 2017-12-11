@@ -13,6 +13,6 @@ If set to `None`, encoding will not be included in the XML declaration.
 
 See also
 --------
-- Include XML declaration
-- XML version
-- Standalone
+- [Include XML declaration](includexmldeclaration.md)
+- [XML version](xmlversion.md)
+- [Standalone](standalone.md)
