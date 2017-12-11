@@ -11,6 +11,6 @@ Specifies if the exported XML document relies on information from an external so
 
 See also
 --------
-- [Include XML declaration](xml/includexmldeclaration.md)
-- [XML version](xml/xmlversion.md)
-- [XML encoding](xml/xmlencoding.md)
+- [Include XML declaration](includexmldeclaration.md)
+- [XML version](xmlversion.md)
+- [XML encoding](xmlencoding.md)
