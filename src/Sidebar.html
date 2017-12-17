@@ -931,7 +931,7 @@
     //Ignore columns prefix
     generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
     if(ignoreColumnsWithPrefix) generalText += " checked";
-    generalText += "/><div class='option'>Ignore prefix<div class='tooltip note'>Don't export columns with keys using the specified prefix.</div></div><p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value='";
+    generalText += "/><div class='option'>Ignore prefix<div class='tooltip note'>Don't export columns with keys using the specified prefix, or rows whose first value starts with the specified prefix.</div></div><p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value='";
     generalText += ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
     generalText += "' placeholder='NOEX_'";
     if(ignoreColumnsWithPrefix === false) generalText += " disabled";

@@ -1,4 +1,4 @@
-var esdVersion = 40;
+var esdVersion = 41;
 
 //Popup message
 var messageLineHeight = 10;
@@ -631,6 +631,8 @@ function exportSpreadsheetXml(formatSettings)
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
+      if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
+    
       var attributeKeys = [];
       var childElementKeys = [];
       var innerTextKeys = [];
@@ -837,7 +839,7 @@ function exportSpreadsheetJson(formatSettings)
     var hasNesting = false; //Will be set to true if any nesting occurs.
     var useNestingArray = false; //If true, the sheet's contents will be in an array
     
-    //If both nested elements and sheet arrays are enebled, need to know which to use for this sheet
+    //If both nested elements and sheet arrays are enabled, need to know which to use for this sheet
     if(sheetArray && nestedElements)
     {
       var keyNesting = false;
@@ -872,6 +874,8 @@ function exportSpreadsheetJson(formatSettings)
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
+      if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
+    
       var rowArray = [];
       var rowObject = {};
       var rowIndexNames = []; //Used to keep associations with row indexes correct
@@ -1527,7 +1531,18 @@ function openReleaseNotes()
       .setWidth(275)
       .setHeight(130);
     SpreadsheetApp.getUi()
-    .showModelessDialog(html, 'ESD Release Notes:');
+    .showModelessDialog(html, 'ESD Release Notes');
+}
+
+
+function openDocumentation()
+{
+  var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><div><p>Documentation for Export Sheet Data can be viewed on GitHub: <a href="https://github.com/Synthoid/ExportSheetData/blob/master/docs/index.md" target="blank">here</a></p><br><button onclick="google.script.host.close()">Close</button></div>')
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+      .setWidth(275)
+      .setHeight(130);
+    SpreadsheetApp.getUi()
+    .showModelessDialog(html, 'ESD Documentation');
 }
 
 
@@ -1538,7 +1553,7 @@ function openNestedElementDocumentation()
       .setWidth(275)
       .setHeight(130);
     SpreadsheetApp.getUi()
-    .showModelessDialog(html, 'Nested Elements:');
+    .showModelessDialog(html, 'Nested Elements');
 }
 
 
@@ -1549,7 +1564,7 @@ function openUpdateWindow()
       .setWidth(275)
       .setHeight(130);
     SpreadsheetApp.getUi()
-    .showModelessDialog(html, 'ESD Update Notes:');
+    .showModelessDialog(html, 'ESD Update Notes');
 }
 
 
@@ -1566,6 +1581,7 @@ function onOpen(e)
   .addItem("Open Sidebar", "openSidebar")
   .addSeparator()
   .addItem("Release Notes (v" + esdVersion + ")", "openReleaseNotes")
-  .addItem("Nested Elements Documentation", "openNestedElementDocumentation")
+  .addItem("Documentation", "openDocumentation")
+  .addItem("Nested Elements", "openNestedElementDocumentation")
   .addToUi();
 };
