@@ -45,7 +45,9 @@ If you would like to add a feature to Export Sheet Data, be sure to read the [wi
 
 Credits
 -------
-Developed by Chris Ingerson.
+Developed by Chris Ingerson with help from the community.
+
+- Ignore rows support added by [jaeki-kim](https://github.com/jaeki-kim)
 
 License
 -------
