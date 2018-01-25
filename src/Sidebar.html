@@ -114,6 +114,11 @@
     transition: 0.4s;
   }
   
+  .accordion:hover
+  {
+    background-color: #2a5266;
+  }
+  
   .accordion:before
   {
     content: '\002B';
@@ -937,7 +942,7 @@
     generalText += "<div id='customSheetSelect'></div></div></div>"; //Sheet selection is filled automatically at end of refresh process.
     
     //General Options
-    generalText += "<div class='accordion active'><h1>General Options</h1></div><div class='accordionPanel'>";
+    generalText += "<div class='accordion active'><h1>General</h1></div><div class='accordionPanel'>";
     //Replace existing files
     generalText += "<div class='sectionWrapper'><input id='replaceToggle' type='checkbox' value='Replace'";
     if(replaceExistingFiles) generalText += " checked";
@@ -998,7 +1003,7 @@
       
       removeXmlListeners();
       
-      var xmlText = "<div class='accordion active'><h1>XML Options</h1></div><div class='accordionPanel'>";
+      var xmlText = "<div class='accordion active'><h1>XML</h1></div><div class='accordionPanel'>";
       //Export child elements
       xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
@@ -1013,7 +1018,7 @@
       xmlText += "/><div class='option'>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to the name of the row element.</div></div></div></div>";
       
       //Advanced Options
-      var advancedXmlText = "<div class='accordion active'><h1>Advanced Options</h1></div><div class='accordionPanel'>";
+      var advancedXmlText = "<div class='accordion active'><h1>Advanced XML</h1></div><div class='accordionPanel'>";
       //Root element value
       advancedXmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note padded'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
       advancedXmlText += "'" + rootElementXml + "'";
@@ -1147,7 +1152,7 @@
       removeJsonListeners();
       
       //JSON Options
-      var jsonText = "<div class='accordion active'><h1>JSON Options</h1></div><div class='accordionPanel'>";
+      var jsonText = "<div class='accordion active'><h1>JSON</h1></div><div class='accordionPanel'>";
       //Force string Json
       jsonText += "<div class='sectionWrapper'><input id='forceStringToggle' type='checkbox' value='Force'";
       if(forceStringJson) jsonText += " checked";
@@ -1166,7 +1171,7 @@
       jsonText += "><div class='option'>Export value arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div></div>";
       
       //Advanced Options
-      var advancedJsonText = "<div class='accordion active'><h1>Advanced Options</h1></div><div class='accordionPanel'>";
+      var advancedJsonText = "<div class='accordion active'><h1>Advanced JSON</h1></div><div class='accordionPanel'>";
       //Content to array JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
       if(exportContentsAsArrayJson) advancedJsonText += " checked";
