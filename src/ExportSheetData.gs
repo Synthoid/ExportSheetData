@@ -1,4 +1,4 @@
-var esdVersion = 41;
+var esdVersion = 42;
 
 //Popup message
 var messageLineHeight = 10;
@@ -40,6 +40,25 @@ function setProperties(newProperties)
   var properties = PropertiesService.getDocumentProperties();
   
   properties.setProperties(JSON.parse(newProperties));
+}
+
+function getPrevExportProperties()
+{
+  //TODO: Need to split properties into settings (all prop values) and prev-export (settings for last export)
+  var props = PropertiesService.getDocumentProperties();
+  
+  var prop = props.getProperty("prev");
+  
+  Logger.log(prop);
+  Logger.log(JSON.stringify(prop));//https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet-app
+  
+  return JSON.stringify(prop);
+}
+
+
+function setPrevExportProperties()
+{
+  
 }
 
 //Get the ESD properties for a specific user.
@@ -771,6 +790,8 @@ function exportSpreadsheetJson(formatSettings)
   //Settings
   var settings = JSON.parse(formatSettings);
   
+  Logger.log(settings);
+  
   //File settings
   var visualize = settings["visualize"];
   var singleSheet = settings["singleSheet"];
@@ -798,20 +819,26 @@ function exportSpreadsheetJson(formatSettings)
   
   if(customSheets != null)
   {
-    var exportSheets = sheets;
-    sheets = new Array();
-    
-    for(var i=0; i < exportSheets.length; i++)
+    if((isObject(customSheets) && Object.keys(customSheets).length > 0) || (!isObject(customSheets) && customSheets.length > 2))
     {
-      if(customSheets[exportSheets[i].getName()] === 'true')
+      Logger.log("TEST");
+      var exportSheets = sheets;
+      sheets = new Array();
+      
+      for(var i=0; i < exportSheets.length; i++)
       {
-        if(spreadsheet.getSheetByName(exportSheets[i].getName()) != null)
+        if(customSheets[exportSheets[i].getName()] === 'true')
         {
-          sheets.push(spreadsheet.getSheetByName(exportSheets[i].getName()));
+          if(spreadsheet.getSheetByName(exportSheets[i].getName()) != null)
+          {
+            sheets.push(spreadsheet.getSheetByName(exportSheets[i].getName()));
+          }
         }
       }
     }
   }
+  
+  Logger.log(sheets);
   
   var fileName = spreadsheet.getName() + (singleSheet ? (" - " + sheets[0].getName()) : "") + ".json";
   var sheetValues = [[]];
@@ -1400,11 +1427,31 @@ function exportSpreadsheetJson(formatSettings)
 }
 
 
+function reexportFile()
+{
+  var props = getProperties();
+  
+  Logger.log("Reexport!");
+  Logger.log(props);
+  
+  if(props["exportType"] == "xmlFormat")
+  {
+    exportXml(props);
+  }
+  else
+  {
+    exportJson(props);
+  }
+  
+  //exportDocument(filename, content, type, visualize, replaceFile, exportMessage, exportMessageHeight);
+}
+
+
 function exportDocument(filename, content, type, visualize, replaceFile, exportMessage, exportMessageHeight)
 {
   if(visualize == true)
   {
-    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:555px; height:425px; }</style><textarea class="display">' + content + '</textarea><br>Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.<br><br>' + (exportMessage === "" ? '' : exportMessage + '<br><br>') + '<button onclick="google.script.host.close()">Close</button>')
+    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:555px; height:425px; }</style><textarea class="display">' + content + '</textarea><br>Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.<br><br>' + (exportMessage === "" ? '' : exportMessage + '<br><br>') + '<button class="action" onclick="google.script.run.reexportFile()">Export</button><button onclick="google.script.host.close()">Close</button>')
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(600)
       .setHeight(525 + exportMessageHeight);
