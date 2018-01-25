@@ -784,7 +784,6 @@ function exportSpreadsheetXml(formatSettings)
 }
 
 
-//function exportSpreadsheetJson(visualize, singleSheet, contentsArray, exportCellObjectJson, exportArray, sheetArray, forceString, separatorChar, arrayPrefix, replaceFile, newline, unwrap, ignoreEmpty, ignorePrefix, customSheets)
 function exportSpreadsheetJson(formatSettings)
 {
   //Settings
@@ -799,9 +798,12 @@ function exportSpreadsheetJson(formatSettings)
   var newline = settings["newlineElements"];
   var unwrap = settings["unwrapSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
-  var nestedElements = settings["nestedElements"];
   var ignorePrefix = settings["ignorePrefix"];
   var customSheets = settings["targetSheets"];
+  
+  //Nested Settings
+  var nestedElements = settings["nestedElements"];
+  var nestedArrayPrefix = settings["forceArrayPrefixNest"];
   
   //JSON settings
   var contentsArray = settings["exportContentsAsArray"];
@@ -821,7 +823,6 @@ function exportSpreadsheetJson(formatSettings)
   {
     if((isObject(customSheets) && Object.keys(customSheets).length > 0) || (!isObject(customSheets) && customSheets.length > 2))
     {
-      Logger.log("TEST");
       var exportSheets = sheets;
       sheets = new Array();
       
@@ -867,6 +868,7 @@ function exportSpreadsheetJson(formatSettings)
     var useNestingArray = false; //If true, the sheet's contents will be in an array
     
     //If both nested elements and sheet arrays are enabled, need to know which to use for this sheet
+    //TODO: Set up NAR_ prefix parsing to force nested arrays when nested elements are enabled.
     if(sheetArray && nestedElements)
     {
       var keyNesting = false;

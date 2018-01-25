@@ -236,9 +236,6 @@
 </div>
 
 <script type="text/javascript">
-  //Version info
-  var esdVersion = 0;
-  var esdVersionPrev = 0;
   //Consts
   var EXP_SHEET_CUSTOM = "custom";
   var EXP_SHEET_SINGLE = "currentSheet";
@@ -252,6 +249,8 @@
   //JSON
   var JSON_SEPARATOR_DEFAULT = ","; //TODO: Cannot be " or ' chars
   var JSON_JA_DEFAULT = "JA_";
+  //Nesting Elements
+  var NEST_NAR_DEFAULT = "NAR_";
   
   //Visualization
   var visualizeData = false;
@@ -265,11 +264,13 @@
   var unwrapSingleRows = false;
   //Don't export cells that are empty (helps reduce file size)
   var ignoreEmptyCells = false;
-  //Support complex nested elements by using special key formatting
-  var nestedElements = false;
   //Don't export columns with the ignore prefix
   var ignoreColumnsWithPrefix = false;
   var ignoreColumnsPrefix = "NOEX_";
+  
+  //Advanced Options
+  //Support complex nested elements by using special key formatting
+  var nestedElements = false;
   
   //XML Options
   //Export values as child elements instead of attributes
@@ -321,9 +322,12 @@
   var export2dArrayJson = false;
   //Separator char for JSON arrays
   var arraySeparatorCharJson = ",";
-  //Columns using keys starting with a specified string will always be exported as inner text
+  //Sheets or columns using keys starting with a specified string will always be exported as JSON arrays
   var forceArrayJson = false;
   var forceArrayPrefixJson = "JA_";
+  //Sheets using the specified prefix will always be exported as nested arrays
+  var forceArrayNest = false;
+  var forceArrayPrefixNest = "NAR_";
   
   var exportType = "jsonFormat";
   var exportSheets = "allSheets";
@@ -368,9 +372,13 @@
     newlineElements = settings["newlineElements"] != null ? settings["newlineElements"] === 'true' : false;
     unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === 'true' : false;
     ignoreEmptyCells = settings["ignoreEmptyCells"] != null ? settings["ignoreEmptyCells"] === 'true' : false;
-    nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === 'true' : false;
     ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === 'true' : false;
     ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
+    
+    //Advanced
+    nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === 'true' : false;
+    forceArrayNest = settings["forceArrayNest"] != null ? settings["forceArrayNest"] === 'true' : forceArrayNest;
+    forceArrayPrefixNest = settings["forceArrayPrefixNest"] != null ? (settings["forceArrayPrefixNest"] === "" ? NEST_NAR_DEFAULT : settings["forceArrayPrefixNest"]) : NEST_NAR_DEFAULT;
     
     //JSON
     exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === 'true' : exportContentsAsArrayJson;
@@ -415,9 +423,12 @@
       "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
-      "nestedElements" : nestedElements,
       "ignoreColumnsWithPrefix" : ignoreColumnsWithPrefix,
       "ignorePrefix" : (ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix),
+      //Nested Elements
+      "nestedElements" : nestedElements,
+      "forceArrayNest" : forceArrayNest,
+      "forceArrayPrefixNest" : (forceArrayPrefixNest === "" ? NEST_NAR_DEFAULT : forceArrayPrefixNest),
       //JSON
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
@@ -447,50 +458,6 @@
     };
     
     return JSON.stringify(properties);
-  }
-  
-  //Actually sets the user properties based on stored settings.
-  function updateUserProperties(properties)
-  {
-    var settings = JSON.parse(properties);
-    
-    esdVersionPrev = settings["esdVersionPrev"] != null ? settings["esdVersionPrev"] : esdVersionPrev;
-    
-    getVersion(setVersion);
-  }
-  
-  //Generate the JSON blob representation of the user's settings.
-  function generateUserProperties()
-  {
-    var properties = {
-      "esdVersionPrev" : esdVersion
-    };
-  
-    return JSON.stringify(properties);
-  }
-  
-  //Gets the current version of ESD.
-  function getVersion(onSuccess)
-  {
-    return google.script.run.withSuccessHandler(onSuccess).getVersion();
-  }
-  
-  //Sets the local version of ESD.
-  function setVersion(version)
-  {
-    esdVersion = version;
-    
-    checkVersion();
-    setUserProperties();
-  }
-  
-  //Checks if the user has used the current version of ESD, and displays an update popup window if not.
-  function checkVersion()
-  {
-    if(esdVersion != esdVersionPrev)
-    {
-      google.script.run.openUpdateWindow();
-    }
   }
   
   //Get the names of all sheets in the current document
@@ -540,6 +507,8 @@
   function toggleNestedElements()
   {
     nestedElements = !nestedElements;
+    
+    //TODO: Need to disable JSON/XML specific nested element fields when toggling.
   }
   
   function getIgnorePrefix()
@@ -846,11 +815,6 @@
     arraySeparatorCharJson = document.getElementById("jsonArraySeparatorCharTextField").value;
   }
   
-  function updateArrayPrefixJson()
-  {
-    forceArrayPrefixJson = document.getElementById("jsonForceArrayTextField").value;
-  }
-  
   function toggleArrayPrefixJson()
   {
     forceArrayJson = !forceArrayJson;
@@ -864,6 +828,39 @@
     document.getElementById("jsonForceArrayText").innerHTML = text;
     
     if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
+  }
+  
+  function updateArrayPrefixJson()
+  {
+    forceArrayPrefixJson = document.getElementById("jsonForceArrayTextField").value;
+  }
+  
+  //Nested Elements options
+  function toggleArrayPrefixNest()
+  {
+    forceArrayNest = !forceArrayNest;
+    
+    var text = "<input id='nestForceArrayTextField' type='text' value=";
+    text += "'" + forceArrayPrefixNest + "'";
+    text += " placeholder='" + NEST_NAR_DEFAULT + "'";
+    if(forceArrayNest === false) text += " disabled";
+    text += "/>";
+    
+    document.getElementById("nestForceArrayText").innerHTML = text;
+    
+    if(forceArrayNest === true) document.getElementById('nestForceArrayTextField').addEventListener("change", updateArrayPrefixNest);
+  }
+  
+  function updateArrayPrefixNest()
+  {
+    forceArrayPrefixNest = document.getElementById("nestForceArrayTextField").value;
+  }
+  
+  function getForceArrayPrefixNest()
+  {
+    if(forceArrayNest === false) return "";
+  
+    return forceArrayPrefixNest === "" ? NEST_NAR_DEFAULT : forceArrayPrefixNest;
   }
   
   //Toggles value for exporting all sheets
@@ -959,13 +956,6 @@
     generalText += "<div class='sectionWrapper'><input id='ignoreEmptyCellsToggle' type='checkbox' value='false'";
     if(ignoreEmptyCells) generalText += " checked";
     generalText += "/><div class='option'>Ignore empty cells<div class='tooltip note'>Don't export cells that are empty.</div></div></div>";
-    //Nested Elements
-    generalText += "<div class='sectionWrapper'><input id='nestedElementsToggle' type='checkbox' value='false'";
-    if(nestedElements) generalText += " checked";
-    if(exportType != "jsonFormat") generalText += " disabled";
-    generalText += "/><div class='option'>Nested Elements<div class='tooltip note'>Export nested elements by using specific formatting in keys.";
-    if(exportType != "jsonFormat") generalText += " XML support coming soon!";
-    generalText += "</div></div></div>";
     //Ignore columns prefix
     generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
     if(ignoreColumnsWithPrefix) generalText += " checked";
@@ -974,6 +964,17 @@
     generalText += "' placeholder='NOEX_'";
     if(ignoreColumnsWithPrefix === false) generalText += " disabled";
     generalText += "/></p><p class='note'></p></div></div>";
+    
+    //Advanced General Options
+    generalText += "<div class='accordion active'><h1>Advanced</h1></div><div class='accordionPanel'>";
+    //Nested Elements
+    generalText += "<div class='sectionWrapper'><input id='nestedElementsToggle' type='checkbox' value='false'";
+    if(nestedElements) generalText += " checked";
+    if(exportType != "jsonFormat") generalText += " disabled";
+    generalText += "/><div class='option'>Nested Elements<div class='tooltip note'>Export nested elements by using specific formatting in keys.";
+    if(exportType != "jsonFormat") generalText += " XML support in development!";
+    generalText += "</div></div></div>";
+    generalText += "</div>";
     
     document.getElementById("generalOptions").innerHTML = generalText;
     
@@ -1185,15 +1186,25 @@
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
       advancedJsonText += " placeholder='" + JSON_SEPARATOR_DEFAULT + "'";
       advancedJsonText += "/></div>";
-      //Force array column export
+      //Force JSON array export
       advancedJsonText += "<div class='sectionWrapper'><input id='jsonForceArrayToggle' type='checkbox' value='false'";
       if(forceArrayJson === true) advancedJsonText += " checked";
-      advancedJsonText += "/><div class='option'>Array prefix<div class='tooltip note'>Force cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
+      advancedJsonText += "/><div class='option'>Array prefix<div class='tooltip note'>Force sheets or cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
       advancedJsonText += "<p id='jsonForceArrayText'><input id='jsonForceArrayTextField' type='text' value=";
       advancedJsonText += "'" + forceArrayPrefixJson + "'";
       advancedJsonText += " placeholder='" + JSON_JA_DEFAULT + "'";
       if(forceArrayJson === false) advancedJsonText += " disabled";
-      advancedJsonText += "/></p></div></div>";
+      advancedJsonText += "/></p></div>";
+      //Force nested array export
+      advancedJsonText += "<div class='sectionWrapper'><input id='nestForceArrayToggle' type='checkbox' value='false'";
+      if(forceArrayNest === true) advancedJsonText += " checked";
+      advancedJsonText += "/><div class='option'>Nested Array prefix<div class='tooltip note'>Force sheets with names using the specified prefix to export as Nested Element arrays.</div></div>";
+      advancedJsonText += "<p id='nestForceArrayText'><input id='nestForceArrayTextField' type='text' value=";
+      advancedJsonText += "'" + forceArrayPrefixNest + "'";
+      advancedJsonText += " placeholder='" + NEST_NAR_DEFAULT + "'";
+      if(forceArrayNest === false) advancedJsonText += " disabled";
+      advancedJsonText += "/></p></div>";
+      advancedJsonText += "</div>";
       
       document.getElementById("jsonOptions").innerHTML = jsonText;
       document.getElementById("advancedOptions").innerHTML = advancedJsonText;
@@ -1208,6 +1219,8 @@
       document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
       document.getElementById('jsonForceArrayToggle').addEventListener("change", toggleArrayPrefixJson);
       if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
+      document.getElementById('nestForceArrayToggle').addEventListener("change", toggleArrayPrefixNest);
+      if(forceArrayNest === true) document.getElementById('nestForceArrayTextField').addEventListener("change", updateArrayPrefixNest);
     }
     
     var accordions = document.getElementsByClassName("accordion");
@@ -1382,6 +1395,7 @@
   //Removes event listeners for general option toggles
   function removeGeneralListeners()
   {
+    //Basic
     if(document.getElementById('formatSelect') != null)
     {
       document.getElementById('formatSelect').addEventListener("change", changeExportFormat);
@@ -1406,14 +1420,15 @@
     {
       document.getElementById('ignoreEmptyCellsToggle').removeEventListener("change", toggleIgnoreEmptyCells);
     }
-    if(document.getElementById('nestedElementsToggle') != null)
-    {
-      document.getElementById('nestedElementsToggle').removeEventListener("change", toggleNestedElements);
-    }
     if(document.getElementById('ignoreColumnsToggle') != null)
     {
       document.getElementById('ignoreColumnsToggle').removeEventListener("change", toggleIgnoreColumnsWithPrefix);
       document.getElementById('ignoreColumnsPrefixTextField').removeEventListener("change", updateIgnorePrefix);
+    }
+    //Advanced
+    if(document.getElementById('nestedElementsToggle') != null)
+    {
+      document.getElementById('nestedElementsToggle').removeEventListener("change", toggleNestedElements);
     }
   }
   
@@ -1502,6 +1517,11 @@
       document.getElementById('jsonForceArrayToggle').removeEventListener("change", toggleArrayPrefixJson);
       document.getElementById('jsonForceArrayTextField').removeEventListener("change", updateArrayPrefixJson);
     }
+    if(document.getElementById('nestForceArrayToggle') != null)
+    {
+      document.getElementById('nestForceArrayToggle').removeEventListener("change", toggleArrayPrefixNest);
+      document.getElementById('nestForceArrayTextField').removeEventListener("change", updateArrayPrefixNest);
+    }
   }
   
   //Creates a JSON blob representing the current XML settings
@@ -1553,7 +1573,8 @@
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
       "separatorChar" : getSeparatorCharJson(),
-      "forceArrayPrefix" : getForceArrayPrefixJson()
+      "forceArrayPrefix" : getForceArrayPrefixJson(),
+      "forceArrayPrefixNest" : getForceArrayPrefixNest()
     };
     
     return JSON.stringify(settings);
