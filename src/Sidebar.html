@@ -337,7 +337,7 @@
   //Get the properties for the sheet to automatically set values based on the user's last export for this document.
   function getProperties(onSuccess)
   {
-    return google.script.run.withSuccessHandler(onSuccess).getProperties();
+    return google.script.run.withSuccessHandler(onSuccess).getExportProperties();
   }
   
   //Saves the properties for the user's last export for this document so they are automatically set the next time the document opens..
@@ -346,66 +346,54 @@
     return google.script.run.setExportProperties(generateProperties());
   }
   
-  //Get the properties for the user.
-  function getUserProperties(onSuccess)
-  {
-    return google.script.run.withSuccessHandler(onSuccess).getProperties();
-  }
-  
-  //Saves the properties for the user.
-  function setUserProperties()
-  {
-    return google.script.run.setProperties(generateUserProperties());
-  }
-  
   //Actually sets the local properties based on stored settings.
   function updateProperties(properties)
   {
-    //https://developers.google.com/apps-script/reference/properties/properties-service#getScriptProperties()
+    //TODO: Properties don't seem to be set properly...
     var settings = JSON.parse(properties);
     
     //General
     exportType = settings["exportType"] != null ? settings["exportType"] : exportType;
     exportSheets = settings["exportSheets"] != null ? (settings["exportSheets"] === "" ? exportSheets : settings["exportSheets"]) : exportSheets;
     targetSheets = settings["targetSheets"] != null ? (settings["targetSheets"] === "" ? targetSheets : JSON.parse(settings["targetSheets"])) : targetSheets;
-    replaceExistingFiles = settings["replaceExistingFiles"] != null ? settings["replaceExistingFiles"] === 'true' : false;
-    newlineElements = settings["newlineElements"] != null ? settings["newlineElements"] === 'true' : false;
-    unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === 'true' : false;
-    ignoreEmptyCells = settings["ignoreEmptyCells"] != null ? settings["ignoreEmptyCells"] === 'true' : false;
-    ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === 'true' : false;
+    replaceExistingFiles = settings["replaceExistingFiles"] != null ? settings["replaceExistingFiles"] === true : false;
+    newlineElements = settings["newlineElements"] != null ? settings["newlineElements"] === true : false;
+    unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === true : false;
+    ignoreEmptyCells = settings["ignoreEmptyCells"] != null ? settings["ignoreEmptyCells"] === true : false;
+    ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === true : false;
     ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
     
     //Advanced
-    nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === 'true' : false;
-    forceArrayNest = settings["forceArrayNest"] != null ? settings["forceArrayNest"] === 'true' : forceArrayNest;
+    nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === true : false;
+    forceArrayNest = settings["forceArrayNest"] != null ? settings["forceArrayNest"] === true : forceArrayNest;
     forceArrayPrefixNest = settings["forceArrayPrefixNest"] != null ? (settings["forceArrayPrefixNest"] === "" ? NEST_NA_DEFAULT : settings["forceArrayPrefixNest"]) : NEST_NA_DEFAULT;
     
     //JSON
-    exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === 'true' : exportContentsAsArrayJson;
-    exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === 'true' : exportCellObjectJson;
-    exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === 'true' : exportCellArrayJson;
-    exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === 'true' : exportSheetArrayJson;
-    exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === 'true' : exportValueArrayJson;
+    exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
+    exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === true : exportCellObjectJson;
+    exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === true : exportCellArrayJson;
+    exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === true : exportSheetArrayJson;
+    exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
     forceStringJson = settings["forceString"] != null ? settings["forceString"] === 'true' : forceStringJson;
     arraySeparatorCharJson = settings["separatorChar"] != null ? (settings["separatorChar"] === "" ? "," : settings["separatorChar"]) : JSON_SEPARATOR_DEFAULT;
     forceArrayJson = settings["forceArray"] != null ? settings["forceArray"] === 'true' : forceArrayJson;
     forceArrayPrefixJson = settings["forceArrayPrefix"] != null ? (settings["forceArrayPrefix"] === "" ? JSON_JA_DEFAULT : settings["forceArrayPrefix"]) : JSON_JA_DEFAULT;
     
     //XML
-    exportChildElementXml = settings["exportChildElements"] != null ? settings["exportChildElements"] === 'true' : exportChildElementXml;
+    exportChildElementXml = settings["exportChildElements"] != null ? settings["exportChildElements"] === true : exportChildElementXml;
     formatContentXml = settings["formatContent"] != null ? settings["formatContent"] === 'true' : formatContentXml;
-    includeFirstColumnXml = settings["includeFirstColumn"] != null ? settings["includeFirstColumn"] === 'true' : includeFirstColumnXml;
+    includeFirstColumnXml = settings["includeFirstColumn"] != null ? settings["includeFirstColumn"] === true : includeFirstColumnXml;
     rootElementXml = settings["rootElement"] != null ? (settings["rootElement"] === "" ? rootElementXml : settings["rootElement"]) : rootElementXml;
     nameReplacementCharXml = settings["nameReplacementChar"] != null ? (settings["nameReplacementChar"] === "" ? nameReplacementCharXml : settings["nameReplacementChar"]) : nameReplacementCharXml;
-    includeDeclarationXml = settings["includeDeclaration"] != null ? settings["includeDeclaration"] === 'true' : includeDeclarationXml;
+    includeDeclarationXml = settings["includeDeclaration"] != null ? settings["includeDeclaration"] === true : includeDeclarationXml;
     declarationVersionXml = settings["declarationVersion"] != null ? (settings["declarationVersion"] === "" ? declarationVersionXml : settings["declarationVersion"]) : declarationVersionXml;
     declarationEncodingXml = settings["declarationEncoding"] != null ? (settings["declarationEncoding"] === "" ? declarationEncodingXml : settings["declarationEncoding"]) : declarationEncodingXml;
     declarationStandaloneXml = settings["declarationStandalone"] != null ? (settings["declarationStandalone"] === "" ? declarationStandaloneXml : settings["declarationStandalone"]) : declarationStandaloneXml;
-    forceAttributesXml = settings["forceAttributes"] != null ? settings["forceAttributes"] === 'true' : forceAttributesXml;
+    forceAttributesXml = settings["forceAttributes"] != null ? settings["forceAttributes"] === true : forceAttributesXml;
     forceAttributesPrefixXml = settings["attributePrefix"] != null ? (settings["attributePrefix"] === "" ? forceAttributesPrefixXml : settings["attributePrefix"]) : forceAttributesPrefixXml;
-    forceChildElementsXml = settings["forceChildElements"] != null ? settings["forceChildElements"] === 'true' : forceChildElementsXml;
+    forceChildElementsXml = settings["forceChildElements"] != null ? settings["forceChildElements"] === true : forceChildElementsXml;
     forceChildElementsPrefixXml = settings["childElementPrefix"] != null ? (settings["childElementPrefix"] === "" ? forceChildElementsPrefixXml : settings["childElementPrefix"]) : forceChildElementsPrefixXml;
-    forceInnerTextXml = settings["forceInnerText"] != null ? settings["forceInnerText"] === 'true' : forceInnerTextXml;
+    forceInnerTextXml = settings["forceInnerText"] != null ? settings["forceInnerText"] === true : forceInnerTextXml;
     forceInnerTextPrefixXml = settings["innerTextPrefix"] != null ? (settings["innerTextPrefix"] === "" ? forceInnerTextPrefixXml : settings["innerTextPrefix"]) : forceInnerTextPrefixXml;
     
     refreshSideBar();
@@ -1651,5 +1639,4 @@
   }
   
   getProperties(updateProperties);
-  //getUserProperties(updateUserProperties);
 </script>
