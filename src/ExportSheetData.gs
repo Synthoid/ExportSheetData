@@ -42,23 +42,41 @@ function setProperties(newProperties)
   properties.setProperties(JSON.parse(newProperties));
 }
 
+//Gets the total export settings for ESD in the open document.
+function getExportProperties()
+{
+  var props = PropertiesService.getDocumentProperties();
+  
+  var prop = props.getProperty("settings");
+  
+  return prop;
+}
+
+//SAves the total export settings for ESD in the open document so the user doesn't need to reselect them next time ESD is opened.
+function setExportProperties(newProperties)
+{
+  var properties = PropertiesService.getDocumentProperties();
+  
+  var prop = properties.getProperty("settings");
+  
+  properties.setProperty("settings", newProperties);
+}
+
 function getPrevExportProperties()
 {
-  //TODO: Need to split properties into settings (all prop values) and prev-export (settings for last export)
   var props = PropertiesService.getDocumentProperties();
   
   var prop = props.getProperty("prev");
   
-  Logger.log(prop);
-  Logger.log(JSON.stringify(prop));//https://developers.google.com/apps-script/reference/spreadsheet/spreadsheet-app
-  
-  return JSON.stringify(prop);
+  return prop;
 }
 
 
-function setPrevExportProperties()
+function setPrevExportProperties(newProperties)
 {
+  var properties = PropertiesService.getDocumentProperties();
   
+  properties.setProperty("prev", newProperties);
 }
 
 //Get the ESD properties for a specific user.
@@ -548,6 +566,8 @@ function exportXml(formatSettings)
 {
   showCompilingMessage('Compiling XML...');
   
+  setPrevExportProperties(formatSettings);
+  
   exportSpreadsheetXml(formatSettings);
 }
 
@@ -555,8 +575,15 @@ function exportXml(formatSettings)
 function exportJson(formatSettings)
 {
   showCompilingMessage('Compiling JSON...');
-  
   exportSpreadsheetJson(formatSettings);
+  
+  var tempSettings = JSON.parse(formatSettings);
+  
+  tempSettings["visualize"] = false;
+  
+  formatSettings = JSON.stringify(tempSettings);
+  
+  setPrevExportProperties(formatSettings);
 }
 
 //TODO: Declaration version doesn't seem to export currently
@@ -789,8 +816,6 @@ function exportSpreadsheetJson(formatSettings)
   //Settings
   var settings = JSON.parse(formatSettings);
   
-  Logger.log(settings);
-  
   //File settings
   var visualize = settings["visualize"];
   var singleSheet = settings["singleSheet"];
@@ -839,9 +864,7 @@ function exportSpreadsheetJson(formatSettings)
     }
   }
   
-  Logger.log(sheets);
-  
-  var fileName = spreadsheet.getName() + (singleSheet ? (" - " + sheets[0].getName()) : "") + ".json";
+  var fileName = spreadsheet.getName() + (singleSheet ? (" - " + sheets[0].getName()) : "") + ".json"; //TODO: Need to strip prefixes
   var sheetValues = [[]];
   var rawValue = "";
   var objectValue = {};
@@ -852,6 +875,7 @@ function exportSpreadsheetJson(formatSettings)
   
   for(var i=0; i < sheets.length; i++)
   {
+    var sheetName = sheets[i].getName();
     var range = sheets[i].getDataRange();
     var values = range.getValues();
     var rows = range.getNumRows();
@@ -866,13 +890,24 @@ function exportSpreadsheetJson(formatSettings)
     
     var hasNesting = false; //Will be set to true if any nesting occurs.
     var useNestingArray = false; //If true, the sheet's contents will be in an array
+    var forceNestedArray = false; //If true, all keys in the sheet will have "{#SHEET}{#ROW}" inserted at their beginning.
+    
+    if(nestedArrayPrefix !== "")
+    {
+      if(keyHasPrefix(sheetName, nestedArrayPrefix))
+      {
+        sheetName = stripPrefix(sheetName, nestedArrayPrefix);
+        forceNestedArray = true;
+        useNestingArray = true;
+      }
+    }
     
     //If both nested elements and sheet arrays are enabled, need to know which to use for this sheet
     //TODO: Set up NAR_ prefix parsing to force nested arrays when nested elements are enabled.
-    if(sheetArray && nestedElements)
+    if(sheetArray && nestedElements && !useNestingArray)
     {
-      var keyNesting = false;
-      var keyNestingIsArray = true;
+      var keyNesting = false; //At least one column is using nested element syntax
+      var keyNestingIsArray = true; //At least one column is not set up to use nested array syntax (prefaced with {#SHEET}{#ROW})
       
       for(var j=0; j < columns; j++)
       {
@@ -940,9 +975,22 @@ function exportSpreadsheetJson(formatSettings)
           
           if(keyHasPrefix(key, ignorePrefix)) continue; //Skip columns with the ignore prefix
           
+          if(forceNestedArray)//Insert forced {#SHEET} and {#ROW} values
+          {
+            if(keyPath[0] !== "{#SHEET}") //Only insert sheet path if it doesn't already exist
+            {
+              keyPath.splice(0, 0, "{#SHEET}");
+            }
+            
+            if(keyPath[1] !== "{#ROW}") //Only insert row path if it doesn't already exist
+            {
+              keyPath.splice(1, 0, "{#ROW}");
+            }
+          }
+          
           var content = values[j][k];
           
-          //We want to eexport this cell as a json object, so attempt to parse it to an object format, and make it empty if that fails
+          //We want to export this cell as a json object, so attempt to parse it to an object format, and make it empty if that fails
           if(exportCellObjectJson && typeof(content) === 'string' && content[0] === '{' && content[content.length-1] === '}')
           {
             try
@@ -979,7 +1027,6 @@ function exportSpreadsheetJson(formatSettings)
           else key = key.toString();
           
           //TODO: Need a NONEST_ prefix to ignore nested formatting for a column
-          //NSTAR_ prefix (NeSTed ARray) for shorthand indication that all fields should be nested and search the current sheet / row
           var element = useNestingArray ? sheetJsonArray : sheetJsonObject; 
           
           //Check that we are using nested objects and the key's path has more than one element to it.
@@ -1382,7 +1429,7 @@ function exportSpreadsheetJson(formatSettings)
     
     if(((!nestedElements && sheetArray) || (nestedElements && useNestingArray) || (sheetIsValueArray)) && !unwrapSheet)
     {
-      objectValue[sheets[i].getName()] = sheetJsonArray;
+      objectValue[sheetName] = sheetJsonArray;
     }
     else
     {
@@ -1399,7 +1446,7 @@ function exportSpreadsheetJson(formatSettings)
       }
       else
       {
-        objectValue[sheets[i].getName()] = sheetJsonObject;
+        objectValue[sheetName] = sheetJsonObject;
       }
     }
   }
@@ -1431,10 +1478,7 @@ function exportSpreadsheetJson(formatSettings)
 
 function reexportFile()
 {
-  var props = getProperties();
-  
-  Logger.log("Reexport!");
-  Logger.log(props);
+  var props = getPrevExportProperties();
   
   if(props["exportType"] == "xmlFormat")
   {

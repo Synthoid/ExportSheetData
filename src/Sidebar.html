@@ -250,7 +250,7 @@
   var JSON_SEPARATOR_DEFAULT = ","; //TODO: Cannot be " or ' chars
   var JSON_JA_DEFAULT = "JA_";
   //Nesting Elements
-  var NEST_NAR_DEFAULT = "NAR_";
+  var NEST_NA_DEFAULT = "NA_";
   
   //Visualization
   var visualizeData = false;
@@ -343,7 +343,7 @@
   //Saves the properties for the user's last export for this document so they are automatically set the next time the document opens..
   function setProperties()
   {
-    return google.script.run.setProperties(generateProperties());
+    return google.script.run.setExportProperties(generateProperties());
   }
   
   //Get the properties for the user.
@@ -378,7 +378,7 @@
     //Advanced
     nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === 'true' : false;
     forceArrayNest = settings["forceArrayNest"] != null ? settings["forceArrayNest"] === 'true' : forceArrayNest;
-    forceArrayPrefixNest = settings["forceArrayPrefixNest"] != null ? (settings["forceArrayPrefixNest"] === "" ? NEST_NAR_DEFAULT : settings["forceArrayPrefixNest"]) : NEST_NAR_DEFAULT;
+    forceArrayPrefixNest = settings["forceArrayPrefixNest"] != null ? (settings["forceArrayPrefixNest"] === "" ? NEST_NA_DEFAULT : settings["forceArrayPrefixNest"]) : NEST_NA_DEFAULT;
     
     //JSON
     exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === 'true' : exportContentsAsArrayJson;
@@ -428,7 +428,7 @@
       //Nested Elements
       "nestedElements" : nestedElements,
       "forceArrayNest" : forceArrayNest,
-      "forceArrayPrefixNest" : (forceArrayPrefixNest === "" ? NEST_NAR_DEFAULT : forceArrayPrefixNest),
+      "forceArrayPrefixNest" : (forceArrayPrefixNest === "" ? NEST_NA_DEFAULT : forceArrayPrefixNest),
       //JSON
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
@@ -842,7 +842,7 @@
     
     var text = "<input id='nestForceArrayTextField' type='text' value=";
     text += "'" + forceArrayPrefixNest + "'";
-    text += " placeholder='" + NEST_NAR_DEFAULT + "'";
+    text += " placeholder='" + NEST_NA_DEFAULT + "'";
     if(forceArrayNest === false) text += " disabled";
     text += "/>";
     
@@ -860,7 +860,7 @@
   {
     if(forceArrayNest === false) return "";
   
-    return forceArrayPrefixNest === "" ? NEST_NAR_DEFAULT : forceArrayPrefixNest;
+    return forceArrayPrefixNest === "" ? NEST_NA_DEFAULT : forceArrayPrefixNest;
   }
   
   //Toggles value for exporting all sheets
@@ -1201,7 +1201,7 @@
       advancedJsonText += "/><div class='option'>Nested Array prefix<div class='tooltip note'>Force sheets with names using the specified prefix to export as Nested Element arrays.</div></div>";
       advancedJsonText += "<p id='nestForceArrayText'><input id='nestForceArrayTextField' type='text' value=";
       advancedJsonText += "'" + forceArrayPrefixNest + "'";
-      advancedJsonText += " placeholder='" + NEST_NAR_DEFAULT + "'";
+      advancedJsonText += " placeholder='" + NEST_NA_DEFAULT + "'";
       if(forceArrayNest === false) advancedJsonText += " disabled";
       advancedJsonText += "/></p></div>";
       advancedJsonText += "</div>";
