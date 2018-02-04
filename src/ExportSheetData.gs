@@ -52,7 +52,7 @@ function getExportProperties()
   return prop;
 }
 
-//SAves the total export settings for ESD in the open document so the user doesn't need to reselect them next time ESD is opened.
+//Saves the total export settings for ESD in the open document so the user doesn't need to reselect them next time ESD is opened.
 function setExportProperties(newProperties)
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -62,6 +62,7 @@ function setExportProperties(newProperties)
   properties.setProperty("settings", newProperties);
 }
 
+//Gets the settings used in the last export.
 function getPrevExportProperties()
 {
   var props = PropertiesService.getDocumentProperties();
@@ -71,7 +72,7 @@ function getPrevExportProperties()
   return prop;
 }
 
-
+//Saves the settings used in the last export.
 function setPrevExportProperties(newProperties)
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -378,6 +379,50 @@ function keyHasPrefix(key, prefix)
   return newKey === prefix;
 }
 
+//Returns true if a key starts with any of the specified prefixes.
+function keyHasPrefixes(key, prefixes)
+{
+  for(var i=0; i < prefixes.length; i++)
+  {
+    if(keyHasPrefix(key, prefixes[i]))
+    {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+//Returns an array indicating if specific prefixes are used in a given key.
+//Multiple string values can be passed in for the prefixes argument.
+function getPrefixes(key, prefixes)
+{
+  var values = new Array();
+  var prefixArgs = new Array();
+  
+  //Set initial values
+  for(var i=1; i < arguments.length; i++)
+  {
+    values.push(false);
+    prefixArgs.push(arguments[i]);
+  }
+  
+  //Loop through and set if each prefix is used.
+  while(keyHasPrefixes(key, prefixArgs))
+  {
+    for(var i=1; i < arguments.length; i++)
+    {
+      if(keyHasPrefix(key, arguments[i]))
+      {
+        values[i-1] = true;
+        key = stripPrefix(key, arguments[i]); //Strip the prefix from the key and start the loop again.
+      }
+    }
+  }
+  
+  return values;
+}
+
 //Strips a given prefix from the passed key (so prefixes like forced JSON arrays' JA_ are not included in the actual exported key value)
 function stripPrefix(key, prefix)
 {
@@ -391,6 +436,32 @@ function stripPrefix(key, prefix)
     }
     
     return newKey;
+  }
+  
+  return key;
+}
+
+//Strips the specified prefixes from the passed key.
+function stripPrefixes(key, prefixes)
+{
+  var prefixArgs = new Array();
+  
+  //Set initial values
+  for(var i=1; i < arguments.length; i++)
+  {
+    prefixArgs.push(arguments[i]);
+  }
+  
+  //Loop through and set if each prefix is used.
+  while(keyHasPrefixes(key, prefixArgs))
+  {
+    for(var i=1; i < arguments.length; i++)
+    {
+      if(keyHasPrefix(key, arguments[i]))
+      {
+        key = stripPrefix(key, arguments[i]); //Strip the prefix from the key and start the loop again.
+      }
+    }
   }
   
   return key;
@@ -892,7 +963,7 @@ function exportSpreadsheetJson(formatSettings)
     var useNestingArray = false; //If true, the sheet's contents will be in an array
     var forceNestedArray = false; //If true, all keys in the sheet will have "{#SHEET}{#ROW}" inserted at their beginning.
     
-    if(nestedArrayPrefix !== "")
+    /*if(nestedArrayPrefix !== "")
     {
       if(keyHasPrefix(sheetName, nestedArrayPrefix))
       {
@@ -900,10 +971,29 @@ function exportSpreadsheetJson(formatSettings)
         forceNestedArray = true;
         useNestingArray = true;
       }
+    }*/
+    
+    //Get the prefixes used by this sheet
+    var activePrefixes = getPrefixes(sheetName, nestedArrayPrefix, arrayPrefix);
+    sheetName = stripPrefixes(sheetName, nestedArrayPrefix, arrayPrefix);
+    
+    //Nested Array Prefix
+    if(activePrefixes[0] === true)
+    {
+      forceNestedArray = true;
+      useNestingArray = true;
     }
     
+    //JSON Array Prefix
+    if(activePrefixes[1] === true)
+    {
+      
+    }
+    
+    Logger.log(getPrefixes(sheetName, nestedArrayPrefix, arrayPrefix));
+    Logger.log(stripPrefixes(sheetName, nestedArrayPrefix, arrayPrefix));
+    
     //If both nested elements and sheet arrays are enabled, need to know which to use for this sheet
-    //TODO: Set up NAR_ prefix parsing to force nested arrays when nested elements are enabled.
     if(sheetArray && nestedElements && !useNestingArray)
     {
       var keyNesting = false; //At least one column is using nested element syntax
