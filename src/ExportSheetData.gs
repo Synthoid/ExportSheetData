@@ -636,10 +636,15 @@ function getSubpathSearchType(subpath)
 function exportXml(formatSettings)
 {
   showCompilingMessage('Compiling XML...');
+  exportSpreadsheetXml(formatSettings);
+  
+  var tempSettings = JSON.parse(formatSettings);
+  
+  tempSettings["visualize"] = false;
+  
+  formatSettings = JSON.stringify(tempSettings);
   
   setPrevExportProperties(formatSettings);
-  
-  exportSpreadsheetXml(formatSettings);
 }
 
 
@@ -905,7 +910,7 @@ function exportSpreadsheetJson(formatSettings)
   var contentsArray = settings["exportContentsAsArray"];
   var exportCellObjectJson = settings["exportCellObject"];
   var exportArray = settings["exportCellArray"];
-  var sheetArray = settings["exportSheetArray"];
+  var sheetArrayJson = settings["exportSheetArray"];
   var valueArray = settings["exportValueArray"];
   var forceString = settings["forceString"];
   var separatorChar = settings["separatorChar"];
@@ -946,12 +951,13 @@ function exportSpreadsheetJson(formatSettings)
   
   for(var i=0; i < sheets.length; i++)
   {
-    var sheetName = sheets[i].getName();
     var range = sheets[i].getDataRange();
     var values = range.getValues();
     var rows = range.getNumRows();
     var columns = range.getNumColumns();
     var unwrapSheet = (unwrap && rows <= 2); //Will this sheet be unwrapped?
+    var sheetName = sheets[i].getName();
+    var sheetArray = sheetArrayJson;
     var sheetIsValueArray = (valueArray && columns === 1); //Is this sheet a value array?
     var sheetJsonObject = {};
     var sheetJsonArray = [];
@@ -962,16 +968,6 @@ function exportSpreadsheetJson(formatSettings)
     var hasNesting = false; //Will be set to true if any nesting occurs.
     var useNestingArray = false; //If true, the sheet's contents will be in an array
     var forceNestedArray = false; //If true, all keys in the sheet will have "{#SHEET}{#ROW}" inserted at their beginning.
-    
-    /*if(nestedArrayPrefix !== "")
-    {
-      if(keyHasPrefix(sheetName, nestedArrayPrefix))
-      {
-        sheetName = stripPrefix(sheetName, nestedArrayPrefix);
-        forceNestedArray = true;
-        useNestingArray = true;
-      }
-    }*/
     
     //Get the prefixes used by this sheet
     var activePrefixes = getPrefixes(sheetName, nestedArrayPrefix, arrayPrefix);
@@ -987,11 +983,8 @@ function exportSpreadsheetJson(formatSettings)
     //JSON Array Prefix
     if(activePrefixes[1] === true)
     {
-      
+      sheetArray = true;
     }
-    
-    Logger.log(getPrefixes(sheetName, nestedArrayPrefix, arrayPrefix));
-    Logger.log(stripPrefixes(sheetName, nestedArrayPrefix, arrayPrefix));
     
     //If both nested elements and sheet arrays are enabled, need to know which to use for this sheet
     if(sheetArray && nestedElements && !useNestingArray)
@@ -1569,8 +1562,9 @@ function exportSpreadsheetJson(formatSettings)
 function reexportFile()
 {
   var props = getPrevExportProperties();
+  var parsedProps = JSON.parse(props);
   
-  if(props["exportType"] == "xmlFormat")
+  if(parsedProps["exportType"] == "xmlFormat")
   {
     exportXml(props);
   }
@@ -1578,8 +1572,6 @@ function reexportFile()
   {
     exportJson(props);
   }
-  
-  //exportDocument(filename, content, type, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
 
