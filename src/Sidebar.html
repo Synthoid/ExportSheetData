@@ -349,8 +349,16 @@
   //Actually sets the local properties based on stored settings.
   function updateProperties(properties)
   {
-    //TODO: Properties don't seem to be set properly...
-    var settings = JSON.parse(properties);
+    var settings;
+    
+    if(properties == null || properties === "")
+    {
+      settings = {};
+    }
+    else
+    {
+      settings = JSON.parse(properties);
+    }
     
     //General
     exportType = settings["exportType"] != null ? settings["exportType"] : exportType;
