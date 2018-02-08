@@ -7,6 +7,6 @@ group: json
 
 Nested Array prefix
 -------------------
-When the Nested Elements option is enabled, sheet tabs starting with this string will force the sheet to be exported as a nested element array.
+When the [Nested Elements](../general/nestedelements.md) option is enabled, sheet tabs starting with this string will force the sheet to be exported as a nested element array.
 
 This is basically shorthand for prefacing all keys in a sheet with "{#SHEET}{#ROW}".
