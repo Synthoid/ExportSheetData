@@ -28,11 +28,16 @@ General Settings
 ----------------
 These settings affect both JSON and XML data.
 
+### Basic
+
 - [Replace existing file(s)](general/replaceexistingfiles.md) - Trash files with the same name in the output folder as the exported data
 - [Unwrap single row sheets](general/unwrapsinglerowsheets.md) - Place elements from a sheet containing one row in the root element
 - [Ignore empty cells](general/ignoreemptycells.md) - Don't export cells with no value
-- [Nested Elements](general/nestedelements.md) - Create complex data sets by using specific key syntax
 - [Ignore prefix](general/ignoreprefix.md) - Don't export columns whose keys start with a specific string
+
+### Advanced
+
+- [Nested Elements](general/nestedelements.md) - Create complex data sets by using specific key syntax
 
 JSON Settings
 -------------
@@ -50,7 +55,8 @@ These settings only affect exported JSON data.
 - [Export contents as array](json/exportcontentsasarray.md) - Convert exported standalone JSON to a raw JSON array
 - [Export cell objects](json/exportcellobjects.md) - Export a cell's value as a JSON object if it is properly formatted
 - [Array separator character](json/arrayseparatorcharacter.md) - Adjust the character used to separate values in a cell array
-- [Array prefix](json/arrayprefix.md) - Force elements in a column to export as JSON arrays
+- [Array prefix](json/arrayprefix.md) - Force sheets or elements in a column to export as JSON arrays
+- [Nested array prefix](json/nestedarrayprefix.md) - With Nested Elements checked, force sheets to export as nested arrays
 
 XML Settings
 ------------
