@@ -1,4 +1,4 @@
-var esdVersion = 43;
+var esdVersion = 44;
 
 //Popup message
 var messageLineHeight = 10;
@@ -674,9 +674,12 @@ function exportSpreadsheetXml(formatSettings)
   var replaceFile = settings["replaceExistingFiles"];
   var newline = settings["newlineElements"];
   var unwrap = settings["unwrapSingleRows"];
+  var collapse = settings["collapseSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
   var nestedElements = settings["nestedElements"];
   var ignorePrefix = settings["ignorePrefix"];
+  var unwrapPrefix = settings["unwrapPrefix"];
+  var collapsePrefix = settings["collapsePrefix"];
   var customSheets = settings["targetSheets"];
   
   //XML settings
@@ -898,8 +901,11 @@ function exportSpreadsheetJson(formatSettings)
   var replaceFile = settings["replaceExistingFiles"];
   var newline = settings["newlineElements"];
   var unwrap = settings["unwrapSingleRows"];
+  var collapse = settings["collapseSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
   var ignorePrefix = settings["ignorePrefix"];
+  var unwrapPrefix = settings["unwrapPrefix"];
+  var collapsePrefix = settings["collapsePrefix"];
   var customSheets = settings["targetSheets"];
   
   //Nested Settings

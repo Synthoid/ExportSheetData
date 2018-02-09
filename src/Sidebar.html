@@ -161,7 +161,7 @@
 
 <div class='mainWrapper'>
   <div id="generalOptions">
-    <div class='accordion'>
+    <!--<div class='accordion'>
       <h1>Format</h1>
     </div>
     <div class='block form-group sectionWrapper accordionPanel'>
@@ -217,7 +217,7 @@
         </p>
         <p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value="NOEX_" placeholder="NOEX_" disabled/></p>
       </div>
-    </div>
+    </div>-->
   </div>
   <div id='xmlOptions'>
   </div>
@@ -227,11 +227,11 @@
   </div>
   <div class='buttonPlaceholder'></div>
   <div class='buttonWrapper'>
-  <div class='buttonPadding'></div>
-  <div class='centerWrapper'>
-  <button class="action" onclick="exportFile()">Export</button>
-  <button onclick="visualizeFile()">Visualize</button>
-  </div>
+    <div class='buttonPadding'></div>
+    <div class='centerWrapper'>
+      <button class="action" onclick="exportFile()">Export</button>
+      <button onclick="visualizeFile()">Visualize</button>
+    </div>
   </div>
 </div>
 
@@ -240,7 +240,10 @@
   var EXP_SHEET_CUSTOM = "custom";
   var EXP_SHEET_SINGLE = "currentSheet";
   var EXP_TYPE_XML = "xmlFormat";
+  //General
   var IGNORE_COLUMN_DEFAULT = "NOEX_";
+  var UNWRAP_SHEETS_DEFAULT = "US_";
+  var COLLAPSE_SHEET_DEFAULT = "CS_";
   //XML
   var XML_ROOT_DEFAULT = "data";
   var XML_ATT_DEFAULT = "ATT_";
@@ -262,15 +265,23 @@
   var newlineElements = false;
   //Don't wrap the contents of a sheet in a JSON object / XML element if the sheet only has one row
   var unwrapSingleRows = false;
+  //Collapse the contents of a sheet in a JSON object / XML element if the sheet only has one row
+  var collapseSingleRows = false;
   //Don't export cells that are empty (helps reduce file size)
   var ignoreEmptyCells = false;
-  //Don't export columns with the ignore prefix
-  var ignoreColumnsWithPrefix = false;
-  var ignoreColumnsPrefix = "NOEX_";
   
   //Advanced Options
   //Support complex nested elements by using special key formatting
   var nestedElements = false;
+  //Don't export columns with the ignore prefix
+  var ignoreColumnsWithPrefix = false;
+  var ignoreColumnsPrefix = "NOEX_";
+  //Unwrap sheets with one row and this prefix
+  var unwrapSheetsWithPrefix = false;
+  var unwrapSheetsPrefix = "US_";
+  //Collapse sheets with one row and this prefix
+  var collapseSheetsWithPrefix = false;
+  var collapseSheetsPrefix = "CS_";
   
   //XML Options
   //Export values as child elements instead of attributes
@@ -367,14 +378,17 @@
     replaceExistingFiles = settings["replaceExistingFiles"] != null ? settings["replaceExistingFiles"] === true : false;
     newlineElements = settings["newlineElements"] != null ? settings["newlineElements"] === true : false;
     unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === true : false;
+    collapseSingleRows = settings["collapseSingleRows"] != null ? settings["collapseSingleRows"] === true : false;
     ignoreEmptyCells = settings["ignoreEmptyCells"] != null ? settings["ignoreEmptyCells"] === true : false;
-    ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === true : false;
-    ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
     
     //Advanced
     nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === true : false;
-    forceArrayNest = settings["forceArrayNest"] != null ? settings["forceArrayNest"] === true : forceArrayNest;
-    forceArrayPrefixNest = settings["forceArrayPrefixNest"] != null ? (settings["forceArrayPrefixNest"] === "" ? NEST_NA_DEFAULT : settings["forceArrayPrefixNest"]) : NEST_NA_DEFAULT;
+    ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === true : false;
+    ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
+    unwrapSheetsWithPrefix = settings["unwrapSheetsWithPrefix"] != null ? settings["unwrapSheetsWithPrefix"] === true : false;
+    unwrapSheetsPrefix = settings["unwrapPrefix"] != null ? (settings["unwrapPrefix"] === "" ? UNWRAP_SHEETS_DEFAULT : settings["unwrapPrefix"]) : UNWRAP_SHEETS_DEFAULT;
+    collapseSheetsWithPrefix = settings["collapseSheetsWithPrefix"] != null ? settings["collapseSheetsWithPrefix"] === true : false;
+    collapseSheetsPrefix = settings["collapsePrefix"] != null ? (settings["collapsePrefix"] === "" ? COLLAPSE_SHEET_DEFAULT : settings["collapsePrefix"]) : COLLAPSE_SHEET_DEFAULT;
     
     //JSON
     exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
@@ -386,6 +400,8 @@
     arraySeparatorCharJson = settings["separatorChar"] != null ? (settings["separatorChar"] === "" ? "," : settings["separatorChar"]) : JSON_SEPARATOR_DEFAULT;
     forceArrayJson = settings["forceArray"] != null ? settings["forceArray"] === 'true' : forceArrayJson;
     forceArrayPrefixJson = settings["forceArrayPrefix"] != null ? (settings["forceArrayPrefix"] === "" ? JSON_JA_DEFAULT : settings["forceArrayPrefix"]) : JSON_JA_DEFAULT;
+    forceArrayNest = settings["forceArrayNest"] != null ? settings["forceArrayNest"] === true : forceArrayNest;
+    forceArrayPrefixNest = settings["forceArrayPrefixNest"] != null ? (settings["forceArrayPrefixNest"] === "" ? NEST_NA_DEFAULT : settings["forceArrayPrefixNest"]) : NEST_NA_DEFAULT;
     
     //XML
     exportChildElementXml = settings["exportChildElements"] != null ? settings["exportChildElements"] === true : exportChildElementXml;
@@ -418,9 +434,15 @@
       "replaceExistingFiles" : replaceExistingFiles,
       "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
+      "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
+      //Advanced
       "ignoreColumnsWithPrefix" : ignoreColumnsWithPrefix,
       "ignorePrefix" : (ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix),
+      "unwrapSheetsWithPrefix" : unwrapSheetsWithPrefix,
+      "unwrapPrefix" : (unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix),
+      "collapseSheetsWithPrefix" : collapseSheetsWithPrefix,
+      "collapsePrefix" : (collapseSheetsPrefix === "" ? COLLAPSE_SHEET_DEFAULT : collapseSheetsPrefix),
       //Nested Elements
       "nestedElements" : nestedElements,
       "forceArrayNest" : forceArrayNest,
@@ -495,6 +517,11 @@
     unwrapSingleRows = !unwrapSingleRows;
   }
   
+  function toggleCollapseSingleRows()
+  {
+    collapseSingleRows = !collapseSingleRows;
+  }
+  
   function toggleIgnoreEmptyCells()
   {
     ignoreEmptyCells = !ignoreEmptyCells;
@@ -504,7 +531,7 @@
   {
     nestedElements = !nestedElements;
     
-    //TODO: Need to disable JSON/XML specific nested element fields when toggling.
+    //TODO: Should disable JSON/XML specific nested element fields when toggling.
   }
   
   function getIgnorePrefix()
@@ -532,6 +559,60 @@
     document.getElementById("ignoreColumnsText").innerHTML = text;
     
     if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
+  }
+  
+  function getUnwrapPrefix()
+  {
+    if(unwrapSheetsWithPrefix === false) return "";
+  
+    return unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
+  }
+  
+  function updateUnwrapPrefix()
+  {
+    unwrapSheetsPrefix = document.getElementById("unwrapSheetsPrefixTextField").value;
+  }
+  
+  function toggleUnwrapSheetsWithPrefix()
+  {
+    unwrapSheetsWithPrefix = !unwrapSheetsWithPrefix;
+    
+    var text = "<input id='unwrapSheetsPrefixTextField' type='text' value=";
+    text += "'" + unwrapSheetsPrefix + "'";
+    text += " placeholder='" + UNWRAP_SHEETS_DEFAULT + "'";
+    if(unwrapSheetsWithPrefix === false) text += " disabled";
+    text += "/>";
+    
+    document.getElementById("unwrapSheetsText").innerHTML = text;
+    
+    if(unwrapSheetsWithPrefix === true) document.getElementById('unwrapSheetsPrefixTextField').addEventListener("change", updateUnwrapPrefix);
+  }
+  
+  function getCollapsePrefix()
+  {
+    if(collapseSheetsWithPrefix === false) return "";
+  
+    return collapseSheetsPrefix === "" ? COLLAPSE_SHEET_DEFAULT : collapseSheetsPrefix;
+  }
+  
+  function updateCollapsePrefix()
+  {
+    collapseSheetsPrefix = document.getElementById("collapseSheetsPrefixTextField").value;
+  }
+  
+  function toggleCollapseSheetsWithPrefix()
+  {
+    collapseSheetsWithPrefix = !collapseSheetsWithPrefix;
+    
+    var text = "<input id='collapseSheetsPrefixTextField' type='text' value=";
+    text += "'" + collapseSheetsPrefix + "'";
+    text += " placeholder='" + COLLAPSE_SHEET_DEFAULT + "'";
+    if(collapseSheetsWithPrefix === false) text += " disabled";
+    text += "/>";
+    
+    document.getElementById("collapseSheetsText").innerHTML = text;
+    
+    if(collapseSheetsWithPrefix === true) document.getElementById('collapseSheetsPrefixTextField').addEventListener("change", updateCollapsePrefix);
   }
   
   //XML Options
@@ -948,18 +1029,15 @@
     generalText += "<div class='sectionWrapper'><input id='unwrapSingleRowToggle' type='checkbox' value='false'";
     if(unwrapSingleRows) generalText += " checked";
     generalText += "/><div class='option'>Unwrap single row sheets<div class='tooltip note'>Don't wrap a sheet's contents with a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
+    //Collapse Single Rows
+    generalText += "<div class='sectionWrapper'><input id='collapseSingleRowToggle' type='checkbox' value='false'";
+    if(collapseSingleRows) generalText += " checked";
+    generalText += "/><div class='option'>Collapse single row sheets<div class='tooltip note'>Collapse a sheet's contents with a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
     //Ignore empty cells
     generalText += "<div class='sectionWrapper'><input id='ignoreEmptyCellsToggle' type='checkbox' value='false'";
     if(ignoreEmptyCells) generalText += " checked";
     generalText += "/><div class='option'>Ignore empty cells<div class='tooltip note'>Don't export cells that are empty.</div></div></div>";
-    //Ignore columns prefix
-    generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
-    if(ignoreColumnsWithPrefix) generalText += " checked";
-    generalText += "/><div class='option'>Ignore prefix<div class='tooltip note'>Don't export columns with keys using the specified prefix, or rows whose first value starts with the specified prefix.</div></div><p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value='";
-    generalText += ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
-    generalText += "' placeholder='NOEX_'";
-    if(ignoreColumnsWithPrefix === false) generalText += " disabled";
-    generalText += "/></p><p class='note'></p></div></div>";
+    generalText += "</div>";
     
     //Advanced General Options
     generalText += "<div class='accordion active'><h1>Advanced</h1></div><div class='accordionPanel'>";
@@ -970,6 +1048,30 @@
     generalText += "/><div class='option'>Nested Elements<div class='tooltip note'>Export nested elements by using specific formatting in keys.";
     if(exportType != "jsonFormat") generalText += " XML support in development!";
     generalText += "</div></div></div>";
+    //Ignore columns prefix
+    generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
+    if(ignoreColumnsWithPrefix) generalText += " checked";
+    generalText += "/><div class='option'>Ignore prefix<div class='tooltip note'>Don't export columns with keys using the specified prefix, or rows whose first value starts with the specified prefix.</div></div><p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value='";
+    generalText += ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
+    generalText += "' placeholder='NOEX_'";
+    if(ignoreColumnsWithPrefix === false) generalText += " disabled";
+    generalText += "/></p><p class='note'></p></div>";
+    //Unwrap sheets prefix
+    generalText += "<div class='sectionWrapper'><input id='unwrapSheetsToggle' type='checkbox' value='false'";
+    if(unwrapSheetsWithPrefix) generalText += " checked";
+    generalText += "/><div class='option'>Unwrap sheet prefix<div class='tooltip note'>Unwrap sheets with only one row and using the given prefix.</div></div><p id='unwrapSheetsText'><input id='unwrapSheetsPrefixTextField' type='text' value='";
+    generalText += unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
+    generalText += "' placeholder='US_'";
+    if(unwrapSheetsWithPrefix === false) generalText += " disabled";
+    generalText += "/></p><p class='note'></p></div>";
+    //Collapse sheets prefix
+    generalText += "<div class='sectionWrapper'><input id='collapseSheetsToggle' type='checkbox' value='false'";
+    if(collapseSheetsWithPrefix) generalText += " checked";
+    generalText += "/><div class='option'>Collapse sheet prefix<div class='tooltip note'>Collapse sheets with only one row using the given prefix.</div></div><p id='collapseSheetsText'><input id='collapseSheetsPrefixTextField' type='text' value='";
+    generalText += collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
+    generalText += "' placeholder='CS_'";
+    if(collapseSheetsWithPrefix === false) generalText += " disabled";
+    generalText += "/></p><p class='note'></p></div>";
     generalText += "</div>";
     
     document.getElementById("generalOptions").innerHTML = generalText;
@@ -982,10 +1084,16 @@
     document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
     document.getElementById('newlineToggle').addEventListener("change",toggleNewline);
     document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
+    document.getElementById('collapseSingleRowToggle').addEventListener("change",toggleCollapseSingleRows);
     document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
+    //Advanced
     document.getElementById('nestedElementsToggle').addEventListener("change",toggleNestedElements);
     document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
     if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
+    document.getElementById('unwrapSheetsToggle').addEventListener("change",toggleUnwrapSheetsWithPrefix);
+    if(unwrapSheetsWithPrefix === true) document.getElementById('unwrapSheetsPrefixTextField').addEventListener("change", updateUnwrapPrefix);
+    document.getElementById('collapseSheetsToggle').addEventListener("change",toggleCollapseSheetsWithPrefix);
+    if(collapseSheetsWithPrefix === true) document.getElementById('collapseSheetsPrefixTextField').addEventListener("change", updateCollapsePrefix);
     
     if(exportSheets === "custom") getNames(showSheets);
     
@@ -1412,19 +1520,34 @@
     {
       document.getElementById('unwrapSingleRowToggle').removeEventListener("change", toggleUnwrapSingleRows);
     }
+    if(document.getElementById('collapseSingleRowToggle') != null)
+    {
+      document.getElementById('collapseSingleRowToggle').removeEventListener("change", toggleCollapseSingleRows);
+    }
     if(document.getElementById('ignoreEmptyCellsToggle') != null)
     {
       document.getElementById('ignoreEmptyCellsToggle').removeEventListener("change", toggleIgnoreEmptyCells);
+    }
+    
+    //Advanced
+    if(document.getElementById('nestedElementsToggle') != null)
+    {
+      document.getElementById('nestedElementsToggle').removeEventListener("change", toggleNestedElements);
     }
     if(document.getElementById('ignoreColumnsToggle') != null)
     {
       document.getElementById('ignoreColumnsToggle').removeEventListener("change", toggleIgnoreColumnsWithPrefix);
       document.getElementById('ignoreColumnsPrefixTextField').removeEventListener("change", updateIgnorePrefix);
     }
-    //Advanced
-    if(document.getElementById('nestedElementsToggle') != null)
+    if(document.getElementById('unwrapSheetsToggle') != null)
     {
-      document.getElementById('nestedElementsToggle').removeEventListener("change", toggleNestedElements);
+      document.getElementById('unwrapSheetsToggle').removeEventListener("change", toggleUnwrapSheetsWithPrefix);
+      document.getElementById('unwrapSheetsPrefixTextField').removeEventListener("change", updateUnwrapPrefix);
+    }
+    if(document.getElementById('collapseSheetsToggle') != null)
+    {
+      document.getElementById('collapseSheetsToggle').removeEventListener("change", toggleCollapseSheetsWithPrefix);
+      document.getElementById('collapseSheetsPrefixTextField').removeEventListener("change", updateCollapsePrefix);
     }
   }
   
@@ -1530,9 +1653,12 @@
       "replaceExistingFiles" : replaceExistingFiles,
       "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
+      "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
       "nestedElements" : nestedElements,
       "ignorePrefix" : getIgnorePrefix(),
+      "unwrapSheetsWithPrefix":getUnwrapPrefix(),
+      "collapseSheetsWithPrefix":getCollapsePrefix(),
       "targetSheets" : exportSheets,
       "exportChildElements" : exportChildElementXml,
       "formatContent" : !formatContentXml,
@@ -1560,9 +1686,12 @@
       "replaceExistingFiles" : replaceExistingFiles,
       "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
+      "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
       "nestedElements" : nestedElements,
       "ignorePrefix" : getIgnorePrefix(),
+      "unwrapPrefix":getUnwrapPrefix(),
+      "collapsePrefix":getCollapsePrefix(),
       "targetSheets" : exportSheets,
       "forceString" : forceStringJson,
       "exportCellArray" : exportCellArrayJson,
