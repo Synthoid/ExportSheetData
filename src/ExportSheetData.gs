@@ -210,7 +210,7 @@ function getCellContentArray(cell, separatorChar)
   var commaIndicies = new Array();
   var openQuoteIndicies = new Array();
   var closeQuoteIndicies = new Array();
-          
+  
   //Set the indicies for quotes and commas
   for(var i=0; i < content.length; i++)
   {
@@ -267,6 +267,43 @@ function getCellContentArray(cell, separatorChar)
   if(commaIndicies.length == 0) // If there are no commas to make the array, return the whole content
   {
     cellArray.push(content);
+  }
+  
+  for(var i=0; i < cellArray.length; i++)
+  {
+    if(!isNaN(parseFloat(cellArray[i])))
+    {
+      var isNumber = true;
+      var decimalCount = 0;
+      
+      for(var j=0; j < cellArray[i].length; j++)
+      {
+        if(isNaN(cellArray[i][j]))
+        {
+          if(cellArray[i][j] === '.')
+          {
+            if(decimalCount > 0)
+            {
+              isNumber = false;
+              break;
+            }
+            else
+            {
+              decimalCount++;
+            }
+          }
+          else
+          {
+            isNumber = false;
+            break;
+          }
+        }
+      }
+      
+      if(isNumber) cellArray[i] = parseFloat(cellArray[i]);
+    }
+    else if(cellArray[i] === 'true') cellArray[i] = true;
+    else if(cellArray[i] === 'false') cellArray[i] = false;
   }
   
   return cellArray;
@@ -1529,6 +1566,9 @@ function exportSpreadsheetJson(formatSettings)
           objectValue[field] = sheetJsonObject[field];
         }
       }
+      
+      //TODO: Collapse sheet & handle force collapse/unwrap
+      
       else if(singleSheet)
       {
         objectValue = sheetJsonObject;
