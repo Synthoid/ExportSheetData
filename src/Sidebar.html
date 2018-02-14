@@ -1002,7 +1002,7 @@
     //Unwrap sheets prefix
     generalText += "<div class='sectionWrapper'><input id='unwrapSheetsToggle' type='checkbox' value='false'";
     if(unwrapSheetsWithPrefix) generalText += " checked";
-    generalText += "/><div class='option'>Unwrap sheet prefix<div class='tooltip note'>Unwrap sheets with only one row and using the given prefix.</div></div><p id='unwrapSheetsText'><input id='unwrapSheetsPrefixTextField' type='text' value='";
+    generalText += "/><div class='option'>Unwrap sheet prefix<div class='tooltip note'>Unwrap sheets with only one row that use the given prefix.</div></div><p id='unwrapSheetsText'><input id='unwrapSheetsPrefixTextField' type='text' value='";
     generalText += unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
     generalText += "' placeholder='US_'";
     if(unwrapSheetsWithPrefix === false) generalText += " disabled";
@@ -1010,7 +1010,7 @@
     //Collapse sheets prefix
     generalText += "<div class='sectionWrapper'><input id='collapseSheetsToggle' type='checkbox' value='false'";
     if(collapseSheetsWithPrefix) generalText += " checked";
-    generalText += "/><div class='option'>Collapse sheet prefix<div class='tooltip note'>Collapse sheets with only one row using the given prefix.</div></div><p id='collapseSheetsText'><input id='collapseSheetsPrefixTextField' type='text' value='";
+    generalText += "/><div class='option'>Collapse sheet prefix<div class='tooltip note'>Collapse sheets with only one row that use the given prefix.</div></div><p id='collapseSheetsText'><input id='collapseSheetsPrefixTextField' type='text' value='";
     generalText += collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
     generalText += "' placeholder='CS_'";
     if(collapseSheetsWithPrefix === false) generalText += " disabled";

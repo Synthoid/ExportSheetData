@@ -269,6 +269,7 @@ function getCellContentArray(cell, separatorChar)
     cellArray.push(content);
   }
   
+  //Convert values to their correct type (float, bool, etc)
   for(var i=0; i < cellArray.length; i++)
   {
     if(!isNaN(parseFloat(cellArray[i])))
@@ -276,6 +277,7 @@ function getCellContentArray(cell, separatorChar)
       var isNumber = true;
       var decimalCount = 0;
       
+      //Parse float is unreliable, so loop through to make sure the string is actually a float
       for(var j=0; j < cellArray[i].length; j++)
       {
         if(isNaN(cellArray[i][j]))
@@ -938,7 +940,7 @@ function exportSpreadsheetJson(formatSettings)
   var replaceFile = settings["replaceExistingFiles"];
   var newline = settings["newlineElements"];
   var unwrap = settings["unwrapSingleRows"];
-  var collapse = settings["collapseSingleRows"];
+  var collapse = settings["collapseSingleRows"] && !unwrap;
   var ignoreEmpty = settings["ignoreEmptyCells"];
   var ignorePrefix = settings["ignorePrefix"];
   var unwrapPrefix = settings["unwrapPrefix"];
@@ -998,7 +1000,8 @@ function exportSpreadsheetJson(formatSettings)
     var values = range.getValues();
     var rows = range.getNumRows();
     var columns = range.getNumColumns();
-    var unwrapSheet = (unwrap && rows <= 2); //Will this sheet be unwrapped?
+    var unwrapSheet = unwrap && rows <= 2; //Will this sheet be unwrapped?
+    var collapseSheet = collapse && rows <= 2 && !unwrapSheet; //Will this sheet be collapsed
     var sheetName = sheets[i].getName();
     var sheetArray = sheetArrayJson;
     var sheetIsValueArray = (valueArray && columns === 1); //Is this sheet a value array?
@@ -1012,9 +1015,12 @@ function exportSpreadsheetJson(formatSettings)
     var useNestingArray = false; //If true, the sheet's contents will be in an array
     var forceNestedArray = false; //If true, all keys in the sheet will have "{#SHEET}{#ROW}" inserted at their beginning.
     
+    var forceUnwrap = false;
+    var forceCollapse = false;
+    
     //Get the prefixes used by this sheet
-    var activePrefixes = getPrefixes(sheetName, nestedArrayPrefix, arrayPrefix);
-    sheetName = stripPrefixes(sheetName, nestedArrayPrefix, arrayPrefix);
+    var activePrefixes = getPrefixes(sheetName, nestedArrayPrefix, arrayPrefix, unwrapPrefix, collapsePrefix);
+    sheetName = stripPrefixes(sheetName, nestedArrayPrefix, arrayPrefix, unwrapPrefix, collapsePrefix);
     
     //Nested Array Prefix
     if(activePrefixes[0] === true)
@@ -1027,6 +1033,30 @@ function exportSpreadsheetJson(formatSettings)
     if(activePrefixes[1] === true)
     {
       sheetArray = true;
+    }
+    
+    //Unwrap prefix
+    if(activePrefixes[2] === true)
+    {
+      forceUnwrap = true;
+    }
+    
+    //Collapse prefix
+    if(activePrefixes[3] === true)
+    {
+      if(!forceUnwrap) forceCollapse = true;
+    }
+    
+    //Determine forced unwrap / collapse values
+    if(forceCollapse)
+    {
+      unwrapSheet = false;
+      collapseSheet = true;
+    }
+    else if(forceUnwrap)
+    {
+      unwrapSheet = true;
+      collapseSheet = false;
     }
     
     //If both nested elements and sheet arrays are enabled, need to know which to use for this sheet
@@ -1138,14 +1168,39 @@ function exportSpreadsheetJson(formatSettings)
             {
               for(var l=0; l < content.length; l++)
               {
-                if(content[l] != "") content[l] = formatJsonString(isObject(content) ? JSON.stringify(content) : content[l].toString(), exportCellObjectJson);
+                if(content[l] !== "")
+                {
+                  if(isObject(content[l]))
+                  {
+                    for(field in content[l])
+                    {
+                      content[l][field] = content[l][field].toString();
+                    }
+                  }
+                  else
+                  {
+                    content[l] = content[l].toString();
+                  }
+                }
               }
             }
           }
           else if(forceString)
           {
             //Force value to be a string if desired
-            content = isObject(content) ? JSON.stringify(content) : content.toString();
+            //content = isObject(content) ? JSON.stringify(content) : content.toString();
+            
+            if(isObject(content))
+            {
+              for(field in content)
+              {
+                content[field] = content[field].toString();
+              }
+            }
+            else
+            {
+              content = content.toString();
+            }
           }
           
           //Convert the key to a string and strip unneeded prefixes
@@ -1537,6 +1592,10 @@ function exportSpreadsheetJson(formatSettings)
                 sheetJsonObject[field] = rowObject[field];
               }
             }
+            else if(collapseSheet)
+            {
+              sheetJsonObject = rowObject; //TODO: Collapse Sheet not working yet...
+            }
             else
             {
               sheetJsonObject[values[j][0]] = rowObject;
@@ -1553,7 +1612,7 @@ function exportSpreadsheetJson(formatSettings)
       }
     }
     
-    if(((!nestedElements && sheetArray) || (nestedElements && useNestingArray) || (sheetIsValueArray)) && !unwrapSheet)
+    if(((!nestedElements && sheetArray) || (nestedElements && useNestingArray) || (sheetIsValueArray)) && !unwrapSheet && !collapseSheet)
     {
       objectValue[sheetName] = sheetJsonArray;
     }
@@ -1566,9 +1625,10 @@ function exportSpreadsheetJson(formatSettings)
           objectValue[field] = sheetJsonObject[field];
         }
       }
-      
-      //TODO: Collapse sheet & handle force collapse/unwrap
-      
+      else if(collapseSheet)
+      {
+        objectValue[sheetName] = sheetJsonObject;
+      }
       else if(singleSheet)
       {
         objectValue = sheetJsonObject;
