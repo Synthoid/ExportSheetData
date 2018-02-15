@@ -777,18 +777,49 @@ function exportSpreadsheetXml(formatSettings)
                             
   for(var i=0; i < sheets.length; i++)
   {
+    var sheetName = sheets[i].getName();
     var range = sheets[i].getDataRange();
     var values = range.getValues();
     var rows = range.getNumRows();
     var columns = range.getNumColumns();
+    var unwrapSheet = unwrap && rows <= 2;
+    var collapseSheet = collapse && rows <= 2;
+    
+    var forceUnwrap = false;
+    var forceCollapse = false;
     
     var sheetData = "";
     
+    //Get the prefixes used by this sheet
+    var activePrefixes = getPrefixes(sheetName, unwrapPrefix, collapsePrefix);
+    sheetName = stripPrefixes(sheetName, unwrapPrefix, collapsePrefix);
+    
+    if(activePrefixes[0])
+    {
+      forceUnwrap = true;
+    }
+    
+    if(activePrefixes[1])
+    {
+      forceCollapse = true;
+    }
+    
+    if(forceUnwrap)
+    {
+      unwrapSheet = true;
+      collapseSheet = false;
+    }
+    else if(forceCollapse)
+    {
+      unwrapSheet = false;
+      collapseSheet = true;
+    }
+    
     if(!singleSheet)
     {
-      if(rows > 2 || unwrap === false)
+      if(rows > 2 || unwrapSheet === false)
       {
-        sheetData += getIndent() + "<" + formatXmlName(sheets[i].getName(), nameReplacementChar) + ">\n";
+        sheetData += getIndent() + "<" + formatXmlName(sheetName, nameReplacementChar) + ">\n";
         indentAmount += 1;
       }
     }
@@ -911,10 +942,10 @@ function exportSpreadsheetXml(formatSettings)
     
     if(!singleSheet)
     {
-      if(rows > 2 || unwrap === false)
+      if(rows > 2 || unwrapSheet === false)
       {
         indentAmount -= 1;
-        sheetData += getIndent() + "</" + formatXmlName(sheets[i].getName(), nameReplacementChar) + ">\n";
+        sheetData += getIndent() + "</" + formatXmlName(sheetName, nameReplacementChar) + ">\n";
       }
     }
     

@@ -975,7 +975,8 @@
     //Collapse Single Rows
     generalText += "<div class='sectionWrapper'><input id='collapseSingleRowToggle' type='checkbox' value='false'";
     if(collapseSingleRows) generalText += " checked";
-    generalText += "/><div class='option'>Collapse single row sheets<div class='tooltip note'>Collapse a sheet's contents with a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
+    if(exportType != "jsonFormat") generalText += " disabled";
+    generalText += "/><div class='option'>Collapse single row sheets<div class='tooltip note'>Collapse a sheet's contents into a JSON object (XML support in development) if it contains only one row. (not counting keys)</div></div></div>";
     //Ignore empty cells
     generalText += "<div class='sectionWrapper'><input id='ignoreEmptyCellsToggle' type='checkbox' value='false'";
     if(ignoreEmptyCells) generalText += " checked";
@@ -1010,6 +1011,7 @@
     //Collapse sheets prefix
     generalText += "<div class='sectionWrapper'><input id='collapseSheetsToggle' type='checkbox' value='false'";
     if(collapseSheetsWithPrefix) generalText += " checked";
+    if(exportType != "jsonFormat") generalText += " disabled";
     generalText += "/><div class='option'>Collapse sheet prefix<div class='tooltip note'>Collapse sheets with only one row that use the given prefix.</div></div><p id='collapseSheetsText'><input id='collapseSheetsPrefixTextField' type='text' value='";
     generalText += collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
     generalText += "' placeholder='CS_'";
@@ -1600,8 +1602,8 @@
       "ignoreEmptyCells" : ignoreEmptyCells,
       "nestedElements" : nestedElements,
       "ignorePrefix" : getIgnorePrefix(),
-      "unwrapSheetsWithPrefix":getUnwrapPrefix(),
-      "collapseSheetsWithPrefix":getCollapsePrefix(),
+      "unwrapPrefix":getUnwrapPrefix(),
+      "collapsePrefix":getCollapsePrefix(),
       "targetSheets" : exportSheets,
       "exportChildElements" : exportChildElementXml,
       "formatContent" : !formatContentXml,
