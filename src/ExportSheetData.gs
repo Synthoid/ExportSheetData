@@ -1,4 +1,4 @@
-var esdVersion = 44;
+var esdVersion = 45;
 
 //Popup message
 var messageLineHeight = 10;
@@ -275,6 +275,7 @@ function getCellContentArray(cell, separatorChar)
     if(!isNaN(parseFloat(cellArray[i])))
     {
       var isNumber = true;
+      var minusCount = 0;
       var decimalCount = 0;
       
       //Parse float is unreliable, so loop through to make sure the string is actually a float
@@ -292,6 +293,18 @@ function getCellContentArray(cell, separatorChar)
             else
             {
               decimalCount++;
+            }
+          }
+          else if(cellArray[i][j] === '-')
+          {
+            if(minusCount > 0)
+            {
+              isNumber = false;
+              break;
+            }
+            else
+            {
+              minusCount++;
             }
           }
           else
