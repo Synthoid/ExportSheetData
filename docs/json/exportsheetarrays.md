@@ -9,12 +9,12 @@ Export sheet arrays
 -------------------
 Export sheet arrays will export sheets as JSON arrays with each row creating an element in the array.
 
-Example:
+<b>Example:</b>
 
-Sheet: `Companies`
-Fields: `Name | Console`
-Values: `Microsoft | Xbox One`
-`Nintendo | Switch`
+Sheet: `Companies`<br>
+Fields: `Name | Console`<br>
+Values: `Microsoft | Xbox One`<br>
+`Nintendo | Switch`<br>
 `Sony | Playstation 4`
 
 Default Output:
