@@ -9,7 +9,7 @@ Collapse single row sheets
 -------------
 Remove the wrapping element of a sheet that has only one row (not including the keys row).
 
-This is similar to [unwrapping single row sheets](docs/general/unwrapsinglerowsheets.md) but does not place sheet fields in the root JSON element directly. For example:
+This is similar to [unwrapping single row sheets](unwrapsinglerowsheets.md) but does not place sheet fields in the root JSON element directly. For example:
 
 Sheet: `Character`<br>
 Fields: `Name | Age | Role`<br>
