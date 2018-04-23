@@ -9,6 +9,36 @@ Force string values
 -------------------
 Force string values will convert all exported data to its string varient.
 
-For example:
+Example:
 
-`1` would be exported as `"1"`
+Sheet: `Heroes`<br>
+Fields: `Name | Human | Age | Superpower`<br>
+Values: `Batman | true | 30 | Money`
+
+Default Output:
+```
+{
+  "Heroes" : {
+    "Batman" : {
+      "Name":"Batman",
+      "Human":true,
+      "Age":30,
+      "Superpower":"Money"
+    }
+  }
+}
+```
+
+Force String Output:
+```
+{
+  "Heroes" : {
+    "Batman" : {
+      "Name":"Batman",
+      "Human":"true",
+      "Age":"30",
+      "Superpower":"Money"
+    }
+  }
+}
+```

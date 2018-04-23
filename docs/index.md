@@ -32,12 +32,15 @@ These settings affect both JSON and XML data.
 
 - [Replace existing file(s)](general/replaceexistingfiles.md) - Trash files with the same name in the output folder as the exported data
 - [Unwrap single row sheets](general/unwrapsinglerowsheets.md) - Place elements from a sheet containing one row in the root element
+- [Collapse single row sheets](general/collapsesinglerowsheets.md) - Place a sheet's only row element fields in the sheet element
 - [Ignore empty cells](general/ignoreemptycells.md) - Don't export cells with no value
-- [Ignore prefix](general/ignoreprefix.md) - Don't export columns whose keys start with a specific string
 
 ### Advanced
 
 - [Nested Elements](general/nestedelements.md) - Create complex data sets by using specific key syntax
+- [Ignore prefix](general/ignoreprefix.md) - Don't export columns whose keys start with a specific prefix
+- [Unwrap prefix](general/unwrapprefix.md) - Unwrap sheets with names using the specified prefix
+- [Collapse prefix](general/collapseprefix.md) - Collapse sheets with names using the specified prefix
 
 JSON Settings
 -------------

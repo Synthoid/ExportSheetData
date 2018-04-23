@@ -37,7 +37,7 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
 * Visualize data before exporting
 * Newline or sameline formatting
 * Exporting specific sheets
-* Unwrapping a sheet's data for easier access after exporting
+* Unwrapping or collapsing a sheet's data for easier access after exporting
  
 Contributing
 ------------
