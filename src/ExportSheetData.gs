@@ -1103,6 +1103,12 @@ function exportSpreadsheetJson(formatSettings)
       collapseSheet = false;
     }
     
+    //If we are exporting all contents as a raw JSON array, force sheet array to be true.
+    if(contentsArray && singleSheet && rows > 2)
+    {
+      sheetArray = true;
+    }
+    
     //If both nested elements and sheet arrays are enabled, need to know which to use for this sheet
     if(sheetArray && nestedElements && !useNestingArray)
     {
@@ -1688,9 +1694,19 @@ function exportSpreadsheetJson(formatSettings)
   {
     var arrayValue = [];
     
-    for(field in objectValue)
+    if(sheetArray)
     {
-      arrayValue.push(objectValue[field]);
+      for(field in objectValue)
+      {
+        arrayValue = objectValue[field];
+      }
+    }
+    else
+    {
+      for(field in objectValue)
+      {
+        arrayValue.push(objectValue[field]);
+      }
     }
     
     rawValue = JSON.stringify(arrayValue, null, 2); //'\t'
