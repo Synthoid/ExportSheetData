@@ -1,4 +1,4 @@
-var esdVersion = 45;
+var esdVersion = 46;
 
 //Popup message
 var messageLineHeight = 10;
@@ -1677,15 +1677,15 @@ function exportSpreadsheetJson(formatSettings)
       }
       else if(collapseSheet)
       {
-        objectValue[sheetName] = sheetJsonObject;
+        objectValue[sheetName] = sheetArray ? sheetJsonArray : sheetJsonObject;
       }
       else if(singleSheet)
       {
-        objectValue = sheetJsonObject;
+        objectValue = sheetArray ? sheetJsonArray : sheetJsonObject;
       }
       else
       {
-        objectValue[sheetName] = sheetJsonObject;
+        objectValue[sheetName] = sheetArray ? sheetJsonArray : sheetJsonObject;
       }
     }
   }
