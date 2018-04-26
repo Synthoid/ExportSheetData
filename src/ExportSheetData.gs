@@ -1,4 +1,4 @@
-var esdVersion = 46;
+var esdVersion = 47;
 
 //Popup message
 var messageLineHeight = 10;
