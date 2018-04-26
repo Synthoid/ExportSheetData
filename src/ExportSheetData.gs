@@ -1740,12 +1740,20 @@ function reexportFile()
   }
 }
 
+// Escape HTML special characters for showing text in a textarea
+function escapeHtml(content)
+{
+  return content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
 function exportDocument(filename, content, type, visualize, replaceFile, exportMessage, exportMessageHeight)
 {
   if(visualize == true)
   {
-    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:555px; height:425px; }</style><textarea class="display">' + content + '</textarea><br>Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.<br><br>' + (exportMessage === "" ? '' : exportMessage + '<br><br>') + '<button class="action" onclick="google.script.run.reexportFile()">Export</button><button onclick="google.script.host.close()">Close</button>')
+    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:555px; height:425px; }</style><textarea class="display">' + escapeHtml(content) + '</textarea><br>Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.<br><br>' + (exportMessage === "" ? '' : exportMessage + '<br><br>') + '<button class="action" onclick="google.script.run.reexportFile()">Export</button><button onclick="google.script.host.close()">Close</button>')
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(600)
       .setHeight(525 + exportMessageHeight);
