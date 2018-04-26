@@ -48,6 +48,7 @@ Credits
 Developed by Chris Ingerson with help from the community.
 
 - Ignore rows support added by [jaeki-kim](https://github.com/jaeki-kim)
+- Visualization window HTML escaping added by [tomyam1](https://github.com/tomyam1)
 
 License
 -------
