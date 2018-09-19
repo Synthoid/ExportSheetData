@@ -339,16 +339,16 @@
     exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === true : exportCellArrayJson;
     exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === true : exportSheetArrayJson;
     exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
-    forceStringJson = settings["forceString"] != null ? settings["forceString"] === 'true' : forceStringJson;
+    forceStringJson = settings["forceString"] != null ? settings["forceString"] === true : forceStringJson;
     arraySeparatorCharJson = settings["separatorChar"] != null ? (settings["separatorChar"] === "" ? "," : settings["separatorChar"]) : JSON_SEPARATOR_DEFAULT;
-    forceArrayJson = settings["forceArray"] != null ? settings["forceArray"] === 'true' : forceArrayJson;
+    forceArrayJson = settings["forceArray"] != null ? settings["forceArray"] === true : forceArrayJson;
     forceArrayPrefixJson = settings["forceArrayPrefix"] != null ? (settings["forceArrayPrefix"] === "" ? JSON_JA_DEFAULT : settings["forceArrayPrefix"]) : JSON_JA_DEFAULT;
     forceArrayNest = settings["forceArrayNest"] != null ? settings["forceArrayNest"] === true : forceArrayNest;
     forceArrayPrefixNest = settings["forceArrayPrefixNest"] != null ? (settings["forceArrayPrefixNest"] === "" ? NEST_NA_DEFAULT : settings["forceArrayPrefixNest"]) : NEST_NA_DEFAULT;
     
     //XML
     exportChildElementXml = settings["exportChildElements"] != null ? settings["exportChildElements"] === true : exportChildElementXml;
-    formatContentXml = settings["formatContent"] != null ? settings["formatContent"] === 'true' : formatContentXml;
+    formatContentXml = settings["formatContent"] != null ? settings["formatContent"] === true : formatContentXml;
     includeFirstColumnXml = settings["includeFirstColumn"] != null ? settings["includeFirstColumn"] === true : includeFirstColumnXml;
     rootElementXml = settings["rootElement"] != null ? (settings["rootElement"] === "" ? rootElementXml : settings["rootElement"]) : rootElementXml;
     nameReplacementCharXml = settings["nameReplacementChar"] != null ? (settings["nameReplacementChar"] === "" ? nameReplacementCharXml : settings["nameReplacementChar"]) : nameReplacementCharXml;
