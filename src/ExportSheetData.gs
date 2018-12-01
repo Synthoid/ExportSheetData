@@ -1,4 +1,4 @@
-var esdVersion = 48;
+var esdVersion = 49;
 
 //Popup message
 var messageLineHeight = 10;
@@ -1158,7 +1158,7 @@ function exportSpreadsheetJson(formatSettings)
           var keyPrefix = "";
           
           if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
-          if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired (can help cut down on clutter)
+          if(ignoreEmpty && (values[j][k] === "" || values[j][k] == null)) continue; //Skip empty cells if desired (can help cut down on clutter)
           
           var key = values[0][k];
           

@@ -922,14 +922,14 @@
   //Toggles a sheet for export
   function toggleSheet(sheetName)
   {
-    var value = document.getElementById(sheetName + 'Toggle').value;
+    var value = document.getElementById(formatSheetName(sheetName) + 'Toggle').value;
     
     if(value === 'false') value = 'true';
     else value = 'false';
     
     targetSheets[sheetName] = value;
     
-    document.getElementById(sheetName + 'Toggle').value = value;
+    document.getElementById(formatSheetName(sheetName) + 'Toggle').value = value;
     
     updateAllSheetsToggle();
   }
@@ -1319,6 +1319,12 @@
     generateAutoSheetToggles(sheetNames); //TODO: Sheet names are getting culled on load sometimes... (seems to be after all are toggled on then one is toggled off as the off sheet is the only name returned...)
   }
   
+  //Formats sheet names so special characters don't break event listeners
+  function formatSheetName(sheetName)
+  {
+    return sheetName.replace(/[^a-zA-Z0-9\-\_]/gm, "_");
+  }
+  
   //Generates toggle elements determining which sheets should be exported
   function generateAutoSheetToggles(sheetNames)
   {
@@ -1350,7 +1356,7 @@
       
       if(cachedToggles[sheetNames[i]] != null)
       {
-        text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='true'";
+        text += "<input id='" + formatSheetName(sheetNames[i]) + "Toggle' type='checkbox' value='true'";
         if(cachedToggles[sheetNames[i]] === 'true' || cachedToggles[sheetNames[i]] === true) text += " checked";
         text += "/> " + sheetNames[i];
         
@@ -1358,7 +1364,7 @@
       }
       else
       {
-        text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='false'/> " + sheetNames[i];
+        text += "<input id='" + formatSheetName(sheetNames[i]) + "Toggle' type='checkbox' value='false'/> " + sheetNames[i];
         targetSheets[sheetNames[i]] = 'false';
       }
       
@@ -1389,12 +1395,12 @@
       
       if(defaultValue === true)
       {
-        text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='true' checked /> " + sheetNames[i];
+        text += "<input id='" + formatSheetName(sheetNames[i]) + "Toggle' type='checkbox' value='true' checked /> " + sheetNames[i];
         targetSheets[sheetNames[i]] = 'true';
       }
       else
       {
-        text += "<input id='" + sheetNames[i] + "Toggle' type='checkbox' value='false' /> " + sheetNames[i];
+        text += "<input id='" + formatSheetName(sheetNames[i]) + "Toggle' type='checkbox' value='false' /> " + sheetNames[i];
         targetSheets[sheetNames[i]] = 'false';
       }
       
@@ -1416,7 +1422,7 @@
       (function()
       {
         var targetSheet = sheets[i];
-        document.getElementById(targetSheet + 'Toggle').addEventListener("change", function() { toggleSheet(targetSheet); });
+        document.getElementById(formatSheetName(targetSheet) + 'Toggle').addEventListener("change", function() { toggleSheet(targetSheet); });
       }())
     }
   }
@@ -1430,10 +1436,10 @@
     {
       (function()
       {
-        if(document.getElementById(sheets[i] + 'Toggle') != null)
+        if(document.getElementById(formatSheetName(sheets[i]) + 'Toggle') != null)
         {
           var targetSheet = sheets[i];
-          document.getElementById(targetSheet + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
+          document.getElementById(formatSheetName(targetSheet) + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
         }
       }())
     }
