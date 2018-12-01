@@ -272,6 +272,8 @@
   var exportContentsAsArrayJson = false;
   //Export cell contents as a JSON object if the cell is wrapped with {}
   var exportCellObjectJson = false;
+  //Export JSON data without spaces or newlines
+  var minifyJson = false;
   //Export sheets as 2D JSON arrays
   var export2dArrayJson = false;
   //Separator char for JSON arrays
@@ -336,6 +338,7 @@
     //JSON
     exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
     exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === true : exportCellObjectJson;
+    minifyJson = settings["minifyJson"] != null ? settings["minifyJson"] === true : minifyJson;
     exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === true : exportCellArrayJson;
     exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === true : exportSheetArrayJson;
     exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
@@ -393,6 +396,7 @@
       //JSON
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
+      "minifyJson" : minifyJson,
       "exportCellArray" : exportCellArrayJson,
       "exportSheetArray" : exportSheetArrayJson,
       "exportValueArray" : exportValueArrayJson,
@@ -798,6 +802,11 @@
     exportCellObjectJson = !exportCellObjectJson;
   }
   
+  function toggleMinifyJson()
+  {
+      minifyJson = !minifyJson;
+  }
+  
   function toggleArrayJson()
   {
     exportCellArrayJson = !exportCellArrayJson;
@@ -1044,7 +1053,7 @@
     
     exportType = document.getElementById("formatSelect").value;
     
-    if(exportType != "jsonFormat")
+    if(exportType != "jsonFormat") //Populate XML options
     {
       removeJsonListeners();
       
@@ -1193,7 +1202,7 @@
       document.getElementById('xmlForceInnerTextToggle').addEventListener("change", toggleInnerTextPrefixXml);
       if(forceInnerTextXml === true) document.getElementById('xmlForceInnerTextTextField').addEventListener("change", updateInnerTextPrefixXml);
     }
-    else
+    else //Populate JSON options
     {
       removeXmlListeners();
       document.getElementById("xmlOptions").innerHTML = "";
@@ -1230,6 +1239,10 @@
       advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
       advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will export an empty object if not properly formatted.)</div></div></div>";
+      //Minify JSON
+      advancedJsonText += "<div class='sectionWrapper'><input id='minifyJsonToggle' type='checkbox' value='minifyJson'";
+      if(minifyJson) advancedJsonText += " checked";
+      advancedJsonText += "><div class='option'>Minify JSON<div class='tooltip note'>Remove readability formatting from the exported data to produce a smaller file.</div></div></div>";
       //Serparator char value
       advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
@@ -1260,6 +1273,7 @@
       //JSON Options
       document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
       document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
+      document.getElementById('minifyJsonToggle').addEventListener("change", toggleMinifyJson);
       document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
       document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
       document.getElementById('valueArrayToggle').addEventListener("change", toggleValueArrayJson);
@@ -1562,6 +1576,10 @@
     {
       document.getElementById('cellObjectToggle').removeEventListener("change", toggleCellObjectJson);
     }
+    if(document.getElementById('minifyJsonToggle') != null)
+    {
+      document.getElementById('minifyJsonToggle').removeEventListener("change", toggleMinifyJson);
+    }
     if(document.getElementById('arrayToggle') != null)
     {
       document.getElementById('arrayToggle').removeEventListener("change", toggleArrayJson);
@@ -1650,6 +1668,7 @@
       "exportValueArray" : exportValueArrayJson,
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
+      "minifyJson" : minifyJson,
       "separatorChar" : getSeparatorCharJson(),
       "forceArrayPrefix" : getForceArrayPrefixJson(),
       "forceArrayPrefixNest" : getForceArrayPrefixNest()

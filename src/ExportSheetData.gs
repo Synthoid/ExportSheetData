@@ -1,4 +1,4 @@
-var esdVersion = 49;
+var esdVersion = 50;
 
 //Popup message
 var messageLineHeight = 10;
@@ -998,6 +998,7 @@ function exportSpreadsheetJson(formatSettings)
   //JSON settings
   var contentsArray = settings["exportContentsAsArray"];
   var exportCellObjectJson = settings["exportCellObject"];
+  var minifyJson = settings["minifyJson"];
   var exportArray = settings["exportCellArray"];
   var sheetArrayJson = settings["exportSheetArray"];
   var valueArray = settings["exportValueArray"];
@@ -1709,11 +1710,11 @@ function exportSpreadsheetJson(formatSettings)
       }
     }
     
-    rawValue = JSON.stringify(arrayValue, null, 2); //'\t'
+    rawValue = JSON.stringify(arrayValue, null, minifyJson ? 0 : 2); //'\t'
   }
   else
   {
-    rawValue = JSON.stringify(objectValue, null, 2);
+    rawValue = JSON.stringify(objectValue, null, minifyJson ? 0 : 2);
   }
   
   if(nestedFormattingError)
