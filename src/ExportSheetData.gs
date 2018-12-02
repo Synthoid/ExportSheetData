@@ -864,8 +864,6 @@ function exportSpreadsheetXml(formatSettings)
       //Build the actual row XML
       var rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar));
       
-      if(attributes.length > 0) row += " ";
-      
       //Set attributes
       for(var k=0; k < attributes.length; k++)
       {
@@ -894,7 +892,7 @@ function exportSpreadsheetXml(formatSettings)
           if(replaceIllegal) innerText += formatXmlString(innerTextElements[k]);
           else innerText += innerTextElements[k];
           
-          if(newline || childElements.length > 0 && k >= innerTextElements.length - 1) innerText += "\n";
+          if(k < innerTextElements.length - 1) innerText += "\n";
         }
         
         var xmlText = XmlService.createText(innerText);
