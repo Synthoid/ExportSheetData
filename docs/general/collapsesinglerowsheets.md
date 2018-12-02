@@ -15,7 +15,9 @@ Sheet: `Character`<br>
 Fields: `Name | Age | Role`<br>
 Values: `Cid | 25 | Fighter`
 
-Default Output:
+<b>Default Output:</b>
+
+JSON:
 ```
 {
   "Character" : {
@@ -27,8 +29,21 @@ Default Output:
   }
 }
 ```
+XML:
+```
+<data>
+  <Character>
+    <Cid>
+      <Age>25</Age>
+      <Role>Fighter</Role>
+    </Cid>
+  </Character>
+</data>
+```
 
-Collapsed Output:
+<b>Collapsed Output:</b>
+
+JSON:
 ```
 {
   "Character" : {
@@ -38,12 +53,32 @@ Collapsed Output:
   }
 }
 ```
+XML:
+```
+<data>
+  <Character>
+    <Age>25</Age>
+    <Role>Fighter</Role>
+  </Character>
+</data>
+```
 
-Unwrapped Output:
+<b>Unwrapped Output:</b>
+
+JSON:
 ```
 {
   "Name":"Cid",
   "Age":25,
   "Role":"Fighter"
 }
+```
+XML:
+```
+<data>
+  <Cid>
+    <Age>25</Age>
+    <Role>Fighter</Role>
+  </Cid>
+</data>
 ```
