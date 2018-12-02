@@ -729,6 +729,7 @@ function exportSpreadsheetXml(formatSettings)
   var collapse = settings["collapseSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
   var nestedElements = settings["nestedElements"];
+  var minifyData = settings["minifyData"];
   var ignorePrefix = settings["ignorePrefix"];
   var unwrapPrefix = settings["unwrapPrefix"];
   var collapsePrefix = settings["collapsePrefix"];
@@ -774,8 +775,12 @@ function exportSpreadsheetXml(formatSettings)
   var sheetValues = [[]];
   var rawValue = "";
   
+  var xmlRoot = XmlService.createElement(formatXmlName(rootElement, nameReplacementChar)); //Create the root XML element. https://developers.google.com/apps-script/reference/xml-service/
+  
   if(declarationVersion !== "")
   {
+    //xmlDoc.setDocType(docType)
+    
     rawValue = '<?xml version="' + declarationVersion + '"';
     
     if(declarationEncoding !== "") rawValue += ' encoding="' + declarationEncoding + '"';
@@ -807,6 +812,8 @@ function exportSpreadsheetXml(formatSettings)
     var activePrefixes = getPrefixes(sheetName, unwrapPrefix, collapsePrefix);
     sheetName = stripPrefixes(sheetName, unwrapPrefix, collapsePrefix);
     
+    var sheetXml = XmlService.createElement(formatXmlName(sheetName, nameReplacementChar));
+    
     if(activePrefixes[0])
     {
       forceUnwrap = true;
@@ -832,6 +839,7 @@ function exportSpreadsheetXml(formatSettings)
     {
       if(rows > 2 || unwrapSheet === false)
       {
+        //xmlRoot.addContent(formatXmlName(sheetName, nameReplacementChar)); //TODO: This probably needs to be done last with XmlService... (add child nodes then strip them from their parent element)
         sheetData += getIndent() + "<" + formatXmlName(sheetName, nameReplacementChar) + ">\n";
         indentAmount += 1;
       }
@@ -884,13 +892,22 @@ function exportSpreadsheetXml(formatSettings)
       
       //Build the actual row string
       var row = getIndent() + "<" + formatXmlName(values[j][0], nameReplacementChar);
+      var rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar));
       
       if(attributes.length > 0) row += " ";
       
       for(var k=0; k < attributes.length; k++)
       {
-        if(replaceIllegal) row += formatXmlName(attributeKeys[k], nameReplacementChar) + "=" + '"' + formatXmlString(attributes[k]) + '"';
-        else row += formatXmlName(attributeKeys[k], nameReplacementChar) + "=" + '"' + attributes[k] + '"';
+        if(replaceIllegal)
+        {
+          row += formatXmlName(attributeKeys[k], nameReplacementChar) + "=" + '"' + formatXmlString(attributes[k]) + '"';
+          rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlString(attributes[k]));
+        }
+        else
+        {
+          row += formatXmlName(attributeKeys[k], nameReplacementChar) + "=" + '"' + attributes[k] + '"';
+          rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), attributes[k]);
+        }
         
         if(k < attributes.length - 1) row += " ";
       }
@@ -908,6 +925,7 @@ function exportSpreadsheetXml(formatSettings)
         indentAmount += 1;
         
         row += getIndent() + "<" + formatXmlName(childElementKeys[k], nameReplacementChar) + ">";
+        var childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar));
           
         if(newline)
         {
@@ -915,9 +933,17 @@ function exportSpreadsheetXml(formatSettings)
           row += "\n" + getIndent();
         }
           
-        if(replaceIllegal) row += formatXmlString(childElements[k]);
-        else row += childElements[k];
-          
+        if(replaceIllegal)
+        {
+          row += formatXmlString(childElements[k]);
+          childXml.setText(formatXmlString(childElements[k]));
+        }
+        else
+        {
+          row += childElements[k];
+          childXml.setText(childElements[k]);
+        }
+        
         if(newline)
         {
           indentAmount -= 1;
@@ -927,20 +953,42 @@ function exportSpreadsheetXml(formatSettings)
         row += "</" + formatXmlName(childElementKeys[k], nameReplacementChar) + ">\n";
         
         indentAmount -= 1;
+        rowXml.addContent(childXml);
       }
       
-      for(var k=0; k < innerTextElements.length; k++)
+      if(innerTextElements.length > 0)
       {
-        indentAmount += 1;
+        var innerText = "";
         
-        if(newline || childElements.length > 0 && k === 0) row += getIndent();
+        for(var k=0; k < innerTextElements.length; k++)
+        {
+          indentAmount += 1;
+          
+          if(newline || childElements.length > 0 && k === 0) row += getIndent();
+          
+          if(replaceIllegal)
+          {
+            row += formatXmlString(innerTextElements[k]);
+            innerText += formatXmlString(innerTextElements[k]);
+          }
+          else
+          {
+            row += innerTextElements[k];
+            innerText += innerTextElements[k];
+          }
+          
+          if(newline || childElements.length > 0 && k >= innerTextElements.length - 1)
+          {
+            row += "\n";
+            innerText += "\n";
+          }
+          
+          indentAmount -= 1;
+        }
         
-        if(replaceIllegal) row += formatXmlString(innerTextElements[k]);
-        else row += innerTextElements[k];
+        var xmlText = XmlService.createText(innerText);
         
-        if(newline || childElements.length > 0 && k >= innerTextElements.length - 1) row += "\n";
-        
-        indentAmount -= 1;
+        rowXml.addContent(xmlText);
       }
       
       if(childElements.length > 0 || innerTextElements.length > 0)
@@ -948,6 +996,8 @@ function exportSpreadsheetXml(formatSettings)
         if(newline || childElements.length > 0) row += getIndent();
         row += "</" + formatXmlName(values[j][0], nameReplacementChar) + ">\n";
       }
+      
+      sheetXml.addContent(rowXml);
       
       sheetValues[i[j-1]] = row;
       sheetData += row;
@@ -962,6 +1012,38 @@ function exportSpreadsheetXml(formatSettings)
       }
     }
     
+    if(singleSheet || unwrapSheet)
+    {
+      var sheetChildren = sheetXml.getChildren();
+      
+      for(var k=0; k < sheetChildren.length; k++)
+      {
+        sheetChildren[k].detach();
+        xmlRoot.addContent(sheetChildren[k]);
+      }
+    }
+    else
+    {
+      if(collapseSheet)
+      {
+        var sheetChildren = sheetXml.getChildren();
+        
+        for(var k=0; k < sheetChildren.length; k++)
+        {
+          sheetChildren[k].detach();
+          var rowChildren = sheetChildren[k].getChildren();
+          
+          for(var l=0; l < rowChildren.length; l++)
+          {
+            rowChildren[l].detach();
+            sheetXml.addContent(rowChildren[l]);
+          }
+        }
+      }
+      
+      xmlRoot.addContent(sheetXml);
+    }
+    
     rawValue += sheetData;
   }
   
@@ -969,7 +1051,26 @@ function exportSpreadsheetXml(formatSettings)
   
   rawValue += "</" + formatXmlName(rootElement, nameReplacementChar) + ">";
   
-  exportDocument(fileName, rawValue, ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
+  var xmlDoc = XmlService.createDocument(xmlRoot); //Create the final XML document for export.
+  var xmlFormat = minifyData ? XmlService.getRawFormat() : XmlService.getPrettyFormat(); //Select which format to export the XML as.
+  xmlFormat.setOmitDeclaration(true); //Remove the default XML declaration so we can build our own if desired.
+  
+  var xmlRaw = xmlFormat.format(xmlDoc);
+  
+  if(declarationVersion !== "")
+  {
+    var xmlDeclaration = '<?xml version="' + declarationVersion + '"';
+    
+    if(declarationEncoding !== "") xmlDeclaration += ' encoding="' + declarationEncoding + '"';
+    if(declarationStandalone !== "") xmlDeclaration += ' standalone="' + declarationStandalone + '"';
+    
+    xmlDeclaration += '?>\n';
+    
+    xmlRaw = xmlDeclaration + xmlRaw;
+  }
+  
+  //exportDocument(fileName, rawValue, ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
+  exportDocument(fileName, xmlRaw, ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
 
@@ -990,6 +1091,7 @@ function exportSpreadsheetJson(formatSettings)
   var unwrapPrefix = settings["unwrapPrefix"];
   var collapsePrefix = settings["collapsePrefix"];
   var customSheets = settings["targetSheets"];
+  var minifyData = settings["minifyData"];
   
   //Nested Settings
   var nestedElements = settings["nestedElements"];
@@ -998,7 +1100,6 @@ function exportSpreadsheetJson(formatSettings)
   //JSON settings
   var contentsArray = settings["exportContentsAsArray"];
   var exportCellObjectJson = settings["exportCellObject"];
-  var minifyJson = settings["minifyJson"];
   var exportArray = settings["exportCellArray"];
   var sheetArrayJson = settings["exportSheetArray"];
   var valueArray = settings["exportValueArray"];
@@ -1710,11 +1811,11 @@ function exportSpreadsheetJson(formatSettings)
       }
     }
     
-    rawValue = JSON.stringify(arrayValue, null, minifyJson ? 0 : 2); //'\t'
+    rawValue = JSON.stringify(arrayValue, null, minifyData ? 0 : 2); //'\t'
   }
   else
   {
-    rawValue = JSON.stringify(objectValue, null, minifyJson ? 0 : 2);
+    rawValue = JSON.stringify(objectValue, null, minifyData ? 0 : 2);
   }
   
   if(nestedFormattingError)
