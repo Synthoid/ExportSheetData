@@ -58,9 +58,11 @@ JSON:
 XML:
 ```
 <data>
-  <Name>Cid</Name>
-  <Age>25</Age>
-  <Role>Fighter</Role>
+  <Cid>
+    <Name>Cid</Name>
+    <Age>25</Age>
+    <Role>Fighter</Role>
+  </Cid>
 </data>
 ```
 
