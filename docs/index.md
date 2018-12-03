@@ -38,6 +38,7 @@ These settings affect both JSON and XML data.
 ### Advanced
 
 - [Nested Elements](general/nestedelements.md) - Create complex data sets by using specific key syntax
+- [Minify data](general/minifydata.md) - Output smaller files at the cost of human readability
 - [Ignore prefix](general/ignoreprefix.md) - Don't export columns whose keys start with a specific prefix
 - [Unwrap prefix](general/unwrapprefix.md) - Unwrap sheets with names using the specified prefix
 - [Collapse prefix](general/collapseprefix.md) - Collapse sheets with names using the specified prefix
