@@ -9,6 +9,10 @@ Include XML declaration
 -----------------------
 Determines if a customized XML declaration should be included at the top of exported XML documents.
 
+XML declarations must be at the top of the XML document (if included) and look like the following:
+
+`<?xml version="1.0" encoding="UTF-8"?>`
+
 See also
 --------
 - [XML version](xmlversion.md)
