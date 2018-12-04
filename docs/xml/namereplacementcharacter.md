@@ -16,3 +16,5 @@ There are three possible replacement characters:
 - Underscore (` _ `)
 - Dash (` - `)
 - Dot (` . `)
+
+For example, the value `T'Pau` would create the XML element `<T_Pau />` if Underscore is selected as the replacement character.
