@@ -216,6 +216,8 @@
   //Advanced Options
   //Support complex nested elements by using special key formatting
   var nestedElements = false;
+  //Export data without spaces or newlines
+  var minifyData = false;
   //Don't export columns with the ignore prefix
   var ignoreColumnsWithPrefix = false;
   var ignoreColumnsPrefix = "NOEX_";
@@ -272,8 +274,6 @@
   var exportContentsAsArrayJson = false;
   //Export cell contents as a JSON object if the cell is wrapped with {}
   var exportCellObjectJson = false;
-  //Export JSON data without spaces or newlines
-  var minifyJson = false;
   //Export sheets as 2D JSON arrays
   var export2dArrayJson = false;
   //Separator char for JSON arrays
@@ -328,6 +328,7 @@
     
     //Advanced
     nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === true : false;
+    minifyData = settings["minifyData"] != null ? settings["minifyData"] === true : minifyData;
     ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === true : false;
     ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
     unwrapSheetsWithPrefix = settings["unwrapSheetsWithPrefix"] != null ? settings["unwrapSheetsWithPrefix"] === true : false;
@@ -338,7 +339,6 @@
     //JSON
     exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
     exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === true : exportCellObjectJson;
-    minifyJson = settings["minifyJson"] != null ? settings["minifyJson"] === true : minifyJson;
     exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === true : exportCellArrayJson;
     exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === true : exportSheetArrayJson;
     exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
@@ -384,6 +384,7 @@
       "ignoreEmptyCells" : ignoreEmptyCells,
       //Advanced
       "ignoreColumnsWithPrefix" : ignoreColumnsWithPrefix,
+      "minifyData" : minifyData,
       "ignorePrefix" : (ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix),
       "unwrapSheetsWithPrefix" : unwrapSheetsWithPrefix,
       "unwrapPrefix" : (unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix),
@@ -396,7 +397,6 @@
       //JSON
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
-      "minifyJson" : minifyJson,
       "exportCellArray" : exportCellArrayJson,
       "exportSheetArray" : exportSheetArrayJson,
       "exportValueArray" : exportValueArrayJson,
@@ -479,6 +479,11 @@
     nestedElements = !nestedElements;
     
     //TODO: Should disable JSON/XML specific nested element fields when toggling.
+  }
+  
+  function toggleMinifyData()
+  {
+      minifyData = !minifyData;
   }
   
   function getIgnorePrefix()
@@ -802,11 +807,6 @@
     exportCellObjectJson = !exportCellObjectJson;
   }
   
-  function toggleMinifyJson()
-  {
-      minifyJson = !minifyJson;
-  }
-  
   function toggleArrayJson()
   {
     exportCellArrayJson = !exportCellArrayJson;
@@ -984,8 +984,7 @@
     //Collapse Single Rows
     generalText += "<div class='sectionWrapper'><input id='collapseSingleRowToggle' type='checkbox' value='false'";
     if(collapseSingleRows) generalText += " checked";
-    if(exportType != "jsonFormat") generalText += " disabled";
-    generalText += "/><div class='option'>Collapse single row sheets<div class='tooltip note'>Collapse a sheet's contents into a JSON object (XML support in development) if it contains only one row. (not counting keys)</div></div></div>";
+    generalText += "/><div class='option'>Collapse single row sheets<div class='tooltip note'>Collapse a sheet's contents into a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
     //Ignore empty cells
     generalText += "<div class='sectionWrapper'><input id='ignoreEmptyCellsToggle' type='checkbox' value='false'";
     if(ignoreEmptyCells) generalText += " checked";
@@ -1001,6 +1000,10 @@
     generalText += "/><div class='option'>Nested Elements<div class='tooltip note'>Export nested elements by using specific formatting in keys.";
     if(exportType != "jsonFormat") generalText += " XML support in development!";
     generalText += "</div></div></div>";
+    //Minify Data
+    generalText += "<div class='sectionWrapper'><input id='minifyDataToggle' type='checkbox' value='minifyData'";
+    if(minifyData) generalText += " checked";
+    generalText += "><div class='option'>Minify data<div class='tooltip note'>Remove human readability formatting from the exported data to produce a smaller file.</div></div></div>";
     //Ignore columns prefix
     generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
     if(ignoreColumnsWithPrefix) generalText += " checked";
@@ -1020,7 +1023,6 @@
     //Collapse sheets prefix
     generalText += "<div class='sectionWrapper'><input id='collapseSheetsToggle' type='checkbox' value='false'";
     if(collapseSheetsWithPrefix) generalText += " checked";
-    if(exportType != "jsonFormat") generalText += " disabled";
     generalText += "/><div class='option'>Collapse sheet prefix<div class='tooltip note'>Collapse sheets with only one row that use the given prefix.</div></div><p id='collapseSheetsText'><input id='collapseSheetsPrefixTextField' type='text' value='";
     generalText += collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
     generalText += "' placeholder='CS_'";
@@ -1042,6 +1044,7 @@
     document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
     //Advanced
     document.getElementById('nestedElementsToggle').addEventListener("change",toggleNestedElements);
+    document.getElementById('minifyDataToggle').addEventListener("change", toggleMinifyData);
     document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
     if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
     document.getElementById('unwrapSheetsToggle').addEventListener("change",toggleUnwrapSheetsWithPrefix);
@@ -1239,10 +1242,6 @@
       advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
       advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will export an empty object if not properly formatted.)</div></div></div>";
-      //Minify JSON
-      advancedJsonText += "<div class='sectionWrapper'><input id='minifyJsonToggle' type='checkbox' value='minifyJson'";
-      if(minifyJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'>Minify JSON<div class='tooltip note'>Remove readability formatting from the exported data to produce a smaller file.</div></div></div>";
       //Serparator char value
       advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
@@ -1273,7 +1272,6 @@
       //JSON Options
       document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
       document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
-      document.getElementById('minifyJsonToggle').addEventListener("change", toggleMinifyJson);
       document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
       document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
       document.getElementById('valueArrayToggle').addEventListener("change", toggleValueArrayJson);
@@ -1499,6 +1497,10 @@
     {
       document.getElementById('nestedElementsToggle').removeEventListener("change", toggleNestedElements);
     }
+    if(document.getElementById('minifyDataToggle') != null)
+    {
+      document.getElementById('minifyDataToggle').removeEventListener("change", toggleMinifyData);
+    }
     if(document.getElementById('ignoreColumnsToggle') != null)
     {
       document.getElementById('ignoreColumnsToggle').removeEventListener("change", toggleIgnoreColumnsWithPrefix);
@@ -1576,10 +1578,6 @@
     {
       document.getElementById('cellObjectToggle').removeEventListener("change", toggleCellObjectJson);
     }
-    if(document.getElementById('minifyJsonToggle') != null)
-    {
-      document.getElementById('minifyJsonToggle').removeEventListener("change", toggleMinifyJson);
-    }
     if(document.getElementById('arrayToggle') != null)
     {
       document.getElementById('arrayToggle').removeEventListener("change", toggleArrayJson);
@@ -1625,6 +1623,7 @@
       "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
       "nestedElements" : nestedElements,
+      "minifyData" : minifyData,
       "ignorePrefix" : getIgnorePrefix(),
       "unwrapPrefix":getUnwrapPrefix(),
       "collapsePrefix":getCollapsePrefix(),
@@ -1658,6 +1657,7 @@
       "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
       "nestedElements" : nestedElements,
+      "minifyData" : minifyData,
       "ignorePrefix" : getIgnorePrefix(),
       "unwrapPrefix":getUnwrapPrefix(),
       "collapsePrefix":getCollapsePrefix(),
@@ -1668,7 +1668,6 @@
       "exportValueArray" : exportValueArrayJson,
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
-      "minifyJson" : minifyJson,
       "separatorChar" : getSeparatorCharJson(),
       "forceArrayPrefix" : getForceArrayPrefixJson(),
       "forceArrayPrefixNest" : getForceArrayPrefixNest()
