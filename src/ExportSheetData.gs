@@ -1,4 +1,4 @@
-var esdVersion = 50;
+var esdVersion = 51;
 
 //Popup message
 var messageLineHeight = 10;
@@ -724,7 +724,6 @@ function exportSpreadsheetXml(formatSettings)
   var visualize = settings["visualize"];
   var singleSheet = settings["singleSheet"];
   var replaceFile = settings["replaceExistingFiles"];
-  var newline = settings["newlineElements"];
   var unwrap = settings["unwrapSingleRows"];
   var collapse = settings["collapseSingleRows"];
   var ignoreEmpty = settings["ignoreEmptyCells"];
@@ -969,7 +968,6 @@ function exportSpreadsheetJson(formatSettings)
   var visualize = settings["visualize"];
   var singleSheet = settings["singleSheet"];
   var replaceFile = settings["replaceExistingFiles"];
-  var newline = settings["newlineElements"];
   var unwrap = settings["unwrapSingleRows"];
   var collapse = settings["collapseSingleRows"] && !unwrap;
   var ignoreEmpty = settings["ignoreEmptyCells"];

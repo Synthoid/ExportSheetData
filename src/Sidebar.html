@@ -204,8 +204,6 @@
   //General Options
   //Replaces any export files that have the same name
   var replaceExistingFiles = false;
-  //Formats the exported data to use newlines when possible
-  var newlineElements = false;
   //Don't wrap the contents of a sheet in a JSON object / XML element if the sheet only has one row
   var unwrapSingleRows = false;
   //Collapse the contents of a sheet in a JSON object / XML element if the sheet only has one row
@@ -321,7 +319,6 @@
     exportSheets = settings["exportSheets"] != null ? (settings["exportSheets"] === "" ? exportSheets : settings["exportSheets"]) : exportSheets;
     targetSheets = settings["targetSheets"] != null ? (settings["targetSheets"] === "" ? targetSheets : JSON.parse(settings["targetSheets"])) : targetSheets;
     replaceExistingFiles = settings["replaceExistingFiles"] != null ? settings["replaceExistingFiles"] === true : false;
-    newlineElements = settings["newlineElements"] != null ? settings["newlineElements"] === true : false;
     unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === true : false;
     collapseSingleRows = settings["collapseSingleRows"] != null ? settings["collapseSingleRows"] === true : false;
     ignoreEmptyCells = settings["ignoreEmptyCells"] != null ? settings["ignoreEmptyCells"] === true : false;
@@ -378,7 +375,6 @@
       "exportSheets" : exportSheets,
       "targetSheets" : JSON.stringify(targetSheets),
       "replaceExistingFiles" : replaceExistingFiles,
-      "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
       "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
@@ -452,11 +448,6 @@
   function toggleReplace()
   {
     replaceExistingFiles = !replaceExistingFiles;
-  }
-  
-  function toggleNewline()
-  {
-    newlineElements = !newlineElements;
   }
   
   function toggleUnwrapSingleRows()
@@ -973,10 +964,6 @@
     generalText += "<div class='sectionWrapper'><input id='replaceToggle' type='checkbox' value='Replace'";
     if(replaceExistingFiles) generalText += " checked";
     generalText += "/><div class='option'>Replace existing file(s)<div class='tooltip note'>Trash files in the export folder with the same name and extension as the exported file.</div></div></div>";
-    //Newline elements
-    generalText += "<div class='sectionWrapper'><input id='newlineToggle' type='checkbox' value='Newline'";
-    if(newlineElements) generalText += " checked";
-    generalText += "/><div class='option'>Newline elements<div class='tooltip note'>Use newlines when formatting data.</div></div></div>";
     //Unwrap Single Rows
     generalText += "<div class='sectionWrapper'><input id='unwrapSingleRowToggle' type='checkbox' value='false'";
     if(unwrapSingleRows) generalText += " checked";
@@ -1038,7 +1025,6 @@
     document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
     //General Options
     document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
-    document.getElementById('newlineToggle').addEventListener("change",toggleNewline);
     document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
     document.getElementById('collapseSingleRowToggle').addEventListener("change",toggleCollapseSingleRows);
     document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
@@ -1475,10 +1461,6 @@
     {
       document.getElementById('replaceToggle').removeEventListener("change", toggleReplace);
     }
-    if(document.getElementById('newlineToggle') != null)
-    {
-      document.getElementById('newlineToggle').removeEventListener("change", toggleNewline);
-    }
     if(document.getElementById('unwrapSingleRowToggle') != null)
     {
       document.getElementById('unwrapSingleRowToggle').removeEventListener("change", toggleUnwrapSingleRows);
@@ -1618,7 +1600,6 @@
       "visualize" : visualizeData,
       "singleSheet" : singleSheet,
       "replaceExistingFiles" : replaceExistingFiles,
-      "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
       "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
@@ -1652,7 +1633,6 @@
       "visualize" : visualizeData,
       "singleSheet" : singleSheet,
       "replaceExistingFiles" : replaceExistingFiles,
-      "newlineElements" : newlineElements,
       "unwrapSingleRows" : unwrapSingleRows,
       "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
