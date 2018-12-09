@@ -1,4 +1,4 @@
-var esdVersion = 51;
+var esdVersion = 52;
 
 //Popup message
 var messageLineHeight = 10;
@@ -351,46 +351,6 @@ function formatXmlName(value, replacement)
   return xmlName;
 }
 
-//Encodes illegal XML characters into a format readable to XML
-function formatXmlString(value)
-{
-  if(!isNaN(value)) return value;
-  
-  var xmlString = "";
-  
-  for(var i=0; i < value.length; i++)
-  {
-    switch(value[i])
-    {
-      case '&':
-        xmlString += '&amp;';
-        break;
-        
-      case '<':
-        xmlString += '&lt;';
-        break;
-        
-      case '>':
-        xmlString += '&gt;';
-        break;
-        
-      case '"':
-        xmlString += '&quot;';
-        break;
-        
-      case "'":
-        xmlString += '&apos;';
-        break;
-        
-      default:
-        xmlString += value[i];
-        break;
-    }
-  }
-  
-  return xmlString;
-}
-
 
 function formatJsonString(value, asObject)
 {
@@ -416,7 +376,7 @@ function formatJsonString(value, asObject)
   return JSON.stringify(value);
 }
 
-
+//Returns true if a key starts with the specified prefix.
 function keyHasPrefix(key, prefix)
 {
   if(prefix.length > key.length || prefix.length === 0) return false;
@@ -736,7 +696,6 @@ function exportSpreadsheetXml(formatSettings)
   
   //XML settings
   var useChildElements = settings["exportChildElements"];
-  var replaceIllegal = settings["formatContent"];
   var includeFirstColumnXml = settings["includeFirstColumn"];
   var rootElement = settings["rootElement"];
   var nameReplacementChar = settings["nameReplacementChar"];
@@ -866,8 +825,7 @@ function exportSpreadsheetXml(formatSettings)
       //Set attributes
       for(var k=0; k < attributes.length; k++)
       {
-        if(replaceIllegal) rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlString(attributes[k]));
-        else rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), attributes[k]);
+        rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), attributes[k]);
       }
       
       //Set child elements
@@ -875,8 +833,7 @@ function exportSpreadsheetXml(formatSettings)
       {
         var childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar));
         
-        if(replaceIllegal) childXml.setText(formatXmlString(childElements[k]));
-        else childXml.setText(childElements[k]);
+        childXml.setText(childElements[k]);
         
         rowXml.addContent(childXml);
       }
@@ -888,8 +845,7 @@ function exportSpreadsheetXml(formatSettings)
         
         for(var k=0; k < innerTextElements.length; k++)
         {
-          if(replaceIllegal) innerText += formatXmlString(innerTextElements[k]);
-          else innerText += innerTextElements[k];
+          innerText += innerTextElements[k];
           
           if(k < innerTextElements.length - 1) innerText += "\n";
         }

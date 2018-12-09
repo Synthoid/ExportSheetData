@@ -229,8 +229,6 @@
   //XML Options
   //Export values as child elements instead of attributes
   var exportChildElementXml = false;
-  //Replace illegal XML characters with their XML compatible codes
-  var formatContentXml = false;
   //Include the first column in the export in addition to using it as the name for the row element.
   var includeFirstColumnXml = false;
   
@@ -348,7 +346,6 @@
     
     //XML
     exportChildElementXml = settings["exportChildElements"] != null ? settings["exportChildElements"] === true : exportChildElementXml;
-    formatContentXml = settings["formatContent"] != null ? settings["formatContent"] === true : formatContentXml;
     includeFirstColumnXml = settings["includeFirstColumn"] != null ? settings["includeFirstColumn"] === true : includeFirstColumnXml;
     rootElementXml = settings["rootElement"] != null ? (settings["rootElement"] === "" ? rootElementXml : settings["rootElement"]) : rootElementXml;
     nameReplacementCharXml = settings["nameReplacementChar"] != null ? (settings["nameReplacementChar"] === "" ? nameReplacementCharXml : settings["nameReplacementChar"]) : nameReplacementCharXml;
@@ -402,7 +399,6 @@
       "forceArrayPrefix" : (forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson),
       //XML
       "exportChildElements" : exportChildElementXml,
-      "formatContent" : formatContentXml,
       "includeFirstColumn" : includeFirstColumnXml,
       "rootElement" : getRootElement(),
       "nameReplacementChar" : nameReplacementCharXml,
@@ -562,11 +558,6 @@
   function toggleElement()
   {
     exportChildElementXml = !exportChildElementXml;
-  }
-  
-  function toggleFormatContentXml()
-  {
-    formatContentXml = !formatContentXml;
   }
   
   function toggleIncludeFirstColumnXml()
@@ -1056,22 +1047,18 @@
       xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
       xmlText += "/><div class='option'>Export columns as child elements<div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
-      //Format xml content
-      xmlText += "<div class='sectionWrapper'><input id='formatToggle' type='checkbox' value='false'";
-      if(formatContentXml) xmlText += " checked";
-      xmlText += "/><div class='option'>Don't format illegal characters<div class='tooltip note'>Don't replace illegal XML characters in values with their appropriate XML encoding. (keys are always encoded)</div></div></div>";
       //Include first column in export
       xmlText += "<div class='sectionWrapper'><input id='firstColumnXmlToggle' type='checkbox' value='false'";
       if(includeFirstColumnXml) xmlText += " checked";
-      xmlText += "/><div class='option'>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to the name of the row element.</div></div></div></div>";
+      xmlText += "/><div class='option'>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to using it as the name of each row element.</div></div></div>";
+      //Root element value
+      xmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note padded'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
+      xmlText += "'" + rootElementXml + "'";
+      xmlText += " placeholder='" + XML_ROOT_DEFAULT + "'/></div>";
+      xmlText += "</div>";
       
       //Advanced Options
       var advancedXmlText = "<div class='accordion active'><h1>Advanced XML</h1></div><div class='accordionPanel'>";
-      //Root element value
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note padded'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
-      advancedXmlText += "'" + rootElementXml + "'";
-      advancedXmlText += " placeholder='" + XML_ROOT_DEFAULT + "'";
-      advancedXmlText += "/></div>";
       //Invalid element name char replacement
       advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Name replacement char</label><div class='tooltip note padded'>What character to use when replacing illegal characters in XML element names.</div></div><select class='dropdown' id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
       if(nameReplacementCharXml === "_") advancedXmlText += " selected";
@@ -1175,7 +1162,6 @@
       document.getElementById("advancedOptions").innerHTML = advancedXmlText;
       //XML Options
       document.getElementById('elementToggle').addEventListener("change", toggleElement);
-      document.getElementById('formatToggle').addEventListener("change", toggleFormatContentXml);
       document.getElementById('firstColumnXmlToggle').addEventListener("change", toggleIncludeFirstColumnXml);
       //Advanced Options
       document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
@@ -1507,10 +1493,6 @@
     {
       document.getElementById('elementToggle').removeEventListener("change", toggleElement);
     }
-    if(document.getElementById('formatToggle') != null)
-    {
-      document.getElementById('formatToggle').removeEventListener("change", toggleFormatContentXml);
-    }
     if(document.getElementById('firstColumnXmlToggle') != null)
     {
       document.getElementById('firstColumnXmlToggle').removeEventListener("change", toggleIncludeFirstColumnXml);
@@ -1610,7 +1592,6 @@
       "collapsePrefix":getCollapsePrefix(),
       "targetSheets" : exportSheets,
       "exportChildElements" : exportChildElementXml,
-      "formatContent" : !formatContentXml,
       "includeFirstColumn" : includeFirstColumnXml,
       "rootElement" : getRootElement(),
       "nameReplacementChar" : nameReplacementCharXml,
