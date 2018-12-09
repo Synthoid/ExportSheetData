@@ -69,12 +69,11 @@ These settings only affect exported XML data.
 ### Basic
 
 - [Export columns as child elements](xml/exportcolumnsaschildelements.md) - Export columns as child elements of their row's XML element
-- [Don't format illegal characters](xml/dontformatillegalcharacters.md) - Don't encode illegal XML characters
 - [Include first column in export](xml/includefirstcolumninexport.md) - Export the first column of a row as a distinct XML element
+- [Root element](xml/rootelement.md) - Name for the exported XML document's root element
 
 ### Advanced
 
-- [Root element](xml/rootelement.md) - Name for the exported XML document's root element
 - [Name replacement character](xml/namereplacementcharacter.md) - Character used when replacing illegal chars in element names
 - [Include XML declaration](xml/includexmldeclaration.md)- Include a customized XML declaration in the exported document
   - [XML version](xml/xmlversion.md) - Version of the XML standard used by the exported document
