@@ -1,4 +1,4 @@
-var esdVersion = 52;
+var esdVersion = 53;
 
 //Popup message
 var messageLineHeight = 10;
@@ -264,7 +264,7 @@ function getCellContentArray(cell, separatorChar)
     cellArray.push(lastString.replace('"', ' ').replace('"', ' ').trim()); //Get rid of wrapping quotes
   }
   
-  if(commaIndicies.length == 0) // If there are no commas to make the array, return the whole content
+  if(commaIndicies.length == 0 && content !== "") // If there are no commas to make the array, return the whole content
   {
     cellArray.push(content);
   }
@@ -1151,7 +1151,7 @@ function exportSpreadsheetJson(formatSettings)
             }
           }
           //We want to export cell arrays, or this column should be exported as an array, so convert the target cell's value to an array of values.
-          if(exportArray && (getCellContentArray(content, separatorChar).length > 1) || (arrayPrefix != "" && keyHasPrefix(key, arrayPrefix)))
+          if(exportArray && (getCellContentArray(content, separatorChar).length > 1) || keyHasPrefix(key, arrayPrefix))
           {
             content = getCellContentArray(content, separatorChar);
             
