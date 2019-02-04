@@ -1,4 +1,4 @@
-var esdVersion = 53;
+var esdVersion = 54;
 
 //Popup message
 var messageLineHeight = 10;
@@ -1713,7 +1713,7 @@ function exportDocument(filename, content, type, visualize, replaceFile, exportM
     var currentFiles = DriveApp.getFilesByName(SpreadsheetApp.getActive().getName());
     var currentFile;
     
-    var fileCounts = DriveApp.getFilesByName(file.getName());
+    var fileCounts = DriveApp.getFilesByName(filename);
     var count = 0;
     
     while(fileCounts.hasNext())
@@ -1738,30 +1738,55 @@ function exportDocument(filename, content, type, visualize, replaceFile, exportM
     //If the parent folder for the file is null, use the root folder for Drive
     if(parentFolder == null) parentFolder = rootFolder;
     
-    
     if(replaceFile)
     {
       currentFiles = parentFolder.getFiles();
+      
+      var matchingFiles = [];
+      var newestIndex = -1;
+      var newestDate = null;
       
       while(currentFiles.hasNext())
       {
         currentFile = currentFiles.next();
         if(currentFile.getName() == filename)
         {
-          currentFile.setContent(content); // update file with new data
-          file = currentFile;
-          break;
+          matchingFiles.push(currentFile);
+          
+          if(newestDate == null || (currentFile.getLastUpdated() > newestDate))
+          {
+            newestIndex = matchingFiles.length-1;
+            newestDate = currentFile.getLastUpdated();
+          }
+        }
+      }
+      
+      if(newestIndex > -1)
+      {
+        //Compare dates from files then delete all but the last updated and replace its contents
+        for(var i=matchingFiles.length-1; i >= 0; i--)
+        {
+          if(i == newestIndex)
+          {
+            matchingFiles[newestIndex].setContent(content); // update file with new data
+            file = matchingFiles[newestIndex];
+          }
+          else
+          {
+            matchingFiles[i].setTrashed(true);
+          }
         }
       }
     }
     
-    if (file == null) // if file was not updated create new
+    if (file == null) //Create a new file if an old one wasn't found.
     {
+      //The user has the authority to create a file next to the original spreadsheet.
       if(permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT)
       {
         file = parentFolder.createFile(filename, content);
       } 
-      else
+      else //The user doesn't have authority to create a file, so create it on their drive root folder instead.
       {
         file = DriveApp.createFile(filename, content);
       }
