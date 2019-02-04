@@ -1707,7 +1707,7 @@ function exportDocument(filename, content, type, visualize, replaceFile, exportM
     //Creates the document and moves it into the same folder as the original file
     //If the user does not have permission to write in the specified location, the file will be created in the base folder in "My Drive"
     var user = Session.getEffectiveUser();
-    var file = DriveApp.createFile(filename, content);
+    var file = null;
     var rootFolder = DriveApp.getRootFolder();
     var currentFileId = SpreadsheetApp.getActive().getId();
     var currentFiles = DriveApp.getFilesByName(SpreadsheetApp.getActive().getName());
@@ -1738,32 +1738,32 @@ function exportDocument(filename, content, type, visualize, replaceFile, exportM
     //If the parent folder for the file is null, use the root folder for Drive
     if(parentFolder == null) parentFolder = rootFolder;
     
+    
     if(replaceFile)
     {
-      if(parentFolder != rootFolder && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT))
-      {
-        rootFolder.removeFile(file); //Remove the file from the root Drive folder
-        parentFolder.addFile(file); //Add the file to the target parent folder
-      }
-      
       currentFiles = parentFolder.getFiles();
       
       while(currentFiles.hasNext())
       {
         currentFile = currentFiles.next();
-        
-        if(currentFile.getName() == file.getName() && currentFile.getId() != file.getId())
+        if(currentFile.getName() == filename)
         {
-          currentFile.setTrashed(true); //Trash other files with the exported file's name
+          currentFile.setContent(content); // update file with new data
+          file = currentFile;
+          break;
         }
       }
     }
-    else
+    
+    if (file == null) // if file was not updated create new
     {
-      if(parentFolder != rootFolder && (permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT))
+      if(permission == DriveApp.Permission.OWNER || permission == DriveApp.Permission.EDIT)
       {
-        rootFolder.removeFile(file);
-        parentFolder.addFile(file);
+        file = parentFolder.createFile(filename, content);
+      } 
+      else
+      {
+        file = DriveApp.createFile(filename, content);
       }
     }
     
