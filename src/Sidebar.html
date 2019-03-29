@@ -272,6 +272,8 @@
   var exportCellObjectJson = false;
   //Export sheets as 2D JSON arrays
   var export2dArrayJson = false;
+  //Value to export empty cells as, null (null) or empty string ("")
+  var emptyValueFormatJson = "null";
   //Separator char for JSON arrays
   var arraySeparatorCharJson = ",";
   //Sheets or columns using keys starting with a specified string will always be exported as JSON arrays
@@ -338,6 +340,7 @@
     exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === true : exportSheetArrayJson;
     exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
     forceStringJson = settings["forceString"] != null ? settings["forceString"] === true : forceStringJson;
+    emptyValueFormatJson = settings["emptyValueFormat"] != null ? (settings["emptyValueFormat"] === "" ? emptyValueFormatJson : settings["emptyValueFormat"]) : emptyValueFormatJson;
     arraySeparatorCharJson = settings["separatorChar"] != null ? (settings["separatorChar"] === "" ? "," : settings["separatorChar"]) : JSON_SEPARATOR_DEFAULT;
     forceArrayJson = settings["forceArray"] != null ? settings["forceArray"] === true : forceArrayJson;
     forceArrayPrefixJson = settings["forceArrayPrefix"] != null ? (settings["forceArrayPrefix"] === "" ? JSON_JA_DEFAULT : settings["forceArrayPrefix"]) : JSON_JA_DEFAULT;
@@ -394,6 +397,7 @@
       "exportSheetArray" : exportSheetArrayJson,
       "exportValueArray" : exportValueArrayJson,
       "forceString" : forceStringJson,
+      "emptyValueFormat" : emptyValueFormatJson,
       "separatorChar" : getSeparatorCharJson(),
       "forceArray" : forceArrayJson,
       "forceArrayPrefix" : (forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson),
@@ -821,6 +825,12 @@
     return forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson;
   }
   
+  //Change the exported value for empty cells
+  function changeEmptyValueFormatJson()
+  {
+    emptyValueFormatJson = document.getElementById("jsonEmptyValueFormatDropdown").value;
+  }
+  
   function updateSeparatorCharJson()
   {
     arraySeparatorCharJson = document.getElementById("jsonArraySeparatorCharTextField").value;
@@ -1068,7 +1078,6 @@
       if(nameReplacementCharXml === ".") advancedXmlText += " selected";
       advancedXmlText += ">Dot ( . )</option></select></div>";
       //Declaration
-      //includeDeclarationXml
       advancedXmlText += "<div class='sectionWrapper'><input id='xmlIncludeDeclarationToggle' type='checkbox' value='false'";
       if(includeDeclarationXml === true) advancedXmlText += " checked";
       advancedXmlText += "/><div class='option'>Include XML declaration<div class='tooltip note'>Include a customized XML declaration at the top of exported XML files using the parameters set below.</div></div></div>";
@@ -1187,7 +1196,7 @@
       
       //JSON Options
       var jsonText = "<div class='accordion active'><h1>JSON</h1></div><div class='accordionPanel'>";
-      //Force string Json
+      //Force string JSON
       jsonText += "<div class='sectionWrapper'><input id='forceStringToggle' type='checkbox' value='Force'";
       if(forceStringJson) jsonText += " checked";
       jsonText += "><div class='option'>Force string values<div class='tooltip note'>Force exported values to be strings.</div></div></div>";
@@ -1214,7 +1223,13 @@
       advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
       advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will export an empty object if not properly formatted.)</div></div></div>";
-      //Serparator char value
+      //Empty Value Type
+      advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='select'>Empty value format</label><div class='tooltip note padded'>What value to export for empty cells.</div></div><select class='dropdown' id='jsonEmptyValueFormatDropdown' onchange='changeEmptyValueFormatJson()'><option value='null'";
+      if(emptyValueFormatJson === "null") advancedJsonText += " selected";
+      advancedJsonText += ">Null ( null )</option><option value='string'";
+      if(emptyValueFormatJson === "string") advancedJsonText += " selected";
+      advancedJsonText += ">Empty String ( &quot;&quot; )</option></select></div>";
+      //Separator char value
       advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
       advancedJsonText += " placeholder='" + JSON_SEPARATOR_DEFAULT + "'";
@@ -1249,6 +1264,7 @@
       document.getElementById('valueArrayToggle').addEventListener("change", toggleValueArrayJson);
       document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
       //Advanced Options
+      document.getElementById('jsonEmptyValueFormatDropdown').addEventListener("change", changeEmptyValueFormatJson);
       document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
       document.getElementById('jsonForceArrayToggle').addEventListener("change", toggleArrayPrefixJson);
       if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
@@ -1558,6 +1574,10 @@
     {
       document.getElementById('forceStringToggle').removeEventListener("change", toggleForceStringJson);
     }
+    if(document.getElementById('jsonEmptyValueFormatDropdown') != null)
+    {
+      document.getElementById('jsonEmptyValueFormatDropdown').removeEventListener("change", changeEmptyValueFormatJson);
+    }
     if(document.getElementById('jsonArraySeparatorCharTextField') != null)
     {
       document.getElementById('jsonArraySeparatorCharTextField').removeEventListener("change", updateSeparatorCharJson);
@@ -1629,6 +1649,7 @@
       "exportValueArray" : exportValueArrayJson,
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
+      "emptyValueFormat" : emptyValueFormatJson,
       "separatorChar" : getSeparatorCharJson(),
       "forceArrayPrefix" : getForceArrayPrefixJson(),
       "forceArrayPrefixNest" : getForceArrayPrefixNest()
