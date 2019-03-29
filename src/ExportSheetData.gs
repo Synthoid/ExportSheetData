@@ -1,10 +1,10 @@
-var esdVersion = 54;
+var esdVersion = 55;
 
 //Popup message
 var messageLineHeight = 10;
 
 //Indenting
-var indentValue = "  ";
+var indentValue = "  "; //'\t'
 var indentAmount = 0;
 
 //Subpath types
@@ -644,6 +644,17 @@ function getSubpathSearchType(subpath)
   return type;
 }
 
+//Formats empty cell values to use the appropriate value (null or "")
+function getEmptyCellValueJson(formatType)
+{
+  switch(formatType)
+  {
+    case "string": return "";
+  }
+  
+  return null;
+}
+
 
 function exportXml(formatSettings)
 {
@@ -944,6 +955,7 @@ function exportSpreadsheetJson(formatSettings)
   var sheetArrayJson = settings["exportSheetArray"];
   var valueArray = settings["exportValueArray"];
   var forceString = settings["forceString"];
+  var emptyValueFormat = settings["emptyValueFormat"];
   var separatorChar = settings["separatorChar"];
   var arrayPrefix = settings["forceArrayPrefix"];
   
@@ -1524,10 +1536,16 @@ function exportSpreadsheetJson(formatSettings)
               if(key > 0) key -= 1;
             }
             
+            //Format empty content
+            if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
+            
             element[key] = content;
           }
           else
           {
+            //Format empty content
+            if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
+          
             rowObject[key] = content;
             
             if(nestedElements) element[key] = content;
@@ -1562,6 +1580,9 @@ function exportSpreadsheetJson(formatSettings)
           //Force value to be a string if desired
           content = content.toString();
         }
+        
+        //Format empty content
+        if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
         
         if(unwrapSheet) sheetJsonObject[key] = content;
         else sheetJsonArray.push(content);
@@ -1651,7 +1672,7 @@ function exportSpreadsheetJson(formatSettings)
       }
     }
     
-    rawValue = JSON.stringify(arrayValue, null, minifyData ? 0 : 2); //'\t'
+    rawValue = JSON.stringify(arrayValue, null, minifyData ? 0 : 2);
   }
   else
   {
