@@ -9,7 +9,7 @@ Empty value format
 ------------------
 Value exported for empty cells.
 
-Null will export empty cells with standard JSON `null` value while Empty String will export an empty string `""`.
+Null will export empty cells with a standard JSON `null` value while Empty String will export an empty string `""`.
 
 <b>Example:</b>
 
