@@ -7,7 +7,7 @@ group: general
 
 Ignore empty cells
 ------------------
-Ignore empty cells will cause cells with empty values to not be exported.
+Prevent cells with empty values from being exported.
 
 This is useful for reducing file size and clutter by removing elements with no value.
 
