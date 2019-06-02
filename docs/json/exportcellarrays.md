@@ -7,17 +7,19 @@ group: json
 
 Export cell arrays
 ------------------
-Export cell arrys will export a cell's value as a JSON array if the cell contains commas ( , ).
+Export a cell's value as a JSON array if the cell contains commas (`,`).
 
-To prevent your data from being exported as an array, wrap your cell value with quotation marks ( "" ).
+To prevent any data conatining a comma from being exported as separate array elements, wrap your cell value with quotation marks (`""`). For example: `So, you're taking her side?!` will export as two elements, while `"So, you're taking her side?!"` will export as one.
 
-Example:
+### Example: ###
 
-Sheet: `Spies`<br>
-Fields: `Name | Age | Aliases`<br>
-Values: `Sterling | 30 | Duchess, Randy, "Sterling Archer, world's greatest spy"`
+**Sheet name: Spies**
 
-Default Output:
+Name | Age | Aliases
+---- | --- | -------
+Sterling | 30 | Duchess, Randy, "Sterling Archer, world's greatest spy"
+
+*Default Output:*
 ```
 {
   "Spies" : {
@@ -30,7 +32,7 @@ Default Output:
 }
 ```
 
-Cell Array Output:
+*Cell Array Output:*
 ```
 {
   "Spies" : {
