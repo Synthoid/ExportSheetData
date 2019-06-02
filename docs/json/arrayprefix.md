@@ -15,7 +15,7 @@ This is useful when you may have certain cells with only one value, but you are 
 
 ### Example: ###
 
-**Sheetname: Spells**
+**Sheet name: Spells**
 
 Spell | Description | JA_Effects
 ----- | ----------- | -------
