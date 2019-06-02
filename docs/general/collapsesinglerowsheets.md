@@ -9,13 +9,17 @@ Collapse single row sheets
 -------------
 Remove the wrapping element of a sheet that has only one row (not including the keys row).
 
-This is similar to [unwrapping single row sheets](unwrapsinglerowsheets.md) but does not place sheet fields in the root JSON or XML element directly. For example:
+This is similar to [unwrapping single row sheets](unwrapsinglerowsheets.md) but does not place sheet fields in the root JSON or XML element directly.
 
-Sheet: `Character`<br>
-Fields: `Name | Age | Role`<br>
-Values: `Cid | 25 | Fighter`
+### Example: ###
 
-<b>Default Output:</b>
+**Sheet name: `Character`**
+
+Name | Age | Role
+---- | --- | ----
+Cid | 25 | Fighter
+
+*Default Output:*
 
 JSON:
 ```
@@ -41,7 +45,7 @@ XML:
 </data>
 ```
 
-<b>Collapsed Output:</b>
+*Collapsed Output:*
 
 JSON:
 ```
@@ -63,7 +67,7 @@ XML:
 </data>
 ```
 
-<b>Unwrapped Output:</b>
+*Unwrapped Output:*
 
 JSON:
 ```
