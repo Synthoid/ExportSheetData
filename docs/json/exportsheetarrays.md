@@ -9,15 +9,17 @@ Export sheet arrays
 -------------------
 Export sheet arrays will export sheets as JSON arrays with each row creating an element in the array.
 
-<b>Example:</b>
+### Example: ###
 
-Sheet: `Companies`<br>
-Fields: `Name | Console`<br>
-Values: `Microsoft | Xbox One`<br>
-`Nintendo | Switch`<br>
-`Sony | Playstation 4`
+**Sheet name: `Companies`**
 
-Default Output:
+Name | Console
+---- | -------
+Microsoft | Xbox One
+Nintendo | Switch
+Sony | Playstation 4
+
+*Default Output:*
 ```
 {
   "Companies" : {
@@ -37,7 +39,7 @@ Default Output:
 }
 ```
 
-Sheet Array Output:
+*Sheet Array Output:*
 ```
 {
   "Companies" : [
