@@ -12,13 +12,17 @@ Unwrap single row sheets will remove the wrapping element of a sheet that has on
 This can be useful when you want certain data to be in the root element of your exported data.
 
 
-This is similar to [collapsing single row sheets](collapsesinglerowsheets.md) but places sheet fields in the root JSON or XML element directly. For example:
+This is similar to [collapsing single row sheets](collapsesinglerowsheets.md) but places sheet fields in the root JSON or XML element directly.
 
-Sheet: `Character`<br>
-Fields: `Name | Age | Role`<br>
-Values: `Cid | 25 | Fighter`
+### Example: ###
 
-<b>Default Outputs:</b>
+**Sheet name: `Character`**
+
+Name | Age | Role
+---- | --- | ----
+Cid | 25 | Fighter
+
+*Default Outputs:*
 
 JSON:
 ```
@@ -45,7 +49,7 @@ XML:
 </data>
 ```
 
-<b>Unwrapped Output:</b>
+*Unwrapped Output:*
 
 JSON:
 ```
@@ -66,7 +70,7 @@ XML:
 </data>
 ```
 
-<b>Collapsed Output:</b>
+*Collapsed Output:*
 
 JSON:
 ```
