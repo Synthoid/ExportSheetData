@@ -7,37 +7,41 @@ group: json
 
 Force string values
 -------------------
-Force string values will convert all exported data to its string varient.
+Force all data values to export as a string.
 
-Example:
+NOTE: `null` values will remain standard `null` values. They will not be converted to `"null"`.
 
-Sheet: `Heroes`<br>
-Fields: `Name | Human | Age | Superpower`<br>
-Values: `Batman | true | 30 | Money`
+### Example: ###
 
-Default Output:
+**Sheet name: `Heroes`**
+
+Name | Human | Age | Superpower
+---- | ----- | --- | ----------
+Batman | true | 30 | 
+
+*Default Output:*
 ```
 {
-  "Heroes" : {
-    "Batman" : {
-      "Name":"Batman",
-      "Human":true,
-      "Age":30,
-      "Superpower":"Money"
+  "Heroes": {
+    "Batman": {
+      "Name": "Batman",
+      "Human": true,
+      "Age": 30,
+      "Superpower": null
     }
   }
 }
 ```
 
-Force String Output:
+*Force String Output:*
 ```
 {
-  "Heroes" : {
-    "Batman" : {
-      "Name":"Batman",
-      "Human":"true",
-      "Age":"30",
-      "Superpower":"Money"
+  "Heroes": {
+    "Batman": {
+      "Name": "Batman",
+      "Human": "true",
+      "Age": "30",
+      "Superpower": null
     }
   }
 }
