@@ -13,7 +13,7 @@ To prevent any data conatining a comma from being exported as separate array ele
 
 ### Example: ###
 
-**Sheet name: Spies**
+**Sheet name: `Spies`**
 
 Name | Age | Aliases
 ---- | --- | -------
