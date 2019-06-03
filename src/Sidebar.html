@@ -147,6 +147,7 @@
   input[type=text]:disabled
   {
     background: #595959;
+    color: #ffffff;
   }
 
   h1
@@ -200,6 +201,14 @@
   
   //Visualization
   var visualizeData = false;
+  
+  //Format options
+  var exportType = "jsonFormat";
+  var exportSheets = "allSheets";
+  var targetSheets = { };
+  var sheets = new Array();
+  var exportFolderType = "default";
+  var exportFolder = "";
   
   //General Options
   //Replaces any export files that have the same name
@@ -283,11 +292,6 @@
   var forceArrayNest = false;
   var forceArrayPrefixNest = "NAR_";
   
-  var exportType = "jsonFormat";
-  var exportSheets = "allSheets";
-  var targetSheets = { };
-  var sheets = new Array();
-  
   //Get the properties for the sheet to automatically set values based on the user's last export for this document.
   function getProperties(onSuccess)
   {
@@ -314,10 +318,16 @@
       settings = JSON.parse(properties);
     }
     
-    //General
+    //Format
     exportType = settings["exportType"] != null ? settings["exportType"] : exportType;
+    exportFolderType = settings["exportFolderType"] != null ? settings["exportFolderType"] : exportFolderType;
+    exportFolder = settings["exportFolder"] != null ? settings["exportFolder"] : exportFolder;
     exportSheets = settings["exportSheets"] != null ? (settings["exportSheets"] === "" ? exportSheets : settings["exportSheets"]) : exportSheets;
     targetSheets = settings["targetSheets"] != null ? (settings["targetSheets"] === "" ? targetSheets : JSON.parse(settings["targetSheets"])) : targetSheets;
+    
+    console.log(exportFolderType);
+    
+    //General
     replaceExistingFiles = settings["replaceExistingFiles"] != null ? settings["replaceExistingFiles"] === true : false;
     unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === true : false;
     collapseSingleRows = settings["collapseSingleRows"] != null ? settings["collapseSingleRows"] === true : false;
@@ -370,10 +380,13 @@
   function generateProperties()
   {
     var properties = {
-      //General settings
+      //Format settings
       "exportType" : exportType,
+      "exportFolderType" : exportFolderType,
+      "exportFolder" : exportFolder,
       "exportSheets" : exportSheets,
       "targetSheets" : JSON.stringify(targetSheets),
+      //General settings
       "replaceExistingFiles" : replaceExistingFiles,
       "unwrapSingleRows" : unwrapSingleRows,
       "collapseSingleRows" : collapseSingleRows,
@@ -444,6 +457,12 @@
     return true;
   }
   
+  //Open a file explorer to select a custom export folder.
+  function openFolderPicker()
+  {
+    return google.script.run.openFolderPicker();
+  }
+  
   //General Options
   function toggleReplace()
   {
@@ -468,8 +487,6 @@
   function toggleNestedElements()
   {
     nestedElements = !nestedElements;
-    
-    //TODO: Should disable JSON/XML specific nested element fields when toggling.
   }
   
   function toggleMinifyData()
@@ -940,16 +957,31 @@
   {
     removeGeneralListeners();
     
-    var generalText = "<div class='accordion active'><h1>Format</h1></div></div><div class='accordionPanel'>";
+    var generalText = "<div class='accordion active'><h1>Format</h1></div><div class='accordionPanel'>";
     //Export Settings
     //Format
-    generalText += "<p><div class='block form-group sectionWrapper'><div class='option'><label for='select'><b>Select Format</b></label></div><select class='dropdown' id='formatSelect'><option value='jsonFormat'";
+    generalText += "<div class='block form-group sectionWrapper'>";
+    generalText += "<p><div class='option'><label for='select'><b>Export Format</b></label></div><select class='dropdown' id='formatSelect'><option value='jsonFormat'";
     if(exportType === "jsonFormat") generalText += " selected";
     generalText += ">JSON</option><option value='xmlFormat'";
     if(exportType !== "jsonFormat") generalText += " selected";
     generalText += ">XML</option></select></p>";
+    //Export Folder
+    generalText += "<p><div class='option'><label for='select'><b>Export Folder</b></label></div><select class='dropdown' id='folderSelect'><option value='default'";
+    if(exportFolderType === "default") generalText += " selected";
+    generalText += ">Default</option><option value='custom'";
+    if(exportFolderType !== "default") generalText += " selected";
+    generalText += ">Custom</option></select></p>";
+    if(exportFolderType !== "default")
+    {
+      generalText += "<div>";
+      generalText += "<input id='ignoreColumnsPrefixTextField' type='text' size='12' value='"
+      generalText += "' placeholder='Select folder...' disabled /> ";
+      generalText += "<button onclick='openFolderPicker()'>Browse</button>"
+      generalText += "</div>";
+    }
     //Sheets
-    generalText += "<p><div class='option'><label for='select'><b>Select Sheet(s)</b></label></div><select class='dropdown' id='sheetSelect'><option value='allSheets'";
+    generalText += "<p><div class='option'><label for='select'><b>Export Sheet(s)</b></label></div><select class='dropdown' id='sheetSelect'><option value='allSheets'";
     if(exportSheets === "allSheets") generalText += " selected";
     generalText += ">All sheets</option><option value='currentSheet'";
     if(exportSheets === "currentSheet") generalText += " selected";
@@ -957,7 +989,8 @@
     if(exportSheets === "custom") generalText += " selected";
     generalText += ">Custom</option></select></p>";
     //Custom Sheets
-    generalText += "<div id='customSheetSelect'></div></div></div>"; //Sheet selection is filled automatically at end of refresh process.
+    generalText += "<div id='customSheetSelect'></div></div>"; //Sheet selection is filled automatically at end of refresh process.
+    generalText += "</div>";
     
     //General Options
     generalText += "<div class='accordion active'><h1>General</h1></div><div class='accordionPanel'>";
@@ -1023,6 +1056,7 @@
     //Listeners
     //Format Settings
     document.getElementById('formatSelect').addEventListener("change", changeExportFormat);
+    document.getElementById('folderSelect').addEventListener("change", changeExportFolderFormat);
     document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
     //General Options
     document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
@@ -1297,6 +1331,14 @@
     refreshSideBar();
   }
   
+  //Changes export folder target between default and custom.
+  function changeExportFolderFormat()
+  {
+    exportFolderType = document.getElementById("folderSelect").value;
+    
+    refreshSideBar();
+  }
+  
   //Updates the method for selecting sheets for export
   function changeExportSheets()
   {
@@ -1454,6 +1496,10 @@
     if(document.getElementById('formatSelect') != null)
     {
       document.getElementById('formatSelect').addEventListener("change", changeExportFormat);
+    }
+    if(document.getElementById('folderSelect') != null)
+    {
+      document.getElementById('folderSelect').addEventListener("change", changeExportFolderFormat);
     }
     if(document.getElementById('sheetSelect') != null)
     {

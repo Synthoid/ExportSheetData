@@ -1905,6 +1905,27 @@ function openUpdateWindow()
 }
 
 
+function openFolderPicker() {
+  var html = HtmlService.createHtmlOutputFromFile('FolderPicker.html')
+      .setWidth(600)
+      .setHeight(425)
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Select Export Folder');
+}
+
+
+function onFolderSelected(folder)
+{
+  
+}
+
+
+function getOAuthToken() { //TEMP: delete
+  DriveApp.getRootFolder();
+  return ScriptApp.getOAuthToken();
+}
+
+
 function onInstall(e)
 {
   onOpen(e);
