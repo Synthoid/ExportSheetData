@@ -8,9 +8,7 @@ Goals
 
 Install
 -------
-You can install Export Sheet Data [here](https://chrome.google.com/webstore/detail/export-sheet-data/bfdcopkbamihhchdnjghdknibmcnfplk?utm_source=permalink)
-
-**Update: Because of an issue with updating to support G Suite, the above link redirects to the G Suite Marketplace home page. I am working to fix this so everyone can easily install ESD. You can still install the add-on by selecting the `Add-ons/Get add-ons...` menu option in Sheets and manually searching for "Export Sheet Data".**
+Export Sheet Data is available in both the Chrome Web Store and the G Suite Marketplace. You can install it [here](https://chrome.google.com/webstore/detail/export-sheet-data/bfdcopkbamihhchdnjghdknibmcnfplk?utm_source=permalink)
 
 Documentation
 -------------
