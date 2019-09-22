@@ -45,11 +45,9 @@ function setProperties(newProperties)
 //Gets the total export settings for ESD in the open document.
 function getExportProperties()
 {
-  var props = PropertiesService.getDocumentProperties();
+  var properties = PropertiesService.getDocumentProperties();
   
-  var prop = props.getProperty("settings");
-  
-  return prop;
+  return properties.getProperty("settings");
 }
 
 //Saves the total export settings for ESD in the open document so the user doesn't need to reselect them next time ESD is opened.
@@ -57,19 +55,15 @@ function setExportProperties(newProperties)
 {
   var properties = PropertiesService.getDocumentProperties();
   
-  var prop = properties.getProperty("settings");
-  
   properties.setProperty("settings", newProperties);
 }
 
 //Gets the settings used in the last export.
 function getPrevExportProperties()
 {
-  var props = PropertiesService.getDocumentProperties();
+  var properties = PropertiesService.getDocumentProperties();
   
-  var prop = props.getProperty("prev");
-  
-  return prop;
+  return properties.getProperty("prev");
 }
 
 //Saves the settings used in the last export.
@@ -100,6 +94,11 @@ function setUserProperties(newProperties)
 function getVersion()
 {
   return esdVersion;
+}
+
+function getFolderNameFromId(id)
+{
+  return DriveApp.getFolderById(id).getName();
 }
 
 //Returns true if the passed value is an array.
@@ -1907,16 +1906,17 @@ function openUpdateWindow()
 
 function openFolderPicker() {
   var html = HtmlService.createHtmlOutputFromFile('FolderPicker.html')
-      .setWidth(600)
-      .setHeight(425)
+      .setWidth(650)
+      .setHeight(450)
       .setSandboxMode(HtmlService.SandboxMode.IFRAME);
   SpreadsheetApp.getUi().showModalDialog(html, 'Select Export Folder');
 }
 
 
-function onFolderSelected(folder)
+function onFolderSelected(settings)
 {
-  
+  setExportProperties(settings);
+  openSidebar(); //TODO: This will wipe any unsaved settings... need to pass settings when calling openFolderPicker()?
 }
 
 

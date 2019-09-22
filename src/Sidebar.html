@@ -203,11 +203,16 @@
   var visualizeData = false;
   
   //Format options
+  //The format to export data as
   var exportType = "jsonFormat";
+  //Determines what sheets to export data from
   var exportSheets = "allSheets";
+  //Specific sheets to export data from
   var targetSheets = { };
   var sheets = new Array();
+  //Determines the export location
   var exportFolderType = "default";
+  //The folder to export files to
   var exportFolder = "";
   
   //General Options
@@ -324,8 +329,6 @@
     exportFolder = settings["exportFolder"] != null ? settings["exportFolder"] : exportFolder;
     exportSheets = settings["exportSheets"] != null ? (settings["exportSheets"] === "" ? exportSheets : settings["exportSheets"]) : exportSheets;
     targetSheets = settings["targetSheets"] != null ? (settings["targetSheets"] === "" ? targetSheets : JSON.parse(settings["targetSheets"])) : targetSheets;
-    
-    console.log(exportFolderType);
     
     //General
     replaceExistingFiles = settings["replaceExistingFiles"] != null ? settings["replaceExistingFiles"] === true : false;
@@ -444,6 +447,18 @@
   function getActiveName(onSuccess)
   {
     return google.script.run.withSuccessHandler(onSuccess).getActiveSheetName();
+  }
+  
+  //Get the name of the target export folder, based on its ID
+  function getExportFolderName(onSuccess)
+  {
+    return google.script.run.withSuccessHandler(onSuccess).getFolderNameFromId(exportFolder);
+  }
+  
+  //Sets the value of the export folder name text input to the returned folder name
+  function onGetExportFolderName(name)
+  {
+    document.getElementById("exportFolderName").value = name;
   }
   
   //Checks if all the sheets are selected for export
@@ -972,11 +987,11 @@
     generalText += ">Default</option><option value='custom'";
     if(exportFolderType !== "default") generalText += " selected";
     generalText += ">Custom</option></select></p>";
+    //Target export folder
     if(exportFolderType !== "default")
     {
       generalText += "<div>";
-      generalText += "<input id='ignoreColumnsPrefixTextField' type='text' size='12' value='"
-      generalText += "' placeholder='Select folder...' disabled /> ";
+      generalText += "<input id='exportFolderName' type='text' size='12' value='' placeholder='Select folder...' disabled /> ";
       generalText += "<button onclick='openFolderPicker()'>Browse</button>"
       generalText += "</div>";
     }
@@ -1305,6 +1320,8 @@
       document.getElementById('nestForceArrayToggle').addEventListener("change", toggleArrayPrefixNest);
       if(forceArrayNest === true) document.getElementById('nestForceArrayTextField').addEventListener("change", updateArrayPrefixNest);
     }
+    
+    if(exportFolderType !== "default" && exportFolder !== "") getExportFolderName(onGetExportFolderName); //Populate the name of the target export folder
     
     var accordions = document.getElementsByClassName("accordion");
     var i;
