@@ -9,7 +9,7 @@ Export cell arrays
 ------------------
 Export a cell's value as a JSON array if the cell contains commas (`,`).
 
-To prevent any data conatining a comma from being exported as separate array elements, wrap your cell value with quotation marks (`""`). For example: `So, you're taking her side?!` will export as two elements, while `"So, you're taking her side?!"` will export as one.
+To prevent any data containing a comma from being exported as separate array elements, wrap your cell value with quotation marks (`""`). For example: `So, you're taking her side?!` will export as two elements, while `"So, you're taking her side?!"` will export as one.
 
 ### Example: ###
 
