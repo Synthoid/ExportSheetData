@@ -1,4 +1,4 @@
-var esdVersion = 55;
+var esdVersion = 56;
 
 //Popup message
 var messageLineHeight = 10;
@@ -691,6 +691,8 @@ function exportSpreadsheetXml(formatSettings)
   var settings = JSON.parse(formatSettings);
   
   //File settings
+  var exportFolderType = settings["exportFolderType"];
+  var exportFolder = settings["exportFolder"];
   var visualize = settings["visualize"];
   var singleSheet = settings["singleSheet"];
   var replaceFile = settings["replaceExistingFiles"];
@@ -921,7 +923,7 @@ function exportSpreadsheetXml(formatSettings)
     xmlRaw = xmlDeclaration + xmlRaw;
   }
   
-  exportDocument(fileName, xmlRaw, ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
+  exportDocument(fileName, xmlRaw, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
 
@@ -931,6 +933,8 @@ function exportSpreadsheetJson(formatSettings)
   var settings = JSON.parse(formatSettings);
   
   //File settings
+  var exportFolderType = settings["exportFolderType"];
+  var exportFolder = settings["exportFolder"];
   var visualize = settings["visualize"];
   var singleSheet = settings["singleSheet"];
   var replaceFile = settings["replaceExistingFiles"];
@@ -1683,7 +1687,7 @@ function exportSpreadsheetJson(formatSettings)
     exportMessage += nestedFormattingErrorMessage;
   }
   
-  exportDocument(fileName, rawValue, ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
+  exportDocument(fileName, rawValue, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
 
@@ -1711,7 +1715,8 @@ function escapeHtml(content)
     .replace(/>/g, '&gt;');
 }
 
-function exportDocument(filename, content, type, visualize, replaceFile, exportMessage, exportMessageHeight)
+
+function exportDocument(filename, content, exportFolder, type, visualize, replaceFile, exportMessage, exportMessageHeight)
 {
   if(visualize == true)
   {
@@ -1750,7 +1755,7 @@ function exportDocument(filename, content, type, visualize, replaceFile, exportM
     }
     
     var permission = DriveApp.Permission.VIEW;
-    var parentFolder = getFileParentFolder(currentFile);
+    var parentFolder = exportFolder !== "" ? DriveApp.getFolderById(exportFolder) : getFileParentFolder(currentFile);
     var trueParentFolder = parentFolder; //Store the true parent folder for use in modal dialogues
     
     if(parentFolder != null) permission = parentFolder.getAccess(user);
