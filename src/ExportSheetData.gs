@@ -1690,7 +1690,8 @@ function exportSpreadsheetJson(formatSettings)
   exportDocument(fileName, rawValue, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
-
+//Exports a file using the last settings used.
+//This should be called when attempting automation.
 function reexportFile()
 {
   var props = getPrevExportProperties();
