@@ -1,0 +1,114 @@
+<!--Based on code originally found at https://ctrlq.org/code/20039-google-picker-with-apps-script-->
+<!--Documentation: https://developers.google.com/picker/docs/reference-->
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css">
+  <script type="text/javascript">
+    var DIALOG_DIMENSIONS = { //These values should match the size set in ExportSheetData.openFolderPicker()
+        width: 650,
+        height: 450
+    };
+    var pickerApiLoaded = false;
+    var settings = {};
+
+    function onApiLoad()
+    {
+        gapi.load('picker', {
+            'callback': function() {
+                pickerApiLoaded = true;
+            }
+        });
+        
+        google.script.run.withSuccessHandler(createPicker).withFailureHandler(showError).getOAuthToken();
+        google.script.run.withSuccessHandler(onSettingsLoaded).getExportProperties();
+    }
+
+    function createPicker(token)
+    {
+        if (pickerApiLoaded && token)
+        {
+            var docsView = new google.picker.DocsView()
+                .setIncludeFolders(true) //Show folders in selection view.
+                .setSelectFolderEnabled(true) //Allow the user to select folders.
+                //.setMode(google.picker.DocsViewMode.GRID) //Display folders as a grid
+                .setMimeTypes('application/vnd.google-apps.folder');
+
+            var picker = new google.picker.PickerBuilder()
+                .addView(docsView)
+                .enableFeature(google.picker.Feature.NAV_HIDDEN)
+                .hideTitleBar()
+                .setSize(DIALOG_DIMENSIONS.width - 2, DIALOG_DIMENSIONS.height - 2)
+                .setOAuthToken(token)
+                .setCallback(pickerCallback)
+                .setOrigin('https://docs.google.com')
+                .build();
+
+            picker.setVisible(true);
+        }
+        else
+        {
+            showError('Unable to load the file picker. Please close the modal and try again.');
+        }
+    }
+    
+    function onSettingsLoaded(documentSettings)
+    {
+      if(documentSettings == null || documentSettings === "")
+      {
+        settings = {};
+      }
+      else
+      {
+        settings = JSON.parse(documentSettings);
+      }
+    }
+    
+    function onSettingsLoadFail(documentSettings)
+    {
+      document.getElementById('result').innerHTML = "Could not load document properties. Please close the modal and open it again.";
+    }
+
+    /**
+     * A callback function that extracts the chosen document's metadata from the
+     * response object. For details on the response object, see
+     * https://developers.google.com/picker/docs/results
+     *
+     * @param {object} data The response object.
+     */
+    function pickerCallback(data)
+    {
+        var action = data[google.picker.Response.ACTION];
+        
+        if (action == google.picker.Action.PICKED)
+        {
+            var doc = data[google.picker.Response.DOCUMENTS][0];
+            var id = doc[google.picker.Document.ID];
+            
+            settings["exportFolderType"] = "custom";
+            settings["exportFolder"] = id;
+            
+            //Have to return the whole JSON blob as a string since modifying JSON in .gs files is absurd apparently.
+            google.script.run.onFolderSelected(JSON.stringify(settings));
+            google.script.host.close();
+        }
+        else if (action == google.picker.Action.CANCEL)
+        {
+            google.script.host.close();
+        }
+    }
+
+    function showError(message)
+    {
+        document.getElementById('result').innerHTML = 'Error: ' + message;
+    }
+  </script>
+</head>
+
+<body>
+  <div>
+    <p id='result'>Loading folder picker...</p>
+  </div>
+  <script type="text/javascript" src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
+</body>
+</html>

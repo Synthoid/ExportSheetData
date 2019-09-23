@@ -1,4 +1,4 @@
-var esdVersion = 55;
+var esdVersion = 56;
 
 //Popup message
 var messageLineHeight = 10;
@@ -45,11 +45,9 @@ function setProperties(newProperties)
 //Gets the total export settings for ESD in the open document.
 function getExportProperties()
 {
-  var props = PropertiesService.getDocumentProperties();
+  var properties = PropertiesService.getDocumentProperties();
   
-  var prop = props.getProperty("settings");
-  
-  return prop;
+  return properties.getProperty("settings");
 }
 
 //Saves the total export settings for ESD in the open document so the user doesn't need to reselect them next time ESD is opened.
@@ -57,19 +55,15 @@ function setExportProperties(newProperties)
 {
   var properties = PropertiesService.getDocumentProperties();
   
-  var prop = properties.getProperty("settings");
-  
   properties.setProperty("settings", newProperties);
 }
 
 //Gets the settings used in the last export.
 function getPrevExportProperties()
 {
-  var props = PropertiesService.getDocumentProperties();
+  var properties = PropertiesService.getDocumentProperties();
   
-  var prop = props.getProperty("prev");
-  
-  return prop;
+  return properties.getProperty("prev");
 }
 
 //Saves the settings used in the last export.
@@ -100,6 +94,11 @@ function setUserProperties(newProperties)
 function getVersion()
 {
   return esdVersion;
+}
+
+function getFolderNameFromId(id)
+{
+  return DriveApp.getFolderById(id).getName();
 }
 
 //Returns true if the passed value is an array.
@@ -692,6 +691,8 @@ function exportSpreadsheetXml(formatSettings)
   var settings = JSON.parse(formatSettings);
   
   //File settings
+  var exportFolderType = settings["exportFolderType"];
+  var exportFolder = settings["exportFolder"];
   var visualize = settings["visualize"];
   var singleSheet = settings["singleSheet"];
   var replaceFile = settings["replaceExistingFiles"];
@@ -922,7 +923,7 @@ function exportSpreadsheetXml(formatSettings)
     xmlRaw = xmlDeclaration + xmlRaw;
   }
   
-  exportDocument(fileName, xmlRaw, ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
+  exportDocument(fileName, xmlRaw, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
 
@@ -932,6 +933,8 @@ function exportSpreadsheetJson(formatSettings)
   var settings = JSON.parse(formatSettings);
   
   //File settings
+  var exportFolderType = settings["exportFolderType"];
+  var exportFolder = settings["exportFolder"];
   var visualize = settings["visualize"];
   var singleSheet = settings["singleSheet"];
   var replaceFile = settings["replaceExistingFiles"];
@@ -1684,10 +1687,11 @@ function exportSpreadsheetJson(formatSettings)
     exportMessage += nestedFormattingErrorMessage;
   }
   
-  exportDocument(fileName, rawValue, ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
+  exportDocument(fileName, rawValue, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
-
+//Exports a file using the last settings used.
+//This should be called when attempting automation.
 function reexportFile()
 {
   var props = getPrevExportProperties();
@@ -1712,7 +1716,8 @@ function escapeHtml(content)
     .replace(/>/g, '&gt;');
 }
 
-function exportDocument(filename, content, type, visualize, replaceFile, exportMessage, exportMessageHeight)
+
+function exportDocument(filename, content, exportFolder, type, visualize, replaceFile, exportMessage, exportMessageHeight)
 {
   if(visualize == true)
   {
@@ -1751,7 +1756,7 @@ function exportDocument(filename, content, type, visualize, replaceFile, exportM
     }
     
     var permission = DriveApp.Permission.VIEW;
-    var parentFolder = getFileParentFolder(currentFile);
+    var parentFolder = exportFolder !== "" ? DriveApp.getFolderById(exportFolder) : getFileParentFolder(currentFile);
     var trueParentFolder = parentFolder; //Store the true parent folder for use in modal dialogues
     
     if(parentFolder != null) permission = parentFolder.getAccess(user);
@@ -1902,6 +1907,28 @@ function openUpdateWindow()
       .setHeight(130);
     SpreadsheetApp.getUi()
     .showModelessDialog(html, 'ESD Update Notes');
+}
+
+
+function openFolderPicker() {
+  var html = HtmlService.createHtmlOutputFromFile('FolderPicker.html')
+      .setWidth(650)
+      .setHeight(450)
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Select Export Folder');
+}
+
+
+function onFolderSelected(settings)
+{
+  setExportProperties(settings);
+  openSidebar(); //TODO: This will wipe any unsaved settings... need to pass settings when calling openFolderPicker()?
+}
+
+
+function getOAuthToken() { //TEMP: delete
+  DriveApp.getRootFolder();
+  return ScriptApp.getOAuthToken();
 }
 
 
