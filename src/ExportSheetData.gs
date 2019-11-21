@@ -1,4 +1,4 @@
-var esdVersion = 56;
+var esdVersion = 57;
 
 //Popup message
 var messageLineHeight = 10;
@@ -201,7 +201,7 @@ function getFileParentFolderId(file)
   return folder.getId();
 }
 
-
+//Returns an array with elements
 function getCellContentArray(cell, separatorChar)
 {
   var content = cell;
@@ -229,7 +229,7 @@ function getCellContentArray(cell, separatorChar)
       commaIndicies.push(i);
     }
   }
-    
+  
   //Remove a comma if it is wrapped in quotes
   //Use the close quote indicies in the case of an open ended quote at the end of content
   for(var i=0; i < closeQuoteIndicies.length; i++)
@@ -654,6 +654,37 @@ function getEmptyCellValueJson(formatType)
   return null;
 }
 
+//Formats cell values containing the string "null" to use the appropriate value (null or "null")
+function getNullCellValueJson(formatType)
+{
+  switch(formatType)
+  {
+    case "string": return "null";
+  }
+  
+  return null;
+}
+
+//Attempts to parse a JSON string representing an array and return its contents in a list.
+function tryParseJsonArrayString(jsonString)
+{
+  var newJsonString = '{"json":' + jsonString + '}'; //Make a JSON object string.
+  var json = null;
+  var results = null;
+  
+  try
+  {
+    json = JSON.parse(newJsonString); //Let the native JSON parser parse the array for us.
+    results = json["json"];
+  }
+  catch(e)
+  {
+    results = []; //If the string can't be parsed, then return an empty array.
+  }
+  
+  return results;
+}
+
 
 function exportXml(formatSettings)
 {
@@ -959,6 +990,7 @@ function exportSpreadsheetJson(formatSettings)
   var valueArray = settings["exportValueArray"];
   var forceString = settings["forceString"];
   var emptyValueFormat = settings["emptyValueFormat"];
+  var nullValueFormat = settings["nullValueFormat"];
   var separatorChar = settings["separatorChar"];
   var arrayPrefix = settings["forceArrayPrefix"];
   
@@ -1154,15 +1186,22 @@ function exportSpreadsheetJson(formatSettings)
           var content = values[j][k];
           
           //We want to export this cell as a json object, so attempt to parse it to an object format, and make it empty if that fails
-          if(exportCellObjectJson && typeof(content) === 'string' && content[0] === '{' && content[content.length-1] === '}')
+          if(exportCellObjectJson && typeof(content) === 'string')
           {
-            try
+            if(content[0] === '{' && content[content.length-1] === '}')
             {
-              content = JSON.parse(content);
+              try
+              {
+                content = JSON.parse(content);
+              }
+              catch (e)
+              {
+                content = {};
+              }
             }
-            catch (e)
+            else if(content[0] === '[' && content[content.length-1] === ']')
             {
-              content = {};
+              content = tryParseJsonArrayString(content);
             }
           }
           //We want to export cell arrays, or this column should be exported as an array, so convert the target cell's value to an array of values.
@@ -1195,7 +1234,6 @@ function exportSpreadsheetJson(formatSettings)
           else if(forceString)
           {
             //Force value to be a string if desired
-            //content = isObject(content) ? JSON.stringify(content) : content.toString();
             
             if(isObject(content))
             {
@@ -1221,8 +1259,6 @@ function exportSpreadsheetJson(formatSettings)
           if(nestedElements && keyPath.length > 1)
           {
             if(!hasNesting) hasNesting = true;
-            
-            //var element = useNestingArray ? sheetJsonArray : sheetJsonObject; 
             
             rowObject[key] = content;
             
@@ -1539,15 +1575,17 @@ function exportSpreadsheetJson(formatSettings)
               if(key > 0) key -= 1;
             }
             
-            //Format empty content
+            //Format empty and null content
             if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
+            else if(content === "null") content = getNullCellValueJson(nullValueFormat);
             
             element[key] = content;
           }
           else
           {
-            //Format empty content
+            //Format empty and null content
             if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
+            else if(content === "null") content = getNullCellValueJson(nullValueFormat);
           
             rowObject[key] = content;
             
@@ -1584,8 +1622,9 @@ function exportSpreadsheetJson(formatSettings)
           content = content.toString();
         }
         
-        //Format empty content
+        //Format empty and null content
         if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
+        else if(content === "null") content = getNullCellValueJson(nullValueFormat);
         
         if(unwrapSheet) sheetJsonObject[key] = content;
         else sheetJsonArray.push(content);

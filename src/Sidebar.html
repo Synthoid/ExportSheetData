@@ -288,6 +288,8 @@
   var export2dArrayJson = false;
   //Value to export empty cells as, null (null) or empty string ("")
   var emptyValueFormatJson = "null";
+  //Value to export null strings as, null (null) or string ("null")
+  var nullValueFormatJson = "null";
   //Separator char for JSON arrays
   var arraySeparatorCharJson = ",";
   //Sheets or columns using keys starting with a specified string will always be exported as JSON arrays
@@ -354,6 +356,7 @@
     exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
     forceStringJson = settings["forceString"] != null ? settings["forceString"] === true : forceStringJson;
     emptyValueFormatJson = settings["emptyValueFormat"] != null ? (settings["emptyValueFormat"] === "" ? emptyValueFormatJson : settings["emptyValueFormat"]) : emptyValueFormatJson;
+    nullValueFormatJson = settings["nullValueFormat"] != null ? (settings["nullValueFormat"] === "" ? nullValueFormatJson : settings["nullValueFormat"]) : nullValueFormatJson;
     arraySeparatorCharJson = settings["separatorChar"] != null ? (settings["separatorChar"] === "" ? "," : settings["separatorChar"]) : JSON_SEPARATOR_DEFAULT;
     forceArrayJson = settings["forceArray"] != null ? settings["forceArray"] === true : forceArrayJson;
     forceArrayPrefixJson = settings["forceArrayPrefix"] != null ? (settings["forceArrayPrefix"] === "" ? JSON_JA_DEFAULT : settings["forceArrayPrefix"]) : JSON_JA_DEFAULT;
@@ -414,6 +417,7 @@
       "exportValueArray" : exportValueArrayJson,
       "forceString" : forceStringJson,
       "emptyValueFormat" : emptyValueFormatJson,
+      "nullValueFormat" : nullValueFormatJson,
       "separatorChar" : getSeparatorCharJson(),
       "forceArray" : forceArrayJson,
       "forceArrayPrefix" : (forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson),
@@ -863,6 +867,12 @@
     emptyValueFormatJson = document.getElementById("jsonEmptyValueFormatDropdown").value;
   }
   
+  //Change the exported value for cells containing a string value of "null"
+  function changeNullValueFormatJson()
+  {
+    nullValueFormatJson = document.getElementById("jsonNullValueFormatDropdown").value;
+  }
+  
   function updateSeparatorCharJson()
   {
     arraySeparatorCharJson = document.getElementById("jsonArraySeparatorCharTextField").value;
@@ -1271,13 +1281,19 @@
       //Braces to object JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces. (WARNING: This content will export an empty object if not properly formatted.)</div></div></div>";
+      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces, or a JSON array if wrapped in brackets. (WARNING: This content will export an empty object/array if not properly formatted.)</div></div></div>";
       //Empty Value Type
       advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='select'>Empty value format</label><div class='tooltip note padded'>What value to export for empty cells.</div></div><select class='dropdown' id='jsonEmptyValueFormatDropdown' onchange='changeEmptyValueFormatJson()'><option value='null'";
       if(emptyValueFormatJson === "null") advancedJsonText += " selected";
       advancedJsonText += ">Null ( null )</option><option value='string'";
       if(emptyValueFormatJson === "string") advancedJsonText += " selected";
       advancedJsonText += ">Empty String ( &quot;&quot; )</option></select></div>";
+      //Null Value Type
+      advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='select'>Null value format</label><div class='tooltip note padded'>What value to export for cells with a string value of &quot;null&quot;.</div></div><select class='dropdown' id='jsonNullValueFormatDropdown' onchange='changeNullValueFormatJson()'><option value='null'";
+      if(nullValueFormatJson === "null") advancedJsonText += " selected";
+      advancedJsonText += ">Null ( null )</option><option value='string'";
+      if(nullValueFormatJson === "string") advancedJsonText += " selected";
+      advancedJsonText += ">String ( &quot;null&quot; )</option></select></div>";
       //Separator char value
       advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
@@ -1314,6 +1330,7 @@
       document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
       //Advanced Options
       document.getElementById('jsonEmptyValueFormatDropdown').addEventListener("change", changeEmptyValueFormatJson);
+      document.getElementById('jsonNullValueFormatDropdown').addEventListener("change", changeNullValueFormatJson);
       document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
       document.getElementById('jsonForceArrayToggle').addEventListener("change", toggleArrayPrefixJson);
       if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
@@ -1641,6 +1658,10 @@
     {
       document.getElementById('jsonEmptyValueFormatDropdown').removeEventListener("change", changeEmptyValueFormatJson);
     }
+    if(document.getElementById('jsonNullValueFormatDropdown') != null)
+    {
+      document.getElementById('jsonNullValueFormatDropdown').removeEventListener("change", changeNullValueFormatJson);
+    }
     if(document.getElementById('jsonArraySeparatorCharTextField') != null)
     {
       document.getElementById('jsonArraySeparatorCharTextField').removeEventListener("change", updateSeparatorCharJson);
@@ -1717,6 +1738,7 @@
       "exportContentsAsArray" : exportContentsAsArrayJson,
       "exportCellObject" : exportCellObjectJson,
       "emptyValueFormat" : emptyValueFormatJson,
+      "nullValueFormat" : nullValueFormatJson,
       "separatorChar" : getSeparatorCharJson(),
       "forceArrayPrefix" : getForceArrayPrefixJson(),
       "forceArrayPrefixNest" : getForceArrayPrefixNest()
