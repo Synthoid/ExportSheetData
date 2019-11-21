@@ -60,6 +60,7 @@ These settings only affect exported JSON data.
 - [Export contents as array](json/exportcontentsasarray.md) - Convert exported standalone JSON to a raw JSON array
 - [Export cell objects](json/exportcellobjects.md) - Export a cell's value as a JSON object if it is properly formatted
 - [Empty value format](json/emptyvalueformat.md) - Determines if empty cells are exported with null or empty string values
+- [Null value format](json/nullvalueformat.md) - Determines if cells with the string "null" are exported with null or string values
 - [Array separator character](json/arrayseparatorcharacter.md) - Adjust the character used to separate values in a cell array
 - [Array prefix](json/arrayprefix.md) - Force sheets or elements in a column to export as JSON arrays
 - [Nested array prefix](json/nestedarrayprefix.md) - With Nested Elements checked, force sheets to export as nested arrays
