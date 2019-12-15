@@ -9,15 +9,17 @@ Child elements prefix
 ---------------------
 Force columns with keys using the specified prefix to export as child elements of their row's XML element.
 
-Default value: `CE_`
+Default value: `CE_` (short for "**C**hild **E**lement")
 
-<b>Example:</b>
+### Example: ###
 
-Sheet: `Planets`<br>
-Keys: `Name|Orbit|CE_Description`<br>
-Values: `Earth|1 AU|A pale blue dot suspended in a sunbeam.`
+**Sheet name: `Planets`**
 
-Default Output:
+Name | Orbit | CE_Description
+---- | ----- | --------------
+Earth | 1 AU | A pale blue dot suspended in a sunbeam.
+
+*Default Output:*
 ```
 <data>
   <Planets>
@@ -26,7 +28,7 @@ Default Output:
 </data>
 ```
 
-With "Child elements prefix" enabled:
+*With "Child elements prefix" enabled:*
 ```
 <data>
   <Planets>
