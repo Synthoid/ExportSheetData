@@ -13,7 +13,7 @@ By default, the first column of a row is not exported as a distinct XML element 
 
 ### Example: ###
 
-**Sheet: `Seasons`**
+**Sheet name: `Seasons`**
 
 Name | Temperature
 ---- | -----------
