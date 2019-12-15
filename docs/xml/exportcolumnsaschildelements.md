@@ -12,7 +12,7 @@ Force cells to be exported as child elements of their row element instead of att
 
 ### Example: ###
 
-**Sheet: `Arrows`**
+**Sheet name: `Arrows`**
 
 Type | Damage | Effect
 ---- | ------ | ------
