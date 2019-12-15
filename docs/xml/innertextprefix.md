@@ -9,15 +9,17 @@ Inner text prefix
 -----------------
 Force columns with keys using the specified prefix to export as inner text for their row's XML element.
 
-Default value: `IT_`
+Default value: `IT_` (short for "**I**nner **T**ext")
 
-<b>Example:</b>
+### Example: ###
 
-Sheet: `Planets`<br>
-Keys: `Name|Orbit|IT_Description`<br>
-Values: `Earth|1 AU|A pale blue dot suspended in a sunbeam.`
+**Sheet name: `Planets`**
 
-Default Output:
+Name | Orbit | IT_Description
+---- | ----- | --------------
+Earth | 1 AU | A pale blue dot suspended in a sunbeam.
+
+*Default Output:*
 ```
 <data>
   <Planets>
@@ -26,7 +28,7 @@ Default Output:
 </data>
 ```
 
-With "Inner text prefix" enabled:
+*With "Inner text prefix" enabled:*
 ```
 <data>
   <Planets>
