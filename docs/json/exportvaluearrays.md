@@ -11,9 +11,9 @@ Export value arrays will export a sheet as a JSON array, with each row being use
 
 The difference between this and [Export sheet arrays](json/exportsheetarrays.md) is value arrays can contain basic values like numbers, bools, or strings, while sheet arrays will always contain JSON objects as their elements.
 
-Example:
+### Example: ###
 
-Sheet: `Random`
+**Sheet name: `Random`**
 
 Values| 
 ------- | 
@@ -21,7 +21,7 @@ Values|
 TRUE| 
 Three| 
 
-Default Output:
+*Default Output:*
 ```
 {
   "Random" : {
@@ -38,7 +38,7 @@ Default Output:
 }
 ```
 
-Value Array Output:
+*Value Array Output:*
 ```
 {
   "Values" [
