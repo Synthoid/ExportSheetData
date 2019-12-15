@@ -11,15 +11,17 @@ Force columns with keys using the specified prefix to export as attributes of th
 
 By default, cells export as attributes of their row XML element. This option is only useful if options like [Export columns as child elements](exportcolumnsaschildelements.md) are enabled.
 
-Default value: `ATT_`
+Default value: `ATT_` (short for "**ATT**ribute")
 
-<b>Example:</b>
+### Example: ###
 
-Sheet: `Planets`<br>
-Keys: `Name|ATT_Orbit|Description`<br>
-Values: `Earth|1 AU|A pale blue dot suspended in a sunbeam.`
+**Sheet: `Planets`**
 
-Default Output:
+Name | ATT_Orbit | Description
+---- | --------- | -----------
+Earth | 1 AU | A pale blue dot suspended in a sunbeam.
+
+*Default Output:*
 ```
 <data>
   <Planets>
@@ -31,7 +33,7 @@ Default Output:
 </data>
 ```
 
-With "Attributes prefix" and "Export columns as child elements" enabled:
+*With "Attributes prefix" and "Export columns as child elements" enabled:*
 ```
 <data>
   <Planets>
