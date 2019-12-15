@@ -10,16 +10,18 @@ Export columns as child elements
 
 Force cells to be exported as child elements of their row element instead of attributes.
 
-<b>Example:</b>
+### Example: ###
 
-Sheet: `Arrows`<br>
-Fields: `Type | Damage | Effect`<br>
-Values: `Normal | 1 | None`<br>
-`Fire | 3 | Burn`<br>
-`Ice | 2 | Freeze`<br>
-`Light | 5 | Flare`
+**Sheet: `Arrows`**
 
-Default Output:
+Type | Damage | Effect
+---- | ------ | ------
+Normal | 1 | None
+Fire | 3 | Burn
+Ice | 2 | Freeze
+Light | 5 | Flare
+
+*Default Output:*
 ```
 <data>
   <Arrows>
@@ -31,7 +33,7 @@ Default Output:
 </data>
 ```
 
-Child Elements Output:
+*Child Elements Output:*
 ```
 <data>
   <Arrows>
