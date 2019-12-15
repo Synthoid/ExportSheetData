@@ -11,16 +11,18 @@ Include the first column of each row as an XML element in addition to it being u
 
 By default, the first column of a row is not exported as a distinct XML element as it is used to name the row XML element. Enabling this will cause the first column to be exported as both the name of the row's element as well as its own distinct element like the other columns in a row.
 
-<b>Example:</b>
+### Example: ###
 
-Sheet: `Seasons`<br>
-Fields: `Name | Temperature`<br>
-Values: `Spring | Warm`<br>
-`Summer | Hot`<br>
-`Fall | Cool`<br>
-`Winter | Cold`
+**Sheet: `Seasons`**
 
-Default Output:
+Name | Temperature
+---- | -----------
+Spring | Warm
+Summer | Hot
+Fall | Cool
+Winter | Cold
+
+*Default Output:*
 ```
 <data>
   <Seasons>
@@ -32,7 +34,7 @@ Default Output:
 </data>
 ```
 
-Include First Column Output:
+*Include First Column Output:*
 ```
 <data>
   <Seasons>
