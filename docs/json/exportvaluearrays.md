@@ -13,11 +13,13 @@ The difference between this and [Export sheet arrays](json/exportsheetarrays.md)
 
 Example:
 
-Sheet: `Random`<br>
-Fields: `Values`<br>
-Values: `1`<br>
-`True`<br>
-`Three`
+Sheet: `Random`
+
+Values| 
+------- | 
+1| 
+TRUE| 
+Three| 
 
 Default Output:
 ```
