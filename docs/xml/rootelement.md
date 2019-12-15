@@ -9,15 +9,17 @@ Root element
 ------------
 Specifies the name for the exported XML document's root element. By default, this value is "data".
 
-<b>Example:</b>
+### Example: ###
 
-Sheet: `Colors`<br>
-Fields: `Name | R | G | B`<br>
-Values: `Red | 1 | 0 | 0`<br>
-`Green | 0 | 1 | 0`<br>
-`Blue | 0 | 0 | 1`
+**Sheet name: `Colors`**
 
-Default Root Element:
+Name | R | G | B
+---- | - | - | -
+Red | 1 | 0 | 0
+Green | 0 | 1 | 0
+Blue | 0 | 0 | 1
+
+*Default Root Element:*
 ```
 <data>
   <Colors>
@@ -28,7 +30,7 @@ Default Root Element:
 </data>
 ```
 
-Root Element "Art":
+*Root Element "Art":*
 ```
 <Art>
   <Colors>
