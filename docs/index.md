@@ -23,7 +23,7 @@ These settings determine which format (JSON or XML) to export your data to, as w
 
 - [Export Format](format/exportformat.md) - Data format to export to (JSON or XML)
 - [Export Folder](format/exportfolder.md) - Data folder to export files to
-- [Select Sheet(s)](format/selectsheets.md) - Data range to include in the exported data
+- [Export Sheet(s)](format/exportsheets.md) - Sheet tabs to include in the exported data
 
 General Settings
 ----------------
