@@ -1,3 +1,5 @@
+![Export Sheet Data](images/esd_banner.png)
+
 Export Sheet Data is an add-on for Google Sheets that allows sheets to be exported as JSON or XML.
 
 Goals
