@@ -11,6 +11,10 @@ Include the first column of each row as a distinct element in addition to it bei
 
 By default, the first column of a row is not exported as a distinct XML element or JSON value as it is used to name the row element. Enabling this will cause the first column to be exported as both the name (or key) of the row's element as well as its own distinct element like the other columns in a row.
 
+<img src="../../images/esd_icon_json.svg" width="32px" height="32px"/> **JSON Notes:**
+
+Some JSON settings will override this setting and always include the first column, specifically [Nested Elements](nestedelements.md) and [Export sheet arrays](../json/exportsheetarrays.md).
+
 ### Example: ###
 
 **Sheet name: `Seasons`**
