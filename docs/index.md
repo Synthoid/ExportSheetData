@@ -87,5 +87,8 @@ These settings only affect exported XML data.
 - [Child elements prefix](xml/childelementsprefix.md) - Force elements in a column to export as child elements of their row element
 - [Inner text prefix](xml/innertextprefix.md) - Force elements in a column to export as inner text for their row element
 
-Tips & Tricks
------------------
+Tips N Tricks
+-------------
+These pages detail various tips for more obscure or esoteric functionality in ESD.
+
+- [XML](tips/tipsntricksxml.md) - Tips for the XML export format
