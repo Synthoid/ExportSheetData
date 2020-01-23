@@ -1,7 +1,7 @@
 ---
 layout: docs
 title: XML Tips & Tricks
-description: Tips for XML functionality.
+description: Tips for XML functionality
 group: xml
 ---
 
@@ -17,31 +17,26 @@ If the first cell in a row is the string `!--`, the row will be exported as an X
 
 **Sheet: `Planets`**
 
-Name | ATT_Orbit | Description
+Name | Orbit | Description
 ---- | --------- | -----------
-Earth | 1 AU | A pale blue dot suspended in a sunbeam.
+Venus | 0.72 AU | An ethereal puff burning through the sky.
 !-- | This is an XML comment! |
-Mars | 1.52 AU | A red mote glittering in the dark
+Earth | 1 AU | A pale blue dot suspended in a sunbeam.
+!-- | Each cell gets... | ...a newline in the block!
+Mars | 1.52 AU | A red mote glittering in the dark.
+!-- | Hyphens ( - ) are replaced with Underscores ( _ ) |
 
-*Default Output:*
+*Output:*
 ```
 <data>
   <Planets>
-    <Earth>
-      <ATT_Orbit>1 AU</ATT_Orbit>
-      <Descripition>A pale blue dot suspended in a sunbeam.</Description>
-    </Earth>
-  </Planets>
-</data>
-```
-
-*With "Attributes prefix" and "Export columns as child elements" enabled:*
-```
-<data>
-  <Planets>
-    <Earth Orbit="1 AU">
-      <Description>A pale blue dot suspended in a sunbeam.</Description>
-    </Earth>
+    <Venus Orbit="0.72 AU" Description="An ethereal puff burning through the sky." />
+    <!--This is an XML comment!-->
+    <Earth Orbit="1 AU" Description="A pale blue dot suspended in a sunbeam." />
+    <!--Each cell gets...
+...a newline in the block!-->
+    <Mars Orbit="1.52 AU" Description="A red mote glittering in the dark." />
+    <!--Hyphens ( _ ) are replaced with Underscores ( _ ) -->
   </Planets>
 </data>
 ```
