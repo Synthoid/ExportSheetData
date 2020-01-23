@@ -2,14 +2,14 @@
 layout: docs
 title: Include First Column in Export
 description: Documentation for Export Sheet Data's 'Include first column in export' option.
-group: xml
+group: general
 ---
 
 Include first column in export
 ------------------------------
-Include the first column of each row as an XML element in addition to it being used for the name of the row element.
+Include the first column of each row as a distinct element in addition to it being used for the name of the row element.
 
-By default, the first column of a row is not exported as a distinct XML element as it is used to name the row XML element. Enabling this will cause the first column to be exported as both the name of the row's element as well as its own distinct element like the other columns in a row.
+By default, the first column of a row is not exported as a distinct XML element or JSON value as it is used to name the row element. Enabling this will cause the first column to be exported as both the name (or key) of the row's element as well as its own distinct element like the other columns in a row.
 
 ### Example: ###
 
@@ -19,28 +19,76 @@ Name | Temperature
 ---- | -----------
 Spring | Warm
 Summer | Hot
-Fall | Cool
+Autumn | Cool
 Winter | Cold
 
 *Default Output:*
+
+JSON:
+```
+{
+  "Seasons": {
+    "Spring": {
+      "Temperature": "Warm"
+    },
+    "Summer": {
+      "Temperature": "Hot"
+    },
+    "Autumn": {
+      "Temperature": "Cool"
+    },
+    "Winter": {
+      "Temperature": "Cold"
+    }
+  }
+}
+```
+
+XML:
 ```
 <data>
   <Seasons>
     <Spring Temperature="Warm"/>
     <Summer Temperature="Hot"/>
-    <Fall Temperature="Cool"/>
+    <Autumn Temperature="Cool"/>
     <Winter Temperature="Cold"/>
   </Seasons>
 </data>
 ```
 
 *Include First Column Output:*
+
+JSON:
+```
+{
+  "Seasons": {
+    "Spring": {
+      "Name": "Spring",
+      "Temperature": "Warm"
+    },
+    "Summer": {
+      "Name": "Summer",
+      "Temperature": "Hot"
+    },
+    "Autumn": {
+      "Name": "Autumn",
+      "Temperature": "Cool"
+    },
+    "Winter": {
+      "Name": "Winter",
+      "Temperature": "Cold"
+    }
+  }
+}
+```
+
+XML:
 ```
 <data>
   <Seasons>
     <Spring Name="Spring" Temperature="Warm"/>
     <Summer Name="Summer" Temperature="Hot"/>
-    <Fall Name="Fall" Temperature="Cool"/>
+    <Fall Name="Autumn" Temperature="Cool"/>
     <Winter Name="Winter" Temperature="Cold"/>
   </Seasons>
 </data>
