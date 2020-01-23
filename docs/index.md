@@ -15,7 +15,8 @@ Here you can find detailed descriptions for each of ESD's various options and se
 [1. Format Settings](#format-settings)<br>
 [2. General Settings](#general-settings)<br>
 [3. JSON Settings](#json-settings)<br>
-[4. XML Settings](#xml-settings)
+[4. XML Settings](#xml-settings)<br>
+[5. Tips & Tricks](#tips-n-tricks)
 
 Format Settings
 ---------------
@@ -85,3 +86,6 @@ These settings only affect exported XML data.
 - [Attributes prefix](xml/attributesprefix.md) - Force elements in a column to export as attributes for their row element
 - [Child elements prefix](xml/childelementsprefix.md) - Force elements in a column to export as child elements of their row element
 - [Inner text prefix](xml/innertextprefix.md) - Force elements in a column to export as inner text for their row element
+
+Tips & Tricks
+-----------------
