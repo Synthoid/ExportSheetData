@@ -224,6 +224,8 @@
   var collapseSingleRows = false;
   //Don't export cells that are empty (helps reduce file size)
   var ignoreEmptyCells = false;
+  //Include the first column in the export in addition to using it as the name for the row element.
+  var includeFirstColumn = false;
   
   //Advanced Options
   //Support complex nested elements by using special key formatting
@@ -243,8 +245,6 @@
   //XML Options
   //Export values as child elements instead of attributes
   var exportChildElementXml = false;
-  //Include the first column in the export in addition to using it as the name for the row element.
-  var includeFirstColumnXml = false;
   
   //XML Advanced Options
   //Root element of the XML document
@@ -341,6 +341,7 @@
     //Advanced
     nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === true : false;
     minifyData = settings["minifyData"] != null ? settings["minifyData"] === true : minifyData;
+    includeFirstColumn = settings["includeFirstColumn"] != null ? settings["includeFirstColumn"] === true : includeFirstColumn;
     ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === true : false;
     ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
     unwrapSheetsWithPrefix = settings["unwrapSheetsWithPrefix"] != null ? settings["unwrapSheetsWithPrefix"] === true : false;
@@ -365,7 +366,6 @@
     
     //XML
     exportChildElementXml = settings["exportChildElements"] != null ? settings["exportChildElements"] === true : exportChildElementXml;
-    includeFirstColumnXml = settings["includeFirstColumn"] != null ? settings["includeFirstColumn"] === true : includeFirstColumnXml;
     rootElementXml = settings["rootElement"] != null ? (settings["rootElement"] === "" ? rootElementXml : settings["rootElement"]) : rootElementXml;
     nameReplacementCharXml = settings["nameReplacementChar"] != null ? (settings["nameReplacementChar"] === "" ? nameReplacementCharXml : settings["nameReplacementChar"]) : nameReplacementCharXml;
     includeDeclarationXml = settings["includeDeclaration"] != null ? settings["includeDeclaration"] === true : includeDeclarationXml;
@@ -400,6 +400,7 @@
       //Advanced
       "ignoreColumnsWithPrefix" : ignoreColumnsWithPrefix,
       "minifyData" : minifyData,
+      "includeFirstColumn" : includeFirstColumn,
       "ignorePrefix" : (ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix),
       "unwrapSheetsWithPrefix" : unwrapSheetsWithPrefix,
       "unwrapPrefix" : (unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix),
@@ -423,7 +424,6 @@
       "forceArrayPrefix" : (forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson),
       //XML
       "exportChildElements" : exportChildElementXml,
-      "includeFirstColumn" : includeFirstColumnXml,
       "rootElement" : getRootElement(),
       "nameReplacementChar" : nameReplacementCharXml,
       "includeDeclaration" : includeDeclarationXml,
@@ -513,6 +513,11 @@
       minifyData = !minifyData;
   }
   
+  function toggleIncludeFirstColumn()
+  {
+    includeFirstColumn = !includeFirstColumn;
+  }
+  
   function getIgnorePrefix()
   {
     if(ignoreColumnsWithPrefix === false) return "";
@@ -598,11 +603,6 @@
   function toggleElement()
   {
     exportChildElementXml = !exportChildElementXml;
-  }
-  
-  function toggleIncludeFirstColumnXml()
-  {
-    includeFirstColumnXml = !includeFirstColumnXml;
   }
   
   function getRootElement()
@@ -1050,6 +1050,10 @@
     generalText += "<div class='sectionWrapper'><input id='minifyDataToggle' type='checkbox' value='minifyData'";
     if(minifyData) generalText += " checked";
     generalText += "><div class='option'>Minify data<div class='tooltip note'>Remove human readability formatting from the exported data to produce a smaller file.</div></div></div>";
+    //Include first column in export
+    generalText += "<div class='sectionWrapper'><input id='firstColumnToggle' type='checkbox' value='false'";
+    if(includeFirstColumn) generalText += " checked";
+    generalText += "/><div class='option'>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to using it as the name of each row element.</div></div></div>";
     //Ignore columns prefix
     generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
     if(ignoreColumnsWithPrefix) generalText += " checked";
@@ -1091,6 +1095,7 @@
     //Advanced
     document.getElementById('nestedElementsToggle').addEventListener("change",toggleNestedElements);
     document.getElementById('minifyDataToggle').addEventListener("change", toggleMinifyData);
+    document.getElementById('firstColumnToggle').addEventListener("change", toggleIncludeFirstColumn);
     document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
     if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
     document.getElementById('unwrapSheetsToggle').addEventListener("change",toggleUnwrapSheetsWithPrefix);
@@ -1116,10 +1121,6 @@
       xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
       xmlText += "/><div class='option'>Export columns as child elements<div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
-      //Include first column in export
-      xmlText += "<div class='sectionWrapper'><input id='firstColumnXmlToggle' type='checkbox' value='false'";
-      if(includeFirstColumnXml) xmlText += " checked";
-      xmlText += "/><div class='option'>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to using it as the name of each row element.</div></div></div>";
       //Root element value
       xmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note padded'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
       xmlText += "'" + rootElementXml + "'";
@@ -1230,7 +1231,6 @@
       document.getElementById("advancedOptions").innerHTML = advancedXmlText;
       //XML Options
       document.getElementById('elementToggle').addEventListener("change", toggleElement);
-      document.getElementById('firstColumnXmlToggle').addEventListener("change", toggleIncludeFirstColumnXml);
       //Advanced Options
       document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
       document.getElementById('xmlNameReplaceCharDropdown').addEventListener("change", changeNameReplacementCharXml);
@@ -1565,6 +1565,10 @@
     {
       document.getElementById('minifyDataToggle').removeEventListener("change", toggleMinifyData);
     }
+    if(document.getElementById('firstColumnToggle') != null)
+    {
+      document.getElementById('firstColumnToggle').removeEventListener("change", toggleIncludeFirstColumn);
+    }
     if(document.getElementById('ignoreColumnsToggle') != null)
     {
       document.getElementById('ignoreColumnsToggle').removeEventListener("change", toggleIgnoreColumnsWithPrefix);
@@ -1588,10 +1592,6 @@
     if(document.getElementById('elementToggle') != null)
     {
       document.getElementById('elementToggle').removeEventListener("change", toggleElement);
-    }
-    if(document.getElementById('firstColumnXmlToggle') != null)
-    {
-      document.getElementById('firstColumnXmlToggle').removeEventListener("change", toggleIncludeFirstColumnXml);
     }
     if(document.getElementById('xmlRootField') != null)
     {
@@ -1693,12 +1693,12 @@
       "ignoreEmptyCells" : ignoreEmptyCells,
       "nestedElements" : nestedElements,
       "minifyData" : minifyData,
+      "includeFirstColumn" : includeFirstColumn,
       "ignorePrefix" : getIgnorePrefix(),
       "unwrapPrefix":getUnwrapPrefix(),
       "collapsePrefix":getCollapsePrefix(),
       "targetSheets" : exportSheets,
       "exportChildElements" : exportChildElementXml,
-      "includeFirstColumn" : includeFirstColumnXml,
       "rootElement" : getRootElement(),
       "nameReplacementChar" : nameReplacementCharXml,
       "declarationVersion" : getDeclarationVersion(),
@@ -1727,6 +1727,7 @@
       "ignoreEmptyCells" : ignoreEmptyCells,
       "nestedElements" : nestedElements,
       "minifyData" : minifyData,
+      "includeFirstColumn" : includeFirstColumn,
       "ignorePrefix" : getIgnorePrefix(),
       "unwrapPrefix":getUnwrapPrefix(),
       "collapsePrefix":getCollapsePrefix(),

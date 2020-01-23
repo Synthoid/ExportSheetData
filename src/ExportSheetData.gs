@@ -1,4 +1,4 @@
-var esdVersion = 57;
+var esdVersion = 59;
 
 //Popup message
 var messageLineHeight = 10;
@@ -230,6 +230,8 @@ function getCellContentArray(cell, separatorChar)
     }
   }
   
+  
+    
   //Remove a comma if it is wrapped in quotes
   //Use the close quote indicies in the case of an open ended quote at the end of content
   for(var i=0; i < closeQuoteIndicies.length; i++)
@@ -732,6 +734,7 @@ function exportSpreadsheetXml(formatSettings)
   var ignoreEmpty = settings["ignoreEmptyCells"];
   var nestedElements = settings["nestedElements"];
   var minifyData = settings["minifyData"];
+  var includeFirstColumn = settings["includeFirstColumn"];
   var ignorePrefix = settings["ignorePrefix"];
   var unwrapPrefix = settings["unwrapPrefix"];
   var collapsePrefix = settings["collapsePrefix"];
@@ -739,7 +742,6 @@ function exportSpreadsheetXml(formatSettings)
   
   //XML settings
   var useChildElements = settings["exportChildElements"];
-  var includeFirstColumnXml = settings["includeFirstColumn"];
   var rootElement = settings["rootElement"];
   var nameReplacementChar = settings["nameReplacementChar"];
   var declarationVersion = settings["declarationVersion"];
@@ -820,7 +822,8 @@ function exportSpreadsheetXml(formatSettings)
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
       if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
-    
+      
+      var isComment = (values[j][0] === "!--"); //If the first cell in a row starts with !--, treat the row as a comment
       var attributeKeys = [];
       var childElementKeys = [];
       var innerTextKeys = [];
@@ -828,42 +831,63 @@ function exportSpreadsheetXml(formatSettings)
       var childElements = [];
       var innerTextElements = [];
       
+      //Build the actual row XML
+      var rowXml = XmlService.createElement("Comment");
+      
       //Separate columns into those that export as child elements or attributes
-      var startIndex = includeFirstColumnXml ? 0 : 1; //Exclude the first column by default since it is used as the name of the row element
+      var startIndex = (includeFirstColumn && !isComment) ? 0 : 1; //Exclude the first column by default since it is used as the name of the row element, or because this is a comment element
       
       for(var k=startIndex; k < columns; k++)
       {
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
-        if(ignoreEmpty && values[j][k] === "") continue; //Skip empty cells if desired
+        if((ignoreEmpty || isComment) && values[j][k] === "") continue; //Skip empty cells if desired or a comment
         if(keyHasPrefix(values[0][k], ignorePrefix)) continue; //Skip columns with the ignore prefix
         
-        //Make a note if an element name gets formatted so users know they do not have proper formatting
-        if(exportMessage === "" && values[0][k] !== formatXmlName(values[0][k], nameReplacementChar))
+        if(isComment)
         {
-          exportMessage = "Some keys were not properly formatted for XML and have been auto-formatted.";
-          exportMessageHeight = 25;
-        }
-        
-        if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))) || 
-          (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
-        {
-          childElementKeys.push(stripPrefix(values[0][k], childElementPrefix));
-          childElements.push(values[j][k]);
-        }
-        else if(innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))
-        {
-          attributeKeys.push(stripPrefix(values[0][k], attributePrefix));
-          attributes.push(values[j][k]);
+          if(values[j][k] == null) continue; //Skip empty cells
+          
+          var text = rowXml.getText();
+          rowXml.setText((text === "") ? values[j][k] : (text + "\n" + values[j][k]));
         }
         else
         {
-          innerTextKeys.push(stripPrefix(values[0][k], innerTextPrefix));
-          innerTextElements.push(values[j][k]);
+          //Make a note if an element name gets formatted so users know they do not have proper formatting
+          if(exportMessage === "" && values[0][k] !== formatXmlName(values[0][k], nameReplacementChar))
+          {
+            exportMessage = "Some keys were not properly formatted for XML and have been auto-formatted.";
+            exportMessageHeight = 25;
+          }
+        
+          if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))) || 
+            (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
+          {
+            childElementKeys.push(stripPrefix(values[0][k], childElementPrefix));
+            childElements.push(values[j][k]);
+          }
+          else if(innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))
+          {
+            attributeKeys.push(stripPrefix(values[0][k], attributePrefix));
+            attributes.push(values[j][k]);
+          }
+          else
+          {
+            innerTextKeys.push(stripPrefix(values[0][k], innerTextPrefix));
+            innerTextElements.push(values[j][k]);
+          }
         }
       }
       
+      //Finish Comment logic
+      if(isComment)
+      {
+        sheetXml.addContent(XmlService.createComment(rowXml.getText().replace(/[-]/g, '_'))); //Replace '-' with '_' as hyphens cause errors in comment nodes
+        
+        continue;
+      }
+      
       //Build the actual row XML
-      var rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar));
+      rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar));
       
       //Set attributes
       for(var k=0; k < attributes.length; k++)
@@ -903,7 +927,8 @@ function exportSpreadsheetXml(formatSettings)
     
     if(singleSheet || unwrapSheet)
     {
-      var sheetChildren = sheetXml.getChildren();
+      //Detach the sheet's child content and add them to the document directly.
+      var sheetChildren = sheetXml.getAllContent();
       
       for(var k=0; k < sheetChildren.length; k++)
       {
@@ -915,12 +940,12 @@ function exportSpreadsheetXml(formatSettings)
     {
       if(collapseSheet)
       {
-        var sheetChildren = sheetXml.getChildren();
+        var sheetChildren = sheetXml.getAllContent();
         
         for(var k=0; k < sheetChildren.length; k++)
         {
           sheetChildren[k].detach();
-          var rowChildren = sheetChildren[k].getChildren();
+          var rowChildren = sheetChildren[k].getAllContent();
           
           for(var l=0; l < rowChildren.length; l++)
           {
@@ -977,6 +1002,7 @@ function exportSpreadsheetJson(formatSettings)
   var collapsePrefix = settings["collapsePrefix"];
   var customSheets = settings["targetSheets"];
   var minifyData = settings["minifyData"];
+  var includeFirstColumn = settings["includeFirstColumn"];
   
   //Nested Settings
   var nestedElements = settings["nestedElements"];
@@ -1142,7 +1168,9 @@ function exportSpreadsheetJson(formatSettings)
       
       if(!sheetIsValueArray)
       {
-        for(var k=0; k < columns; k++)
+        var startIndex = (includeFirstColumn || sheetArray || nestedElements) ? 0 : 1;
+        
+        for(var k=startIndex; k < columns; k++)
         {
           var keyPrefix = "";
           
@@ -1965,8 +1993,8 @@ function onFolderSelected(settings)
 }
 
 
-function getOAuthToken() { //TEMP: delete
-  DriveApp.getRootFolder();
+function getOAuthToken()
+{
   return ScriptApp.getOAuthToken();
 }
 

@@ -40,6 +40,7 @@ These settings affect both JSON and XML data.
 
 - [Nested Elements](general/nestedelements.md) - Create complex data sets by using specific key syntax
 - [Minify data](general/minifydata.md) - Output smaller files at the cost of human readability
+- [Include first column in export](general/includefirstcolumninexport.md) - Export the first column of a row as a distinct element
 - [Ignore prefix](general/ignoreprefix.md) - Don't export columns whose keys start with a specific prefix
 - [Unwrap prefix](general/unwrapprefix.md) - Unwrap sheets with names using the specified prefix
 - [Collapse prefix](general/collapseprefix.md) - Collapse sheets with names using the specified prefix
@@ -72,7 +73,6 @@ These settings only affect exported XML data.
 ### Basic
 
 - [Export columns as child elements](xml/exportcolumnsaschildelements.md) - Export columns as child elements of their row's XML element
-- [Include first column in export](xml/includefirstcolumninexport.md) - Export the first column of a row as a distinct XML element
 - [Root element](xml/rootelement.md) - Name for the exported XML document's root element
 
 ### Advanced
