@@ -235,7 +235,7 @@
   //Don't export columns with the ignore prefix
   var ignoreColumnsWithPrefix = false;
   var ignoreColumnsPrefix = "NOEX_";
-  //Unwrap sheets with one row and this prefix
+  //Unwrap sheets with this prefix
   var unwrapSheetsWithPrefix = false;
   var unwrapSheetsPrefix = "US_";
   //Collapse sheets with one row and this prefix
@@ -1053,7 +1053,7 @@
     //Include first column in export
     generalText += "<div class='sectionWrapper'><input id='firstColumnToggle' type='checkbox' value='false'";
     if(includeFirstColumn) generalText += " checked";
-    generalText += "/><div class='option'>Include first column in export<div class='tooltip note'>Export the first column as a distinct element in addition to using it as the name of each row element.</div></div></div>";
+    generalText += "/><div class='option'>Include first column<div class='tooltip note'>Export the first column as a distinct element in addition to using it as the name of each row element.</div></div></div>";
     //Ignore columns prefix
     generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
     if(ignoreColumnsWithPrefix) generalText += " checked";
@@ -1065,7 +1065,7 @@
     //Unwrap sheets prefix
     generalText += "<div class='sectionWrapper'><input id='unwrapSheetsToggle' type='checkbox' value='false'";
     if(unwrapSheetsWithPrefix) generalText += " checked";
-    generalText += "/><div class='option'>Unwrap sheet prefix<div class='tooltip note'>Unwrap sheets with only one row that use the given prefix.</div></div><p id='unwrapSheetsText'><input id='unwrapSheetsPrefixTextField' type='text' value='";
+    generalText += "/><div class='option'>Unwrap sheet prefix<div class='tooltip note'>Unwrap sheets that use the given prefix.</div></div><p id='unwrapSheetsText'><input id='unwrapSheetsPrefixTextField' type='text' value='";
     generalText += unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
     generalText += "' placeholder='US_'";
     if(unwrapSheetsWithPrefix === false) generalText += " disabled";

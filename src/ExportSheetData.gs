@@ -1155,7 +1155,7 @@ function exportSpreadsheetJson(formatSettings)
       if(!keyNesting || keyNestingIsArray) useNestingArray = true;
     }
     
-    if(unwrap && rows > 2) unwrapSheet = false;
+    if(unwrap && rows > 2 && !forceUnwrap) unwrapSheet = false;
     
     for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
@@ -1670,9 +1670,16 @@ function exportSpreadsheetJson(formatSettings)
           {
             if(unwrapSheet)
             {
-              for(field in rowObject)
+              if(rows > 2)
               {
-                sheetJsonObject[field] = rowObject[field];
+                sheetJsonObject[values[j][0]] = rowObject;
+              }
+              else
+              {
+                for(field in rowObject)
+                {
+                  sheetJsonObject[field] = rowObject[field];
+                }
               }
             }
             else if(collapseSheet)
