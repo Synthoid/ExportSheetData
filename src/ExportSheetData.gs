@@ -1,4 +1,4 @@
-var esdVersion = 59;
+const esdVersion = 59;
 
 //Popup message
 var messageLineHeight = 10;
@@ -8,19 +8,19 @@ var indentValue = "  "; //'\t'
 var indentAmount = 0;
 
 //Subpath types
-var jsonArraySubpath = "Array"; //JSON Array
-var jsonObjectSubpath = "Object"; //JSON Object
-var xmlArraySubpath = "Array"; //XML element with child elements
-var xmlAttributeSubpath = "Attibute"; //XML element attribute
-var keySubpath = "Key"; //JSON field or XML element key
+const jsonArraySubpath = "Array"; //JSON Array
+const jsonObjectSubpath = "Object"; //JSON Object
+const xmlArraySubpath = "Array"; //XML element with child elements
+const xmlAttributeSubpath = "Attibute"; //XML element attribute
+const keySubpath = "Key"; //JSON field or XML element key
 
 //Search types
-var searchTypeField = "Field"; //Search for a specific field value (#FIELD_ID)
-var searchTypeRoot = "Root"; //Set the target element to the root JSON object (#ROOT)
-var searchTypeSheet = "Sheet"; //Set the target element to the sheet's root. (#SHEET)
-var searchTypeRow = "Row"; //Search for the index matching a row's index (#ROW)
-var searchTypeIndex = "Index"; //Search for a specific index (#1)
-var searchTypeNone = "None"; //Not a valid search type
+const searchTypeField = "Field"; //Search for a specific field value (#FIELD_ID)
+const searchTypeRoot = "Root"; //Set the target element to the root JSON object (#ROOT)
+const searchTypeSheet = "Sheet"; //Set the target element to the sheet's root. (#SHEET)
+const searchTypeRow = "Row"; //Search for the index matching a row's index (#ROW)
+const searchTypeIndex = "Index"; //Search for a specific index (#1)
+const searchTypeNone = "None"; //Not a valid search type
 
 //Special prefixes to allow XML nested elements
 //var arrayPref = "ARRAY_";
@@ -96,6 +96,7 @@ function getVersion()
   return esdVersion;
 }
 
+//Returns the name of the folder with the given ID.
 function getFolderNameFromId(id)
 {
   return DriveApp.getFolderById(id).getName();
@@ -201,7 +202,7 @@ function getFileParentFolderId(file)
   return folder.getId();
 }
 
-//Returns an array with elements
+//Converts the contents of a cell into an array by separating the cell value based on the given separator char.
 function getCellContentArray(cell, separatorChar)
 {
   var content = cell;
@@ -230,8 +231,6 @@ function getCellContentArray(cell, separatorChar)
     }
   }
   
-  
-    
   //Remove a comma if it is wrapped in quotes
   //Use the close quote indicies in the case of an open ended quote at the end of content
   for(var i=0; i < closeQuoteIndicies.length; i++)
@@ -245,7 +244,7 @@ function getCellContentArray(cell, separatorChar)
     }
   }
         
-  //populate the array
+  //Populate the array
   var startIndex = 0;
   for(var i=0; i < commaIndicies.length; i++)
   {
@@ -567,6 +566,7 @@ function trimKeySubpath(key)
   return key.substring(1, key.length-1);
 }
 
+//Gets the type of a subpath in an XML export nested element key.
 function getSubpathTypeXml(subpath)
 {
   var type = keySubpath;
@@ -588,7 +588,7 @@ function getSubpathTypeXml(subpath)
   return type;
 }
 
-//gets the type of a subpath in a JSON export nested element key.
+//Gets the type of a subpath in a JSON export nested element key.
 function getSubpathTypeJson(subpath)
 {
   var type = keySubpath;
@@ -687,11 +687,11 @@ function tryParseJsonArrayString(jsonString)
   return results;
 }
 
-
-function exportXml(formatSettings)
+//Export data as XML.
+function exportXml(formatSettings, callback)
 {
   showCompilingMessage('Compiling XML...');
-  exportSpreadsheetXml(formatSettings);
+  exportSpreadsheetXml(formatSettings, callback == null ? exportDocument : callback);
   
   var tempSettings = JSON.parse(formatSettings);
   
@@ -702,11 +702,11 @@ function exportXml(formatSettings)
   setPrevExportProperties(formatSettings);
 }
 
-
-function exportJson(formatSettings)
+//Export data as JSON.
+function exportJson(formatSettings, callback)
 {
   showCompilingMessage('Compiling JSON...');
-  exportSpreadsheetJson(formatSettings);
+  exportSpreadsheetJson(formatSettings, callback == null ? exportDocument : callback);
   
   var tempSettings = JSON.parse(formatSettings);
   
@@ -717,8 +717,8 @@ function exportJson(formatSettings)
   setPrevExportProperties(formatSettings);
 }
 
-
-function exportSpreadsheetXml(formatSettings)
+//Convert sheet data into an XML string. The string, along with relevant publishing data, will be passed to the given callback function.
+function exportSpreadsheetXml(formatSettings, callback)
 {
   //Settings
   var settings = JSON.parse(formatSettings);
@@ -979,11 +979,11 @@ function exportSpreadsheetXml(formatSettings)
     xmlRaw = xmlDeclaration + xmlRaw;
   }
   
-  exportDocument(fileName, xmlRaw, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
+  callback(fileName, xmlRaw, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
-
-function exportSpreadsheetJson(formatSettings)
+//Convert sheet data into a JSON string. The string, along with relevant publishing data, will be passed to the given callback function.
+function exportSpreadsheetJson(formatSettings, callback)
 {
   //Settings
   var settings = JSON.parse(formatSettings);
@@ -1761,7 +1761,7 @@ function exportSpreadsheetJson(formatSettings)
     exportMessage += nestedFormattingErrorMessage;
   }
   
-  exportDocument(fileName, rawValue, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
+  callback(fileName, rawValue, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
 }
 
 //Exports a file using the last settings used.
@@ -1790,7 +1790,7 @@ function escapeHtml(content)
     .replace(/>/g, '&gt;');
 }
 
-
+//Export the given content as a file with the given properties.
 function exportDocument(filename, content, exportFolder, type, visualize, replaceFile, exportMessage, exportMessageHeight)
 {
   if(visualize == true)
@@ -1916,7 +1916,7 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
   }
 }
 
-
+//Show a modal with a compiling spinner.
 function showCompilingMessage(message)
 {
   var html = HtmlService.createHtmlOutputFromFile('Spinner')
