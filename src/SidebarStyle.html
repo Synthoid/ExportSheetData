@@ -1,0 +1,159 @@
+<style>
+  .paddedV
+  {
+    min-height: 35px;
+    background-color: #242424;
+  }
+  
+  .buttonPadding
+  {
+    min-height: 5px;
+    background-color: #242424;
+    margin-bottom: 15px;
+  }
+  
+  .buttonPlaceholder
+  {
+    min-height: 70px;
+  }
+  
+  .mainWrapper
+  {
+	margin-left: auto;
+	margin-right: auto;
+  }
+  
+  .sectionWrapper
+  {
+    margin: 25px;
+  }
+  
+  .centerWrapper
+  {
+    margin: auto;
+    max-width: 175px;
+  }
+  
+  .scrollWrapper
+  {
+    max-height: 150px;
+    overflow: auto;
+  }
+  
+  .buttonWrapper
+  {
+    background-color: #4d4d4d;
+    min-width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding-bottom: 20px;
+    z-index: 2;
+  }
+  
+  .dropdown
+  {
+    width: 200px;
+  }
+  
+  .note
+  {
+    color: grey;
+    font-style: italic;
+  }
+  
+  .option
+  {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .option .tooltip
+  {
+    visibility: hidden;
+    width: 200px;
+    background-color: rgba(0,0,0,0.975);
+    border-radius: 6px;
+    padding: 10px 10px;
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 0%;
+    
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  
+  .option .padded
+  {
+    margin-left: 20px;
+  }
+  
+  .option:hover .tooltip
+  {
+    visibility: visible;
+    opacity: 1;
+  }
+  
+  .disabled
+  {
+    color: grey;
+  }
+  
+  .accordion
+  {
+    min-height: 20px;
+    background-color: #242424;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border-bottom: 5px solid black;
+    outline: none;
+    transition: 0.4s;
+  }
+  
+  .accordion:hover
+  {
+    background-color: #2a5266;
+  }
+  
+  .accordion:before
+  {
+    content: '\002B';
+    color: white;
+    float: left;
+    margin: 16px 0px 0px 10px;
+    font-size: 36px;
+  }
+  
+  .active:before
+  {
+    content: "\2212";
+  }
+  
+  .accodionPanel
+  {
+    display: block;
+    overflow: hidden;
+  }
+  
+  input[type=text]:enabled
+  {
+    background: #ffffff;
+  }
+
+  input[type=text]:disabled
+  {
+    background: #595959;
+    color: #ffffff;
+  }
+
+  h1
+  {
+    color: white;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+    margin: 10px 0px 10px 5px;
+  }
+</style>

@@ -1,4 +1,4 @@
-const esdVersion = 59;
+const esdVersion = 60;
 
 //Popup message
 var messageLineHeight = 10;
@@ -1931,10 +1931,13 @@ function showCompilingMessage(message)
   
 function openSidebar()
 {
-  var html = HtmlService.createHtmlOutputFromFile('Sidebar')
+  var html = HtmlService.createTemplateFromFile('Sidebar').evaluate().setSandboxMode(HtmlService.SandboxMode.IFRAME).setTitle('Export Sheet Data').setWidth(300);
+
+  /*var html = HtmlService.createHtmlOutputFromFile('Sidebar')
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setTitle('Export Sheet Data')
-      .setWidth(300);
+      .setWidth(300);*/
+  //SpreadsheetApp.getUi().showSidebar(userInterface)
   SpreadsheetApp.getUi()
       .showSidebar(html);
 }
@@ -1999,10 +2002,17 @@ function onFolderSelected(settings)
   openSidebar(); //TODO: This will wipe any unsaved settings... need to pass settings when calling openFolderPicker()?
 }
 
-
+//Used in FolderPicker.html to determine if the user has granted proper access for allowing file browsing.
 function getOAuthToken()
 {
   return ScriptApp.getOAuthToken();
+}
+
+//https://developers.google.com/apps-script/guides/html/best-practices#code.gs
+//Server side function to insert html snipits in other html files when generating html templates.
+function include(filename)
+{
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 
