@@ -12,6 +12,8 @@ Install
 -------
 Export Sheet Data is available in both the Chrome Web Store and the G Suite Marketplace. You can install it [here](https://chrome.google.com/webstore/detail/export-sheet-data/bfdcopkbamihhchdnjghdknibmcnfplk?utm_source=permalink)
 
+**NOTE:** There is a known bug when using add-ons while multiple accounts are signed in. If you run into a situation where the ESD sidebar doesn't seem to load, try signing out of any extra accounts and opening the sidebar. More information about this bug can be found [here](https://sites.google.com/site/scriptsexamples/home/announcements/multiple-accounts-issue-with-google-apps-script).
+
 Documentation
 -------------
 The best way to figure out how to use Export Sheet Data is by opening the sidebar, reading the tooltips of various options and experimenting with the output using the Visualize option.

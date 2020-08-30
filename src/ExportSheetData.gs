@@ -1,10 +1,10 @@
 const esdVersion = 60;
 
 //Popup message
-var messageLineHeight = 10;
+const messageLineHeight = 10;
 
 //Indenting
-var indentValue = "  "; //'\t'
+const indentValue = "  "; //'\t'
 var indentAmount = 0;
 
 //Subpath types
@@ -645,6 +645,13 @@ function getSubpathSearchType(subpath)
   return type;
 }
 
+function trimSafe(value)
+{
+  if(typeof(value) === 'string') return value.trim();
+
+  return value;
+}
+
 //Formats empty cell values to use the appropriate value (null or "")
 function getEmptyCellValueJson(formatType)
 {
@@ -892,7 +899,7 @@ function exportSpreadsheetXml(formatSettings, callback)
       //Set attributes
       for(var k=0; k < attributes.length; k++)
       {
-        rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), attributes[k]);
+        rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), trimSafe(attributes[k]));
       }
       
       //Set child elements
@@ -900,7 +907,7 @@ function exportSpreadsheetXml(formatSettings, callback)
       {
         var childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar));
         
-        childXml.setText(childElements[k]);
+        childXml.setText(trimSafe(childElements[k]));
         
         rowXml.addContent(childXml);
       }
@@ -912,7 +919,7 @@ function exportSpreadsheetXml(formatSettings, callback)
         
         for(var k=0; k < innerTextElements.length; k++)
         {
-          innerText += innerTextElements[k];
+          innerText += trimSafe(innerTextElements[k]);
           
           if(k < innerTextElements.length - 1) innerText += "\n";
         }
@@ -1211,7 +1218,9 @@ function exportSpreadsheetJson(formatSettings, callback)
             }
           }
           
-          var content = values[j][k];
+          var content = trimSafe(values[j][k]);
+          
+          //if(typeof(content) === 'string') content = content.trim();
           
           //We want to export this cell as a json object, so attempt to parse it to an object format, and make it empty if that fails
           if(exportCellObjectJson && typeof(content) === 'string')
@@ -1262,17 +1271,16 @@ function exportSpreadsheetJson(formatSettings, callback)
           else if(forceString)
           {
             //Force value to be a string if desired
-            
             if(isObject(content))
             {
               for(field in content)
               {
-                content[field] = content[field].toString();
+                content[field] = content[field].toString().trim();
               }
             }
             else
             {
-              content = content.toString();
+              content = content.toString().trim();
             }
           }
           
@@ -1785,9 +1793,9 @@ function reexportFile()
 function escapeHtml(content)
 {
   return content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/&/g, '&amp;') //&
+    .replace(/</g, '&lt;')  //<
+    .replace(/>/g, '&gt;'); //>
 }
 
 //Export the given content as a file with the given properties.
@@ -1799,8 +1807,8 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(600)
       .setHeight(525 + exportMessageHeight);
-    SpreadsheetApp.getUi()
-    .showModelessDialog(html, 'Visualized Data: ' + filename);
+      
+    SpreadsheetApp.getUi().showModelessDialog(html, 'Visualized Data: ' + filename);
   }
   else
   {
@@ -1919,27 +1927,23 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
 //Show a modal with a compiling spinner.
 function showCompilingMessage(message)
 {
-  var html = HtmlService.createHtmlOutputFromFile('Spinner')
+  var html = HtmlService.createTemplateFromFile('Spinner').evaluate()
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(300)
       .setHeight(100);
   
-  SpreadsheetApp.getUi()
-      .showModelessDialog(html, message);
+  SpreadsheetApp.getUi().showModelessDialog(html, message);
 }
 
   
 function openSidebar()
 {
-  var html = HtmlService.createTemplateFromFile('Sidebar').evaluate().setSandboxMode(HtmlService.SandboxMode.IFRAME).setTitle('Export Sheet Data').setWidth(300);
+  var html = HtmlService.createTemplateFromFile('Sidebar').evaluate()
+    .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+    .setTitle('Export Sheet Data')
+    .setWidth(300);
 
-  /*var html = HtmlService.createHtmlOutputFromFile('Sidebar')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
-      .setTitle('Export Sheet Data')
-      .setWidth(300);*/
-  //SpreadsheetApp.getUi().showSidebar(userInterface)
-  SpreadsheetApp.getUi()
-      .showSidebar(html);
+  SpreadsheetApp.getUi().showSidebar(html);
 }
 
 
@@ -1949,8 +1953,8 @@ function openReleaseNotes()
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(275)
       .setHeight(130);
-    SpreadsheetApp.getUi()
-    .showModelessDialog(html, 'ESD Release Notes');
+      
+    SpreadsheetApp.getUi().showModelessDialog(html, 'ESD Release Notes');
 }
 
 
@@ -1960,8 +1964,8 @@ function openDocumentation()
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(275)
       .setHeight(130);
-    SpreadsheetApp.getUi()
-    .showModelessDialog(html, 'ESD Documentation');
+      
+    SpreadsheetApp.getUi().showModelessDialog(html, 'ESD Documentation');
 }
 
 
@@ -1971,8 +1975,8 @@ function openNestedElementDocumentation()
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(275)
       .setHeight(130);
-    SpreadsheetApp.getUi()
-    .showModelessDialog(html, 'Nested Elements');
+      
+    SpreadsheetApp.getUi().showModelessDialog(html, 'Nested Elements');
 }
 
 
@@ -1982,16 +1986,18 @@ function openUpdateWindow()
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(275)
       .setHeight(130);
-    SpreadsheetApp.getUi()
-    .showModelessDialog(html, 'ESD Update Notes');
+      
+    SpreadsheetApp.getUi().showModelessDialog(html, 'ESD Update Notes');
 }
 
 
-function openFolderPicker() {
+function openFolderPicker()
+{
   var html = HtmlService.createHtmlOutputFromFile('FolderPicker.html')
       .setWidth(650)
       .setHeight(450)
       .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+      
   SpreadsheetApp.getUi().showModalDialog(html, 'Select Export Folder');
 }
 
@@ -2009,7 +2015,7 @@ function getOAuthToken()
 }
 
 //https://developers.google.com/apps-script/guides/html/best-practices#code.gs
-//Server side function to insert html snipits in other html files when generating html templates.
+//Server side function to insert html snippets in other html files when generating html templates.
 function include(filename)
 {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
