@@ -1947,36 +1947,14 @@ function openSidebar()
 }
 
 
-function openReleaseNotes()
+function openAboutModal()
 {
-  var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><div><p>Current version: v' + esdVersion + '</p><p>Release notes can be viewed on GitHub: <a href="https://github.com/Synthoid/ExportSheetData/blob/master/ReleaseNotes.pdf" target="blank">here</a></p><br><button onclick="google.script.host.close()">Close</button></div>')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
-      .setWidth(275)
-      .setHeight(130);
-      
-    SpreadsheetApp.getUi().showModelessDialog(html, 'ESD Release Notes');
-}
-
-
-function openDocumentation()
-{
-  var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><div><p>Documentation for Export Sheet Data can be viewed on GitHub: <a href="https://github.com/Synthoid/ExportSheetData/blob/master/docs/index.md" target="blank">here</a></p><br><button onclick="google.script.host.close()">Close</button></div>')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
-      .setWidth(275)
-      .setHeight(130);
-      
-    SpreadsheetApp.getUi().showModelessDialog(html, 'ESD Documentation');
-}
-
-
-function openNestedElementDocumentation()
-{
-  var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><div><p>Nested Elements documentation can be viewed on GitHub: <a href="https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements" target="blank">here</a></p><br><button onclick="google.script.host.close()">Close</button></div>')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
-      .setWidth(275)
-      .setHeight(130);
-      
-    SpreadsheetApp.getUi().showModelessDialog(html, 'Nested Elements');
+  var html = HtmlService.createTemplateFromFile('About').evaluate()
+    .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+    .setWidth(275)
+    .setHeight(185);
+  
+  SpreadsheetApp.getUi().showModelessDialog(html, 'About ESD');
 }
 
 
@@ -1987,7 +1965,7 @@ function openUpdateWindow()
       .setWidth(275)
       .setHeight(130);
       
-    SpreadsheetApp.getUi().showModelessDialog(html, 'ESD Update Notes');
+  SpreadsheetApp.getUi().showModelessDialog(html, 'ESD Update Notes');
 }
 
 
@@ -2034,8 +2012,6 @@ function onOpen(e)
   ui.createAddonMenu()
   .addItem("Open Sidebar", "openSidebar")
   .addSeparator()
-  .addItem("Release Notes (v" + esdVersion + ")", "openReleaseNotes")
-  .addItem("Documentation", "openDocumentation")
-  .addItem("Nested Elements", "openNestedElementDocumentation")
+  .addItem("About (v" + esdVersion + ")", "openAboutModal")
   .addToUi();
 };
