@@ -119,15 +119,36 @@
   var forceArrayPrefixNest = "NAR_";
   
   //Get the properties for the sheet to automatically set values based on the user's last export for this document.
-  function getProperties(onSuccess)
+  function getProperties(onSuccess, onFailure)
   {
-    return google.script.run.withSuccessHandler(onSuccess).getExportProperties();
+    return google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).getExportProperties();
   }
   
   //Saves the properties for the user's last export for this document so they are automatically set the next time the document opens..
   function setProperties()
   {
-    return google.script.run.setExportProperties(generateProperties());
+    return google.script.run.withFailureHandler(onSetPropertiesFailure).setExportProperties(generateProperties());
+  }
+  
+  //Safety check in case getting properties throws an error. This can occur due to a bug on Google's side of Apps Script execution that involves multiple accounts being signed in.
+  function onGetPropertiesFailure(error)
+  {
+    google.script.run.openErrorModal("Settings Error", 
+      "There was an error retrieving user settings, so default settings have been loaded. This is most often due to multiple accounts being signed in.", 
+      error.message + "\n" + error.stack);
+      
+    //Open the sidebar with default values.
+    updateProperties(null);
+  }
+  
+  //Safety check in case setting properties throws an error. This could occur due to a bug on Google's side of Apps Script execution that involves multiple accounts being signed in.
+  function onSetPropertiesFailure(error)
+  {
+    //Log an error to the console.
+    console.error(error.message + "\n" + error.stack);
+    /*google.script.run.openErrorModal("Settings Error", 
+      "There was an error updating user settings. This is most often due to multiple accounts being signed in (more info <a href='https://github.com/Synthoid/ExportSheetData#install'>here</a>).", 
+      error.message + "\n" + error.stack);*/
   }
   
   //Actually sets the local properties based on stored settings.
@@ -1637,5 +1658,5 @@
     google.script.run.exportJson(generateJsonSettings(true, newSheets));
   }
   
-  getProperties(updateProperties);
+  getProperties(updateProperties, onGetPropertiesFailure);
 </script>

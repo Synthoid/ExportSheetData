@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <style>
+      div.content {
+        width: 100%;
+        height: 165px;
+        overflow: auto;
+      }
+      
+      textarea {
+        width: 98%;
+        color: rgba(255, 150, 150, 1);
+        background-color: rgba(50, 0, 0, 1);
+      }
+      
+      button.close {
+        position: fixed;
+        bottom: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="content">
+      <p>{5fd5c101-9583-456a-8c32-857c0fe3d1db}</p> <!--Custom message-->
+      <button onclick="copyError()">&#128203; <b>Error</b></button>
+      
+      <textarea class="display" id="clipboard" readonly>{34f48d68-d9b5-4c63-8a62-a25f5a412313}</textarea> <!--Error readout-->
+    </div>
+    <div>
+      <button class="close" onclick="google.script.host.close()">Close</button>
+    </div>
+    <script type="application/javascript">
+      function copyError()
+      {
+        var copyText = document.getElementById("clipboard");
+
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+        document.execCommand("copy");
+      }
+      
+      function resizeTextArea()
+      {
+        var textArea = document.getElementById("clipboard");
+        
+        textArea.style.height = "auto";
+        textArea.style.height = (textArea.scrollHeight + 5) + "px";
+      }
+      
+      resizeTextArea();
+    </script>
+  </body>
+</html>

@@ -12,19 +12,19 @@
       <p>Nested Elements Documentation: <a href="https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements" target="blank">here</a></p>
       <br>
       <button onclick="google.script.host.close()">Close</button>
-     </div>
-     <script type="application/javascript">
-       function refreshVersion()
-       {
-         google.script.run.withSuccessHandler(onVersionSuccess).getVersion()
-       }
-       
-       function onVersionSuccess(version)
-       {
-         document.getElementById("versionNumber").innerHTML = "v" + version;
-       }
-       
-       refreshVersion();
-     </script>
+    </div>
+    <script type="application/javascript">
+      function refreshVersion()
+      {
+        google.script.run.withSuccessHandler(onVersionSuccess).getVersion()
+      }
+      
+      function onVersionSuccess(version)
+      {
+        document.getElementById("versionNumber").innerHTML = "v" + version;
+      }
+      
+      refreshVersion();
+    </script>
   </body>
 </html>

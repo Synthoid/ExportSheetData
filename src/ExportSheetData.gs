@@ -1804,7 +1804,6 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
   if(visualize == true)
   {
     var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:555px; height:425px; }</style><textarea class="display">' + escapeHtml(content) + '</textarea><br>Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.<br><br>' + (exportMessage === "" ? '' : exportMessage + '<br><br>') + '<button class="action" onclick="google.script.run.reexportFile()">Export</button><button onclick="google.script.host.close()">Close</button>')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(600)
       .setHeight(525 + exportMessageHeight);
       
@@ -1916,7 +1915,6 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
     }
     
     var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:355px; height:85px; text-align: center; overflow: auto; } </style>File exported successfully. You can view the file here:<div class="display"><br><br><a href="' + file.getUrl() + '" target="_blank">' + file.getName() + '</a></div>' + message + '<button onclick="google.script.host.close()">Close</button>')
-        .setSandboxMode(HtmlService.SandboxMode.IFRAME)
         .setWidth(400)
         .setHeight(height);
     
@@ -1928,7 +1926,6 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
 function showCompilingMessage(message)
 {
   var html = HtmlService.createTemplateFromFile('Spinner').evaluate()
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(300)
       .setHeight(100);
   
@@ -1939,7 +1936,6 @@ function showCompilingMessage(message)
 function openSidebar()
 {
   var html = HtmlService.createTemplateFromFile('Sidebar').evaluate()
-    .setSandboxMode(HtmlService.SandboxMode.IFRAME)
     .setTitle('Export Sheet Data')
     .setWidth(300);
 
@@ -1949,8 +1945,7 @@ function openSidebar()
 
 function openAboutModal()
 {
-  var html = HtmlService.createTemplateFromFile('About').evaluate()
-    .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+  var html = HtmlService.createTemplateFromFile('Modal_About').evaluate()
     .setWidth(275)
     .setHeight(185);
   
@@ -1958,10 +1953,24 @@ function openAboutModal()
 }
 
 
+function openErrorModal(title, message, error)
+{
+  var htmlString = HtmlService.createTemplateFromFile('Modal_Error').getRawContent();
+  
+  htmlString = htmlString.replace('{5fd5c101-9583-456a-8c32-857c0fe3d1db}', message); //Set the message content
+  htmlString = htmlString.replace('{34f48d68-d9b5-4c63-8a62-a25f5a412313}', error); //Set the error content
+  
+  var html = HtmlService.createHtmlOutput(htmlString)
+    .setWidth(360)
+    .setHeight(200);
+      
+  SpreadsheetApp.getUi().showModelessDialog(html, title);
+}
+
+
 function openUpdateWindow()
 {
   var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><div><p>Export Sheet Data has been updated to v' + esdVersion + '</p><p>Release notes can be viewed on GitHub: <a href="https://github.com/Synthoid/ExportSheetData/blob/master/ReleaseNotes.pdf" target="blank">here</a></p><br><button onclick="google.script.host.close()">Close</button></div>')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(275)
       .setHeight(130);
       
@@ -1973,8 +1982,7 @@ function openFolderPicker()
 {
   var html = HtmlService.createHtmlOutputFromFile('FolderPicker.html')
       .setWidth(650)
-      .setHeight(450)
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+      .setHeight(450);
       
   SpreadsheetApp.getUi().showModalDialog(html, 'Select Export Folder');
 }
