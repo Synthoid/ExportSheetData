@@ -74,6 +74,7 @@ These settings only affect exported XML data.
 ### Basic
 
 - [Export columns as child elements](xml/exportcolumnsaschildelements.md) - Export columns as child elements of their row's XML element
+- [Export bools as ints](xml/exportboolsasints.md) - Export boolean values as integers
 - [Root element](xml/rootelement.md) - Name for the exported XML document's root element
 
 ### Advanced
