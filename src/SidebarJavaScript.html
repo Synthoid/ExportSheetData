@@ -64,6 +64,8 @@
   //XML Options
   //Export values as child elements instead of attributes
   var exportChildElementXml = false;
+  //Export boolean values as "1" or "0" instead of "true" or "false" respectively.
+  var exportBoolsAsIntsXml = false;
   
   //XML Advanced Options
   //Root element of the XML document
@@ -206,7 +208,9 @@
     
     //XML
     exportChildElementXml = settings["exportChildElements"] != null ? settings["exportChildElements"] === true : exportChildElementXml;
+    exportBoolsAsIntsXml = settings["exportBoolsAsInts"] != null ? settings["exportBoolsAsInts"] === true : exportBoolsAsIntsXml;
     rootElementXml = settings["rootElement"] != null ? (settings["rootElement"] === "" ? rootElementXml : settings["rootElement"]) : rootElementXml;
+    //Advanced XML
     nameReplacementCharXml = settings["nameReplacementChar"] != null ? (settings["nameReplacementChar"] === "" ? nameReplacementCharXml : settings["nameReplacementChar"]) : nameReplacementCharXml;
     includeDeclarationXml = settings["includeDeclaration"] != null ? settings["includeDeclaration"] === true : includeDeclarationXml;
     declarationVersionXml = settings["declarationVersion"] != null ? (settings["declarationVersion"] === "" ? declarationVersionXml : settings["declarationVersion"]) : declarationVersionXml;
@@ -251,12 +255,13 @@
       "forceArrayNest" : forceArrayNest,
       "forceArrayPrefixNest" : (forceArrayPrefixNest === "" ? NEST_NA_DEFAULT : forceArrayPrefixNest),
       //JSON
-      "exportContentsAsArray" : exportContentsAsArrayJson,
-      "exportCellObject" : exportCellObjectJson,
+      "forceString" : forceStringJson,
       "exportCellArray" : exportCellArrayJson,
       "exportSheetArray" : exportSheetArrayJson,
       "exportValueArray" : exportValueArrayJson,
-      "forceString" : forceStringJson,
+      //Advanced
+      "exportContentsAsArray" : exportContentsAsArrayJson,
+      "exportCellObject" : exportCellObjectJson,
       "emptyValueFormat" : emptyValueFormatJson,
       "nullValueFormat" : nullValueFormatJson,
       "separatorChar" : getSeparatorCharJson(),
@@ -264,7 +269,9 @@
       "forceArrayPrefix" : (forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson),
       //XML
       "exportChildElements" : exportChildElementXml,
+      "exportBoolsAsInts" : exportBoolsAsIntsXml,
       "rootElement" : getRootElement(),
+      //Advanced
       "nameReplacementChar" : nameReplacementCharXml,
       "includeDeclaration" : includeDeclarationXml,
       "declarationVersion" : declarationVersionXml,
@@ -443,6 +450,11 @@
   function toggleElement()
   {
     exportChildElementXml = !exportChildElementXml;
+  }
+  
+  function toggleExportBoolsAsInts()
+  {
+    exportBoolsAsIntsXml = !exportBoolsAsIntsXml;
   }
   
   function getRootElement()
@@ -961,6 +973,16 @@
       xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
       xmlText += "/><div class='option'>Export columns as child elements<div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
+      
+      
+      
+      //Export bools as ints
+      xmlText += "<div class='sectionWrapper'><input id='exportBoolsAsIntsToggle' type='checkbox' value='false'";
+      if(exportBoolsAsIntsXml) xmlText += " checked";
+      xmlText += "/><div class='option'>Export bools as ints<div class='tooltip note'>Export [true] and [false] boolean values as [1] and [0] respectively..</div></div></div>";
+      
+      
+      
       //Root element value
       xmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note padded'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
       xmlText += "'" + rootElementXml + "'";
@@ -1071,6 +1093,7 @@
       document.getElementById("advancedOptions").innerHTML = advancedXmlText;
       //XML Options
       document.getElementById('elementToggle').addEventListener("change", toggleElement);
+      document.getElementById('exportBoolsAsIntsToggle').addEventListener("change", toggleExportBoolsAsInts);
       //Advanced Options
       document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
       document.getElementById('xmlNameReplaceCharDropdown').addEventListener("change", changeNameReplacementCharXml);
@@ -1433,6 +1456,10 @@
     {
       document.getElementById('elementToggle').removeEventListener("change", toggleElement);
     }
+    if(document.getElementById('exportBoolsAsIntsToggle') != null)
+    {
+      document.getElementById('exportBoolsAsIntsToggle').removeEventListener("change", toggleExportBoolsAsInts);
+    }
     if(document.getElementById('xmlRootField') != null)
     {
       document.getElementById('xmlRootField').removeEventListener("change", updateRootElementXml);
@@ -1522,15 +1549,18 @@
   function generateXmlSettings(singleSheet, exportSheets)
   {
     var settings = {
+      //Format
       "exportType" : exportType,
       "exportFolderType" : exportFolderType,
       "exportFolder" : exportFolder,
       "visualize" : visualizeData,
       "singleSheet" : singleSheet,
+      //General
       "replaceExistingFiles" : replaceExistingFiles,
       "unwrapSingleRows" : unwrapSingleRows,
       "collapseSingleRows" : collapseSingleRows,
       "ignoreEmptyCells" : ignoreEmptyCells,
+      //Advanced
       "nestedElements" : nestedElements,
       "minifyData" : minifyData,
       "includeFirstColumn" : includeFirstColumn,
@@ -1538,7 +1568,9 @@
       "unwrapPrefix":getUnwrapPrefix(),
       "collapsePrefix":getCollapsePrefix(),
       "targetSheets" : exportSheets,
+      //XML
       "exportChildElements" : exportChildElementXml,
+      "exportBoolsAsInts" : exportBoolsAsIntsXml,
       "rootElement" : getRootElement(),
       "nameReplacementChar" : nameReplacementCharXml,
       "declarationVersion" : getDeclarationVersion(),

@@ -1,4 +1,4 @@
-const esdVersion = 60;
+const esdVersion = 61;
 
 //Popup message
 const messageLineHeight = 10;
@@ -23,8 +23,8 @@ const searchTypeIndex = "Index"; //Search for a specific index (#1)
 const searchTypeNone = "None"; //Not a valid search type
 
 //Special prefixes to allow XML nested elements
-//var arrayPref = "ARRAY_";
-//var attributePref = "ATTRIBUTE_";
+//const arrayPref = "ARRAY_";
+//const attributePref = "ATTRIBUTE_";
 
 //Gets the last settings for ESD in the open document.
 function getProperties()
@@ -127,7 +127,7 @@ function getIndexOf(array, value)
   
   var index = -1;
   
-  for(var i=0; i < array.length; i++)
+  for(let i=0; i < array.length; i++)
   {
     if(array[i] == value)
     {
@@ -144,7 +144,7 @@ function getIndent()
 {
   var indent = "";
   
-  for(var i=0; i < indentAmount; i++)
+  for(let i=0; i < indentAmount; i++)
   {
     indent += indentValue;
   }
@@ -159,7 +159,7 @@ function getSheetNames()
   var sheets = spreadsheet.getSheets();
   var sheetNames = new Array();
   
-  for(var i=0; i < sheets.length; i++)
+  for(let i=0; i < sheets.length; i++)
   {
     sheetNames.push(sheets[i].getName());
   }
@@ -212,7 +212,7 @@ function getCellContentArray(cell, separatorChar)
   var closeQuoteIndicies = new Array();
   
   //Set the indicies for quotes and commas
-  for(var i=0; i < content.length; i++)
+  for(let i=0; i < content.length; i++)
   {
     if(content.charAt(i) == '"')
     {
@@ -233,9 +233,9 @@ function getCellContentArray(cell, separatorChar)
   
   //Remove a comma if it is wrapped in quotes
   //Use the close quote indicies in the case of an open ended quote at the end of content
-  for(var i=0; i < closeQuoteIndicies.length; i++)
+  for(let i=0; i < closeQuoteIndicies.length; i++)
   {
-    for(var j=commaIndicies.length-1; j >= 0; j--)
+    for(let j=commaIndicies.length-1; j >= 0; j--)
     {
       if(commaIndicies[j] > openQuoteIndicies[i] && commaIndicies[j] < closeQuoteIndicies[i])
       {
@@ -246,21 +246,21 @@ function getCellContentArray(cell, separatorChar)
         
   //Populate the array
   var startIndex = 0;
-  for(var i=0; i < commaIndicies.length; i++)
+  for(let i=0; i < commaIndicies.length; i++)
   {
-    var arrayString = content.slice(startIndex, commaIndicies[i]);
+    let arrayString = content.slice(startIndex, commaIndicies[i]);
     if(arrayString != "") cellArray.push(arrayString.replace('"', ' ').replace('"', ' ').trim()); //Get rid of the wrapping quotes
     startIndex = commaIndicies[i] + 1; // +1 so the next string doesn't start with a comma
   }
   
   if(commaIndicies.length > 0)
   {
-    var endIndex;
+    let endIndex;
     
     if(content[content.length - 1] == separatorChar) endIndex = content.length - 1;
     else endIndex = content.length;
     
-    var lastString = content.slice(startIndex, endIndex); //Push the string from the last comma to the end of the content string
+    let lastString = content.slice(startIndex, endIndex); //Push the string from the last comma to the end of the content string
     cellArray.push(lastString.replace('"', ' ').replace('"', ' ').trim()); //Get rid of wrapping quotes
   }
   
@@ -270,7 +270,7 @@ function getCellContentArray(cell, separatorChar)
   }
   
   //Convert values to their correct type (float, bool, etc)
-  for(var i=0; i < cellArray.length; i++)
+  for(let i=0; i < cellArray.length; i++)
   {
     if(!isNaN(parseFloat(cellArray[i])))
     {
@@ -341,7 +341,9 @@ function formatXmlName(value, replacement)
     }
   }
   
-  xmlName = xmlName.replace(/[^a-zA-Z0-9\-\_]/gm, replacement); //Replace non-alphanumeric, dash, underscore, or period chars with an underscore
+  // /([^a-zA-Z0-9\-\_])/gm
+  // /([^:A-Z0-9\-\_\.])/gim
+  xmlName = xmlName.replace(/([^A-Z0-9\-\_\.])/gim, replacement); //Replace non-alphanumeric, dash, underscore, or period chars with an underscore
   
   if(xmlName.search(/[a-zA-Z\_]/g) > 0)
   {
@@ -349,6 +351,47 @@ function formatXmlName(value, replacement)
   }
   
   return xmlName;
+}
+
+//Returns an array with the name as the first element and the namespace as the second.
+function getXmlNameWithNamespace(value)
+{
+  var values = value.split(':');
+  var output = [];
+  
+  switch(values.length)
+  {
+    case 0:
+      output = [ "", "" ];
+      break;
+    case 1:
+      output = [ values[0], "" ];
+      break;
+    default:
+      output = [ values[values.length-1], values[0] ];
+      break;
+  }
+  
+  return output;
+}
+
+function formatXmlValue(value, exportBoolsAsInts)
+{
+  //TODO: Move to JSON settings object
+  /*if(settings["exportBoolsAsInts"] === true)
+  {
+    if(typeof(value) === "boolean")
+    {
+      return value ? "1" : "0";
+    }
+  }*/
+  
+  if(exportBoolsAsInts && typeof(value) === "boolean")
+  {
+    return value ? 1 : 0;
+  }
+  
+  return value;
 }
 
 
@@ -359,7 +402,7 @@ function formatJsonString(value, asObject)
     //Get rid of wrapping quotes (")
     if(value[0] == '"' && value[value.length-1] == '"')
     {
-      var endValue = value.length - 1;
+      let endValue = value.length - 1;
       
       if(endValue < 1) endValue = 1;
       
@@ -383,7 +426,7 @@ function keyHasPrefix(key, prefix)
   
   var newKey = "";
   
-  for(var i=0; i < prefix.length; i++)
+  for(let i=0; i < prefix.length; i++)
   {
     newKey += key[i];
   }
@@ -394,7 +437,7 @@ function keyHasPrefix(key, prefix)
 //Returns true if a key starts with any of the specified prefixes.
 function keyHasPrefixes(key, prefixes)
 {
-  for(var i=0; i < prefixes.length; i++)
+  for(let i=0; i < prefixes.length; i++)
   {
     if(keyHasPrefix(key, prefixes[i]))
     {
@@ -413,7 +456,7 @@ function getPrefixes(key, prefixes)
   var prefixArgs = new Array();
   
   //Set initial values
-  for(var i=1; i < arguments.length; i++)
+  for(let i=1; i < arguments.length; i++)
   {
     values.push(false);
     prefixArgs.push(arguments[i]);
@@ -422,7 +465,7 @@ function getPrefixes(key, prefixes)
   //Loop through and set if each prefix is used.
   while(keyHasPrefixes(key, prefixArgs))
   {
-    for(var i=1; i < arguments.length; i++)
+    for(let i=1; i < arguments.length; i++)
     {
       if(keyHasPrefix(key, arguments[i]))
       {
@@ -442,7 +485,7 @@ function stripPrefix(key, prefix)
   {
     var newKey = "";
     
-    for(var i=prefix.length; i < key.length; i++)
+    for(let i=prefix.length; i < key.length; i++)
     {
       newKey += key[i];
     }
@@ -459,7 +502,7 @@ function stripPrefixes(key, prefixes)
   var prefixArgs = new Array();
   
   //Set initial values
-  for(var i=1; i < arguments.length; i++)
+  for(let i=1; i < arguments.length; i++)
   {
     prefixArgs.push(arguments[i]);
   }
@@ -467,7 +510,7 @@ function stripPrefixes(key, prefixes)
   //Loop through and set if each prefix is used.
   while(keyHasPrefixes(key, prefixArgs))
   {
-    for(var i=1; i < arguments.length; i++)
+    for(let i=1; i < arguments.length; i++)
     {
       if(keyHasPrefix(key, arguments[i]))
       {
@@ -492,7 +535,7 @@ function getKeyPathString(path, index)
 {
   var pathstring = "";
   
-  for(var i=0; i < path.length; i++)
+  for(let i=0; i < path.length; i++)
   {
     if(index <= i) break;
     if(path[i].length <= 2 || path[i][1] !== '#') pathstring += path[i]; //Only add the suppath if it is not a search path
@@ -515,7 +558,7 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
     var subPath = "";
     var pathType = "";
   
-    for(var i=0; i < key.length; i++)
+    for(let i=0; i < key.length; i++)
     {
       if(pathType === "") pathType = key[i];
       
@@ -528,7 +571,7 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
         //Inject implied values when needed and able
         if(pathType === '[' && i < key.length-1 && key[i+1] !== '{')
         {
-          var pathInjectString = getKeyPathString(path, path.length);
+          let pathInjectString = getKeyPathString(path, path.length);
           
           if(getIndexOf(implicitNames, pathInjectString) >= 0)
           {
@@ -546,7 +589,7 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
     //Check that the last element in the path is a key path type. If not, make one from the last existing element.
     if(getSubpathTypeJson(path[path.length-1]) !== keySubpath)
     {
-      var keyPath = trimKeySubpath(path[path.length-1]);
+      let keyPath = trimKeySubpath(path[path.length-1]);
       
       if(isSearchSubpath(keyPath)) keyPath = keyPath.substring(1);
       
@@ -645,6 +688,7 @@ function getSubpathSearchType(subpath)
   return type;
 }
 
+//Trims a value of whitespace if it is a string. Otherwise returns the value unaltered.
 function trimSafe(value)
 {
   if(typeof(value) === 'string') return value.trim();
@@ -749,7 +793,9 @@ function exportSpreadsheetXml(formatSettings, callback)
   
   //XML settings
   var useChildElements = settings["exportChildElements"];
+  var exportBoolsAsInts = settings["exportBoolsAsInts"];
   var rootElement = settings["rootElement"];
+  //Advanced
   var nameReplacementChar = settings["nameReplacementChar"];
   var declarationVersion = settings["declarationVersion"];
   var declarationEncoding = settings["declarationEncoding"];
@@ -769,7 +815,7 @@ function exportSpreadsheetXml(formatSettings, callback)
     var exportSheets = sheets;
     sheets = new Array();
     
-    for(var i=0; i < exportSheets.length; i++)
+    for(let i=0; i < exportSheets.length; i++)
     {
       if(customSheets[exportSheets[i].getName()] === 'true')
       {
@@ -785,8 +831,8 @@ function exportSpreadsheetXml(formatSettings, callback)
   var sheetValues = [[]];
   
   var xmlRoot = XmlService.createElement(formatXmlName(rootElement, nameReplacementChar)); //Create the root XML element. https://developers.google.com/apps-script/reference/xml-service/
-               
-  for(var i=0; i < sheets.length; i++)
+  
+  for(let i=0; i < sheets.length; i++)
   {
     var sheetName = sheets[i].getName();
     var range = sheets[i].getDataRange();
@@ -826,25 +872,25 @@ function exportSpreadsheetXml(formatSettings, callback)
       collapseSheet = true;
     }
     
-    for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
+    for(let j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
       if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
       
-      var isComment = (values[j][0] === "!--"); //If the first cell in a row starts with !--, treat the row as a comment
-      var attributeKeys = [];
-      var childElementKeys = [];
-      var innerTextKeys = [];
-      var attributes = [];
-      var childElements = [];
-      var innerTextElements = [];
+      let isComment = (values[j][0] === "!--"); //If the first cell in a row starts with !--, treat the row as a comment
+      let attributeKeys = [];
+      let childElementKeys = [];
+      let innerTextKeys = [];
+      let attributes = [];
+      let childElements = [];
+      let innerTextElements = [];
       
       //Build the actual row XML
-      var rowXml = XmlService.createElement("Comment");
+      let rowXml = XmlService.createElement("Comment");
       
       //Separate columns into those that export as child elements or attributes
-      var startIndex = (includeFirstColumn && !isComment) ? 0 : 1; //Exclude the first column by default since it is used as the name of the row element, or because this is a comment element
+      let startIndex = (includeFirstColumn && !isComment) ? 0 : 1; //Exclude the first column by default since it is used as the name of the row element, or because this is a comment element
       
-      for(var k=startIndex; k < columns; k++)
+      for(let k=startIndex; k < columns; k++)
       {
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
         if((ignoreEmpty || isComment) && values[j][k] === "") continue; //Skip empty cells if desired or a comment
@@ -854,7 +900,7 @@ function exportSpreadsheetXml(formatSettings, callback)
         {
           if(values[j][k] == null) continue; //Skip empty cells
           
-          var text = rowXml.getText();
+          let text = rowXml.getText();
           rowXml.setText((text === "") ? values[j][k] : (text + "\n" + values[j][k]));
         }
         else
@@ -862,7 +908,7 @@ function exportSpreadsheetXml(formatSettings, callback)
           //Make a note if an element name gets formatted so users know they do not have proper formatting
           if(exportMessage === "" && values[0][k] !== formatXmlName(values[0][k], nameReplacementChar))
           {
-            exportMessage = "Some keys were not properly formatted for XML and have been auto-formatted.";
+            exportMessage = "Some keys have been auto-formatted to match XML standards.";
             exportMessageHeight = 25;
           }
         
@@ -870,7 +916,7 @@ function exportSpreadsheetXml(formatSettings, callback)
             (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
           {
             childElementKeys.push(stripPrefix(values[0][k], childElementPrefix));
-            childElements.push(values[j][k]);
+            childElements.push(values[j][k]); //TODO: Should convert values if needed. (ie export bools as ints)
           }
           else if(innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))
           {
@@ -897,17 +943,17 @@ function exportSpreadsheetXml(formatSettings, callback)
       rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar));
       
       //Set attributes
-      for(var k=0; k < attributes.length; k++)
+      for(let k=0; k < attributes.length; k++)
       {
-        rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), trimSafe(attributes[k]));
+        rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts));
       }
       
       //Set child elements
-      for(var k=0; k < childElements.length; k++)
+      for(let k=0; k < childElements.length; k++)
       {
-        var childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar));
+        let childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar));
         
-        childXml.setText(trimSafe(childElements[k]));
+        childXml.setText(formatXmlValue(trimSafe(childElements[k]), exportBoolsAsInts));
         
         rowXml.addContent(childXml);
       }
@@ -915,16 +961,16 @@ function exportSpreadsheetXml(formatSettings, callback)
       //Set inner text
       if(innerTextElements.length > 0)
       {
-        var innerText = "";
+        let innerText = "";
         
-        for(var k=0; k < innerTextElements.length; k++)
+        for(let k=0; k < innerTextElements.length; k++)
         {
-          innerText += trimSafe(innerTextElements[k]);
+          innerText += formatXmlValue(trimSafe(innerTextElements[k]), exportBoolsAsInts);
           
           if(k < innerTextElements.length - 1) innerText += "\n";
         }
         
-        var xmlText = XmlService.createText(innerText);
+        let xmlText = XmlService.createText(innerText);
         
         rowXml.addContent(xmlText);
       }
@@ -935,7 +981,7 @@ function exportSpreadsheetXml(formatSettings, callback)
     if(singleSheet || unwrapSheet)
     {
       //Detach the sheet's child content and add them to the document directly.
-      var sheetChildren = sheetXml.getAllContent();
+      let sheetChildren = sheetXml.getAllContent();
       
       for(var k=0; k < sheetChildren.length; k++)
       {
@@ -947,14 +993,14 @@ function exportSpreadsheetXml(formatSettings, callback)
     {
       if(collapseSheet)
       {
-        var sheetChildren = sheetXml.getAllContent();
+        let sheetChildren = sheetXml.getAllContent();
         
-        for(var k=0; k < sheetChildren.length; k++)
+        for(let k=0; k < sheetChildren.length; k++)
         {
           sheetChildren[k].detach();
-          var rowChildren = sheetChildren[k].getAllContent();
+          let rowChildren = sheetChildren[k].getAllContent();
           
-          for(var l=0; l < rowChildren.length; l++)
+          for(let l=0; l < rowChildren.length; l++)
           {
             rowChildren[l].detach();
             sheetXml.addContent(rowChildren[l]);
@@ -976,7 +1022,8 @@ function exportSpreadsheetXml(formatSettings, callback)
   
   if(declarationVersion !== "")
   {
-    var xmlDeclaration = '<?xml version="' + declarationVersion + '"';
+    //TODO: Can probably do this with XmlService?
+    let xmlDeclaration = '<?xml version="' + declarationVersion + '"';
     
     if(declarationEncoding !== "") xmlDeclaration += ' encoding="' + declarationEncoding + '"';
     if(declarationStandalone !== "") xmlDeclaration += ' standalone="' + declarationStandalone + '"';
@@ -1060,7 +1107,7 @@ function exportSpreadsheetJson(formatSettings, callback)
   var nestedFormattingError = false;
   var nestedFormattingErrorMessage = "There was a problem with nested formatting for these fields:\n";
   
-  for(var i=0; i < sheets.length; i++)
+  for(let i=0; i < sheets.length; i++)
   {
     var range = sheets[i].getDataRange();
     var values = range.getValues();
@@ -1164,7 +1211,7 @@ function exportSpreadsheetJson(formatSettings, callback)
     
     if(unwrap && rows > 2 && !forceUnwrap) unwrapSheet = false;
     
-    for(var j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
+    for(let j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
       if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
     
@@ -1177,7 +1224,7 @@ function exportSpreadsheetJson(formatSettings, callback)
       {
         var startIndex = (includeFirstColumn || sheetArray || nestedElements) ? 0 : 1;
         
-        for(var k=startIndex; k < columns; k++)
+        for(let k=startIndex; k < columns; k++)
         {
           var keyPrefix = "";
           
@@ -1249,7 +1296,7 @@ function exportSpreadsheetJson(formatSettings, callback)
             //Force values in the array to be strings if desired
             if(forceString)
             {
-              for(var l=0; l < content.length; l++)
+              for(let l=0; l < content.length; l++)
               {
                 if(content[l] !== "")
                 {
@@ -1646,7 +1693,7 @@ function exportSpreadsheetJson(formatSettings, callback)
           //Force array values to be strings if desired
           if(forceString)
           {
-            for(var l=0; l < content.length; l++)
+            for(let l=0; l < content.length; l++)
             {
               if(content[l] != "") content[l] = content[l].toString();
             }
