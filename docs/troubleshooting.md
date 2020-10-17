@@ -23,3 +23,8 @@ My JSON export only contains one row
 ------------------------------------
 
 This issue can arrise when arise when [Nested Elements](general/nestedelements.md) is enabled and keys have not been properly formatted. See the [Nested Elements Wiki](https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements#advanced-key-formatting) for more details.
+
+Boolean and number values are exporting as strings
+--------------------------------------------------
+
+There are two possibilities here. The first thing to check is if the [Force string values](json/forcestringvalues.md) option in enabled. If that is not enabled, make sure the cell is properly declared as a boolean or number. JSON value types are pulled from the sheet itself, so if the sheet sees the value `true` as a string instead of a boolean, or the value `101` as a string instead of an integer, they will be exported as strings.
