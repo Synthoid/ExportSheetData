@@ -22,6 +22,10 @@ For detailed documentation on each option, take a look at [Export Sheet Data's d
 
 If you want to create more advanced data structures, make sure to read the Wiki page about [Nested Elements](https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements).
 
+Troubleshooting
+---------------
+If you ever experience an issue or have difficulty using ESD, you can look at the [toubleshooting](docs/troubleshooting.md) page for help. This page contains solutions for common issues you may encounter, especially for the more complex features of ESD. If you notice anything the troubleshooting page does not cover, feel free to make a new issue to help improve ESD!
+
 Development Status
 ------------------
 Export Sheet Data supports a wide variety of features. Currently, this includes:
@@ -35,6 +39,7 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
 **XML**
 * Exporting columns as attributes, child elements, or inner text of a row
 * Automatic formatting of XML illegal characters like `&`, `<`, and `>`
+* Exporting booleans as integers
 * XML comments and declaration support
  
 **General**
