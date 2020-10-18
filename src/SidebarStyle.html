@@ -51,11 +51,6 @@
     z-index: 2;
   }
   
-  .dropdown
-  {
-    width: 200px;
-  }
-  
   .note
   {
     color: grey;
@@ -66,6 +61,22 @@
   {
     position: relative;
     display: inline-block;
+  }
+  
+  .subOption
+  {
+    position: relative;
+    left: 16px;
+  }
+  
+  .subOption select
+  {
+    width: 184px;
+  }
+  
+  .subOption input[type=text]
+  {
+    width: 184px;
   }
   
   .option .tooltip
@@ -119,22 +130,32 @@
   
   .accordion:before
   {
-    content: '\002B';
+    content: '\25ba';
     color: white;
     float: left;
     margin: 16px 0px 0px 10px;
-    font-size: 36px;
+    font-size: 16px;
   }
   
   .active:before
   {
-    content: "\2212";
+    content: '\25bc';
   }
   
   .accodionPanel
   {
     display: block;
     overflow: hidden;
+  }
+  
+  select
+  {
+    width: 200px;
+  }
+  
+  input[type=text]
+  {
+    width: 200px;
   }
   
   input[type=text]:enabled
