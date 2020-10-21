@@ -27,8 +27,8 @@
   //Determines what sheets to export data from
   var exportSheets = "allSheets";
   //Specific sheets to export data from
-  var targetSheets = { };
-  var sheets = new Array();
+  var targetSheets = {};
+  var sheets = [];
   //Determines the export location
   var exportFolderType = "default";
   //The folder to export files to
@@ -66,10 +66,10 @@
   var exportChildElementXml = false;
   //Export boolean values as "1" or "0" instead of "true" or "false" respectively.
   var exportBoolsAsIntsXml = false;
-  
-  //XML Advanced Options
   //Root element of the XML document
   var rootElementXml = "data";
+  
+  //XML Advanced Options
   //XML element name invalid char replacement
   var nameReplacementCharXml = "_";
   //XML declaration inclusion
@@ -89,6 +89,9 @@
   //Columns using keys starting with a specified string will always be exported as inner text
   var forceInnerTextXml = false;
   var forceInnerTextPrefixXml = "IT_";
+  //Namespaces
+  var rootNamespace = "";
+  var namespaces = []; //Array of JSON objects with prefix and uri fields.
   
   //JSON Options
   //Export cell contents as a JSON array if the cell contains commas
@@ -222,11 +225,13 @@
     forceChildElementsPrefixXml = settings["childElementPrefix"] != null ? (settings["childElementPrefix"] === "" ? forceChildElementsPrefixXml : settings["childElementPrefix"]) : forceChildElementsPrefixXml;
     forceInnerTextXml = settings["forceInnerText"] != null ? settings["forceInnerText"] === true : forceInnerTextXml;
     forceInnerTextPrefixXml = settings["innerTextPrefix"] != null ? (settings["innerTextPrefix"] === "" ? forceInnerTextPrefixXml : settings["innerTextPrefix"]) : forceInnerTextPrefixXml;
+    rootNamespace = settings["rootNamespace"] != null ? (settings["rootNamespace"] === "" ? rootNamespace : settings["rootNamespace"]) : rootNamespace;
+    namespaces = settings["namespaces"] != null ? settings["namespaces"] : namespaces;
     
     refreshSideBar();
   }
   
-  //Generate the JSON blob representation of the document's settings.
+  //Generate the JSON blob representing the document's settings.
   function generateProperties()
   {
     var properties = {
@@ -282,10 +287,94 @@
       "forceChildElements" : forceChildElementsXml,
       "childElementPrefix" : (forceChildElementsPrefixXml === "" ? XML_CE_DEFAULT : forceChildElementsPrefixXml),
       "forceInnerText" : forceInnerTextXml,
-      "innerTextPrefix" : (forceInnerTextPrefixXml === "" ? XML_IT_DEFAULT : forceInnerTextPrefixXml)
+      "innerTextPrefix" : (forceInnerTextPrefixXml === "" ? XML_IT_DEFAULT : forceInnerTextPrefixXml),
+      "rootNamespace" : rootNamespace,
+      "namespaces" : namespaces
     };
     
     return JSON.stringify(properties);
+  }
+  
+  //Creates a JSON blob representing the current XML settings
+  function generateXmlSettings(singleSheet, exportSheets)
+  {
+    var settings = {
+      //Format
+      "exportType" : exportType,
+      "exportFolderType" : exportFolderType,
+      "exportFolder" : exportFolder,
+      "visualize" : visualizeData,
+      "singleSheet" : singleSheet,
+      //General
+      "replaceExistingFiles" : replaceExistingFiles,
+      "unwrapSingleRows" : unwrapSingleRows,
+      "collapseSingleRows" : collapseSingleRows,
+      "ignoreEmptyCells" : ignoreEmptyCells,
+      //Advanced
+      "nestedElements" : nestedElements,
+      "minifyData" : minifyData,
+      "includeFirstColumn" : includeFirstColumn,
+      "ignorePrefix" : getIgnorePrefix(),
+      "unwrapPrefix":getUnwrapPrefix(),
+      "collapsePrefix":getCollapsePrefix(),
+      "targetSheets" : exportSheets,
+      //XML
+      "exportChildElements" : exportChildElementXml,
+      "exportBoolsAsInts" : exportBoolsAsIntsXml,
+      "rootElement" : getRootElement(),
+      //Advanced
+      "nameReplacementChar" : nameReplacementCharXml,
+      "declarationVersion" : getDeclarationVersion(),
+      "declarationEncoding" : getDeclarationEncoding(),
+      "declarationStandalone" : getDeclarationStandalone(),
+      "attributePrefix" : getAttributePrefix(),
+      "childElementPrefix" : getChildElementPrefix(),
+      "innerTextPrefix" : getInnerTextPrefix(),
+      "rootNamespace" : rootNamespace,
+      "namespaces" : namespaces
+    };
+    
+    return JSON.stringify(settings);
+  }
+  
+  //Creates a JSON blob representing the current JSON settings
+  function generateJsonSettings(singleSheet, exportSheets)
+  {
+    var settings = {
+      //Format
+      "exportType" : exportType,
+      "exportFolderType" : exportFolderType,
+      "exportFolder" : exportFolder,
+      "visualize" : visualizeData,
+      "singleSheet" : singleSheet,
+      //General
+      "replaceExistingFiles" : replaceExistingFiles,
+      "unwrapSingleRows" : unwrapSingleRows,
+      "collapseSingleRows" : collapseSingleRows,
+      "ignoreEmptyCells" : ignoreEmptyCells,
+      //Advanced
+      "nestedElements" : nestedElements,
+      "minifyData" : minifyData,
+      "includeFirstColumn" : includeFirstColumn,
+      "ignorePrefix" : getIgnorePrefix(),
+      "unwrapPrefix":getUnwrapPrefix(),
+      "collapsePrefix":getCollapsePrefix(),
+      "targetSheets" : exportSheets,
+      //JSON
+      "forceString" : forceStringJson,
+      "exportCellArray" : exportCellArrayJson,
+      "exportSheetArray" : exportSheetArrayJson,
+      "exportValueArray" : exportValueArrayJson,
+      "exportContentsAsArray" : exportContentsAsArrayJson,
+      "exportCellObject" : exportCellObjectJson,
+      "emptyValueFormat" : emptyValueFormatJson,
+      "nullValueFormat" : nullValueFormatJson,
+      "separatorChar" : getSeparatorCharJson(),
+      "forceArrayPrefix" : getForceArrayPrefixJson(),
+      "forceArrayPrefixNest" : getForceArrayPrefixNest()
+    };
+    
+    return JSON.stringify(settings);
   }
   
   //Get the names of all sheets in the current document
@@ -350,6 +439,7 @@
     ignoreEmptyCells = !ignoreEmptyCells;
   }
   
+  //Advanced
   function toggleNestedElements()
   {
     nestedElements = !nestedElements;
@@ -381,15 +471,10 @@
   {
     ignoreColumnsWithPrefix = !ignoreColumnsWithPrefix;
     
-    var text = "<input id='ignoreColumnsPrefixTextField' type='text' value=";
-    text += "'" + ignoreColumnsPrefix + "'";
-    text += " placeholder='" + IGNORE_COLUMN_DEFAULT + "'";
-    if(ignoreColumnsWithPrefix === false) text += " disabled";
-    text += "/>";
-    
-    document.getElementById("ignoreColumnsText").innerHTML = text;
-    
-    if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
+    if(document.getElementById('ignoreColumnsPrefixTextField') != null)
+    {
+      document.getElementById('ignoreColumnsPrefixTextField').disabled = !ignoreColumnsWithPrefix;
+    }
   }
   
   function getUnwrapPrefix()
@@ -408,15 +493,10 @@
   {
     unwrapSheetsWithPrefix = !unwrapSheetsWithPrefix;
     
-    var text = "<input id='unwrapSheetsPrefixTextField' type='text' value=";
-    text += "'" + unwrapSheetsPrefix + "'";
-    text += " placeholder='" + UNWRAP_SHEETS_DEFAULT + "'";
-    if(unwrapSheetsWithPrefix === false) text += " disabled";
-    text += "/>";
-    
-    document.getElementById("unwrapSheetsText").innerHTML = text;
-    
-    if(unwrapSheetsWithPrefix === true) document.getElementById('unwrapSheetsPrefixTextField').addEventListener("change", updateUnwrapPrefix);
+    if(document.getElementById('unwrapSheetsPrefixTextField') != null)
+    {
+      document.getElementById('unwrapSheetsPrefixTextField').disabled = !unwrapSheetsWithPrefix;
+    }
   }
   
   function getCollapsePrefix()
@@ -435,15 +515,10 @@
   {
     collapseSheetsWithPrefix = !collapseSheetsWithPrefix;
     
-    var text = "<input id='collapseSheetsPrefixTextField' type='text' value=";
-    text += "'" + collapseSheetsPrefix + "'";
-    text += " placeholder='" + COLLAPSE_SHEET_DEFAULT + "'";
-    if(collapseSheetsWithPrefix === false) text += " disabled";
-    text += "/>";
-    
-    document.getElementById("collapseSheetsText").innerHTML = text;
-    
-    if(collapseSheetsWithPrefix === true) document.getElementById('collapseSheetsPrefixTextField').addEventListener("change", updateCollapsePrefix);
+    if(document.getElementById('collapseSheetsPrefixTextField') != null)
+    {
+      document.getElementById('collapseSheetsPrefixTextField').disabled = !collapseSheetsWithPrefix;
+    }
   }
   
   //XML Options
@@ -462,6 +537,8 @@
     return rootElementXml === "" ? XML_ROOT_DEFAULT : rootElementXml;
   }
   
+  
+  //Advanced XML
   function getDeclarationVersion()
   {
     if(includeDeclarationXml === false) return "";
@@ -536,77 +613,9 @@
     
     if(document.getElementById('xmlIncludeDeclarationToggle') != null)
     {
-      document.getElementById('xmlDeclarationVersionDropdown').removeEventListener("change", changeDeclarationVersionXml);
-      document.getElementById('xmlDeclarationEncodingDropdown').removeEventListener("change", changeDeclarationEncodingXml);
-      document.getElementById('xmlDeclarationStandaloneDropdown').removeEventListener("change", changeDeclarationStandaloneXml);
-    }
-    
-    var advancedXmlText = "";
-    
-    //Declaration Version
-    advancedXmlText += "<div class='subOption'><div class='sectionWrapper'><div class='option'><label for='select'>XML version</label><div class='tooltip note'>Version of the XML standard that the XML document conforms to.</div></div><select id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
-    if(includeDeclarationXml === false) advancedXmlText += " disabled";
-    advancedXmlText += "><option value='1.0'";
-    if(declarationVersionXml === "1.0") advancedXmlText += " selected";
-    advancedXmlText += ">1.0</option><option value='1.1'";
-    if(declarationVersionXml === "1.1") advancedXmlText += " selected";
-    advancedXmlText += ">1.1</option></select></div>";
-    //Declaration Encoding
-    advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML encoding</label><div class='tooltip note'>Identifies which encoding is used to represent the characters in the document.</div></div><select id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
-    if(includeDeclarationXml === false) advancedXmlText += " disabled";
-    advancedXmlText += "><option value='none'";
-    if(declarationEncodingXml === "none") advancedXmlText += " selected";
-    advancedXmlText += ">None</option><option value='UTF-8'";
-    if(declarationEncodingXml === "UTF-8") advancedXmlText += " selected";
-    advancedXmlText += ">UTF-8</option><option value='UTF-16'";
-    if(declarationEncodingXml === "UTF-16") advancedXmlText += " selected";
-    advancedXmlText += ">UTF-16</option><option value='ISO-10646-UCS-2'";
-    if(declarationEncodingXml === "ISO-10646-UCS-2") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-10646-UCS-2</option><option value='ISO-10646-UCS-4'";
-    if(declarationEncodingXml === "ISO-10646-UCS-4") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-10646-UCS-4</option><option value='ISO-8859-1'";
-    if(declarationEncodingXml === "ISO-8859-1") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-1</option><option value='ISO-8859-2'";
-    if(declarationEncodingXml === "ISO-8859-2") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-2</option><option value='ISO-8859-3'";
-    if(declarationEncodingXml === "ISO-8859-3") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-3</option><option value='ISO-8859-4'";
-    if(declarationEncodingXml === "ISO-8859-4") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-4</option><option value='ISO-8859-5'";
-    if(declarationEncodingXml === "ISO-8859-5") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-5</option><option value='ISO-8859-6'";
-    if(declarationEncodingXml === "ISO-8859-6") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-6</option><option value='ISO-8859-7'";
-    if(declarationEncodingXml === "ISO-8859-7") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-7</option><option value='ISO-8859-8'";
-    if(declarationEncodingXml === "ISO-8859-8") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-8</option><option value='ISO-8859-9'";
-    if(declarationEncodingXml === "ISO-8859-9") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-8859-9</option><option value='ISO-2022-JP'";
-    if(declarationEncodingXml === "ISO-2022-JP") advancedXmlText += " selected";
-    advancedXmlText += ">ISO-2022-JP</option><option value='Shift_JIS'";
-    if(declarationEncodingXml === "Shift_JIS") advancedXmlText += " selected";
-    advancedXmlText += ">Shift_JIS</option><option value='EUC-JP'";
-    if(declarationEncodingXml === "EUC-JP") advancedXmlText += " selected";
-    advancedXmlText += ">EUC-JP</option></select></div>";
-    //Declaration Standalone
-    advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Standalone</label><div class='tooltip note'>Indicates whether a document relies on information from an external source, such as external document type definition (DTD).</div></div><select id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
-    if(includeDeclarationXml === false) advancedXmlText += " disabled";
-    advancedXmlText += "><option value='none'";
-    if(declarationStandaloneXml === "none") advancedXmlText += " selected";
-    advancedXmlText += ">None</option><option value='yes'";
-    if(declarationStandaloneXml === "yes") advancedXmlText += " selected";
-    advancedXmlText += ">Yes</option><option value='no'";
-    if(declarationStandaloneXml === "no") advancedXmlText += " selected";
-    advancedXmlText += ">No</option></select></div></div>";
-    
-    document.getElementById("xmlDeclarationSection").innerHTML = advancedXmlText;
-    
-    if(includeDeclarationXml === true)
-    {
-      document.getElementById('xmlDeclarationVersionDropdown').addEventListener("change", changeDeclarationVersionXml);
-      document.getElementById('xmlDeclarationEncodingDropdown').addEventListener("change", changeDeclarationEncodingXml);
-      document.getElementById('xmlDeclarationStandaloneDropdown').addEventListener("change", changeDeclarationStandaloneXml);
+      document.getElementById('xmlDeclarationVersionDropdown').disabled = !includeDeclarationXml;
+      document.getElementById('xmlDeclarationEncodingDropdown').disabled = !includeDeclarationXml;
+      document.getElementById('xmlDeclarationStandaloneDropdown').disabled = !includeDeclarationXml;
     }
   }
   
@@ -629,45 +638,30 @@
   {
     forceAttributesXml = !forceAttributesXml;
     
-    var text = "<input id='xmlForceAttributesTextField' type='text' value=";
-    text += "'" + forceAttributesPrefixXml + "'";
-    text += " placeholder='" + XML_ATT_DEFAULT + "'";
-    if(forceAttributesXml === false) text += " disabled";
-    text += "/>";
-    
-    document.getElementById("xmlForceAttributeText").innerHTML = text;
-    
-    if(forceAttributesXml === true) document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
+    if(document.getElementById('xmlForceAttributesTextField') != null)
+    {
+      document.getElementById('xmlForceAttributesTextField').disabled = !forceAttributesXml;
+    }
   }
   
   function toggleChildElementPrefixXml()
   {
     forceChildElementsXml = !forceChildElementsXml;
     
-    var text = "<input id='xmlForceChildElementsTextField' type='text' value=";
-    text += "'" + forceChildElementsPrefixXml + "'";
-    text += " placeholder='" + XML_CE_DEFAULT + "'";
-    if(forceChildElementsXml === false) text += " disabled";
-    text += "/>";
-    
-    document.getElementById("xmlForceChildElementsText").innerHTML = text;
-    
-    if(forceChildElementsXml === true) document.getElementById('xmlForceChildElementsTextField').addEventListener("change", updateChildElementPrefixXml);
+    if(document.getElementById('xmlForceChildElementsTextField') != null)
+    {
+      document.getElementById('xmlForceChildElementsTextField').disabled = !forceChildElementsXml;
+    }
   }
   
   function toggleInnerTextPrefixXml()
   {
     forceInnerTextXml = !forceInnerTextXml;
     
-    var text = "<input id='xmlForceInnerTextTextField' type='text' value=";
-    text += "'" + forceInnerTextPrefixXml + "'";
-    text += " placeholder='" + XML_IT_DEFAULT + "'";
-    if(forceInnerTextXml === false) text += " disabled";
-    text += "/>";
-    
-    document.getElementById("xmlForceInnerTextText").innerHTML = text;
-    
-    if(forceInnerTextXml === true) document.getElementById('xmlForceInnerTextTextField').addEventListener("change", updateInnerTextPrefixXml);
+    if(document.getElementById('xmlForceInnerTextTextField') != null)
+    {
+      document.getElementById('xmlForceInnerTextTextField').disabled = !forceInnerTextXml;
+    }
   }
   
   //JSON Options
@@ -734,15 +728,10 @@
   {
     forceArrayJson = !forceArrayJson;
     
-    var text = "<input id='jsonForceArrayTextField' type='text' value=";
-    text += "'" + forceArrayPrefixJson + "'";
-    text += " placeholder='" + JSON_JA_DEFAULT + "'";
-    if(forceArrayJson === false) text += " disabled";
-    text += "/>";
-    
-    document.getElementById("jsonForceArrayText").innerHTML = text;
-    
-    if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
+    if(document.getElementById('jsonForceArrayTextField') != null)
+    {
+      document.getElementById('jsonForceArrayTextField').disabled = !forceArrayJson;
+    }
   }
   
   function updateArrayPrefixJson()
@@ -755,15 +744,10 @@
   {
     forceArrayNest = !forceArrayNest;
     
-    var text = "<input id='nestForceArrayTextField' type='text' value=";
-    text += "'" + forceArrayPrefixNest + "'";
-    text += " placeholder='" + NEST_NA_DEFAULT + "'";
-    if(forceArrayNest === false) text += " disabled";
-    text += "/>";
-    
-    document.getElementById("nestForceArrayText").innerHTML = text;
-    
-    if(forceArrayNest === true) document.getElementById('nestForceArrayTextField').addEventListener("change", updateArrayPrefixNest);
+    if(document.getElementById('nestForceArrayTextField') != null)
+    {
+      document.getElementById('nestForceArrayTextField').disabled = !forceArrayNest;
+    }
   }
   
   function updateArrayPrefixNest()
@@ -938,25 +922,7 @@
     document.getElementById("generalOptions").innerHTML = generalText;
     
     //Listeners
-    //Format Settings
-    document.getElementById('formatSelect').addEventListener("change", changeExportFormat);
-    document.getElementById('folderSelect').addEventListener("change", changeExportFolderFormat);
-    document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
-    //General Options
-    document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
-    document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
-    document.getElementById('collapseSingleRowToggle').addEventListener("change",toggleCollapseSingleRows);
-    document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
-    //Advanced
-    document.getElementById('nestedElementsToggle').addEventListener("change",toggleNestedElements);
-    document.getElementById('minifyDataToggle').addEventListener("change", toggleMinifyData);
-    document.getElementById('firstColumnToggle').addEventListener("change", toggleIncludeFirstColumn);
-    document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
-    if(ignoreColumnsWithPrefix === true) document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
-    document.getElementById('unwrapSheetsToggle').addEventListener("change",toggleUnwrapSheetsWithPrefix);
-    if(unwrapSheetsWithPrefix === true) document.getElementById('unwrapSheetsPrefixTextField').addEventListener("change", updateUnwrapPrefix);
-    document.getElementById('collapseSheetsToggle').addEventListener("change",toggleCollapseSheetsWithPrefix);
-    if(collapseSheetsWithPrefix === true) document.getElementById('collapseSheetsPrefixTextField').addEventListener("change", updateCollapsePrefix);
+    addGeneralListeners();
     
     if(exportSheets === "custom") getNames(showSheets);
     
@@ -1088,26 +1054,13 @@
       
       document.getElementById("xmlOptions").innerHTML = xmlText;
       document.getElementById("advancedOptions").innerHTML = advancedXmlText;
-      //XML Options
-      document.getElementById('elementToggle').addEventListener("change", toggleElement);
-      document.getElementById('exportBoolsAsIntsToggle').addEventListener("change", toggleExportBoolsAsInts);
-      //Advanced Options
-      document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
-      document.getElementById('xmlNameReplaceCharDropdown').addEventListener("change", changeNameReplacementCharXml);
-      document.getElementById('xmlIncludeDeclarationToggle').addEventListener("change", toggleIncludeDeclarationXml);
-      document.getElementById('xmlDeclarationVersionDropdown').addEventListener("change", changeDeclarationVersionXml);
-      document.getElementById('xmlDeclarationEncodingDropdown').addEventListener("change", changeDeclarationEncodingXml);
-      document.getElementById('xmlDeclarationStandaloneDropdown').addEventListener("change", changeDeclarationStandaloneXml);
-      document.getElementById('xmlForceAttributeToggle').addEventListener("change", toggleAttributePrefixXml);
-      if(forceAttributesXml === true) document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
-      document.getElementById('xmlForceChildElementToggle').addEventListener("change", toggleChildElementPrefixXml);
-      if(forceChildElementsXml === true) document.getElementById('xmlForceChildElementsTextField').addEventListener("change", updateChildElementPrefixXml);
-      document.getElementById('xmlForceInnerTextToggle').addEventListener("change", toggleInnerTextPrefixXml);
-      if(forceInnerTextXml === true) document.getElementById('xmlForceInnerTextTextField').addEventListener("change", updateInnerTextPrefixXml);
+      
+      addXmlListeners();
     }
     else //Populate JSON options
     {
       removeXmlListeners();
+      
       document.getElementById("xmlOptions").innerHTML = "";
       document.getElementById("advancedOptions").innerHTML = "";
     
@@ -1181,35 +1134,21 @@
       
       document.getElementById("jsonOptions").innerHTML = jsonText;
       document.getElementById("advancedOptions").innerHTML = advancedJsonText;
-      //JSON Options
-      document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
-      document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
-      document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
-      document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
-      document.getElementById('valueArrayToggle').addEventListener("change", toggleValueArrayJson);
-      document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
-      //Advanced Options
-      document.getElementById('jsonEmptyValueFormatDropdown').addEventListener("change", changeEmptyValueFormatJson);
-      document.getElementById('jsonNullValueFormatDropdown').addEventListener("change", changeNullValueFormatJson);
-      document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
-      document.getElementById('jsonForceArrayToggle').addEventListener("change", toggleArrayPrefixJson);
-      if(forceArrayJson === true) document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
-      document.getElementById('nestForceArrayToggle').addEventListener("change", toggleArrayPrefixNest);
-      if(forceArrayNest === true) document.getElementById('nestForceArrayTextField').addEventListener("change", updateArrayPrefixNest);
+      
+      addJsonListeners();
     }
     
     if(exportFolderType !== "default" && exportFolder !== "") getExportFolderName(onGetExportFolderName); //Populate the name of the target export folder
     
     var accordions = document.getElementsByClassName("accordion");
-    var i;
     
-    for(i=0; i < accordions.length; i++)
+    for(let i=0; i < accordions.length; i++)
     {
       accordions[i].addEventListener("click", function()
       {
         this.classList.toggle("active");
         
-        var panel = this.nextElementSibling;
+        let panel = this.nextElementSibling;
         
         if(panel.style.display === "block" || panel.style.display === "") panel.style.display = "none";
         else panel.style.display = "block";
@@ -1383,7 +1322,80 @@
     document.getElementById("customSheetSelect").innerHTML = "";
   }
   
-  //Removes event listeners for general option toggles
+  //Adds event listeners for general options.
+  function addGeneralListeners()
+  {
+    //Format Settings
+    document.getElementById('formatSelect').addEventListener("change", changeExportFormat);
+    document.getElementById('folderSelect').addEventListener("change", changeExportFolderFormat);
+    document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
+    //General Options
+    document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
+    document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
+    document.getElementById('collapseSingleRowToggle').addEventListener("change",toggleCollapseSingleRows);
+    document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
+    //Advanced
+    document.getElementById('nestedElementsToggle').addEventListener("change",toggleNestedElements);
+    document.getElementById('minifyDataToggle').addEventListener("change", toggleMinifyData);
+    document.getElementById('firstColumnToggle').addEventListener("change", toggleIncludeFirstColumn);
+    document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
+    //if(ignoreColumnsWithPrefix === true)
+    document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
+    document.getElementById('unwrapSheetsToggle').addEventListener("change",toggleUnwrapSheetsWithPrefix);
+    //if(unwrapSheetsWithPrefix === true)
+    document.getElementById('unwrapSheetsPrefixTextField').addEventListener("change", updateUnwrapPrefix);
+    document.getElementById('collapseSheetsToggle').addEventListener("change",toggleCollapseSheetsWithPrefix);
+    //if(collapseSheetsWithPrefix === true)
+    document.getElementById('collapseSheetsPrefixTextField').addEventListener("change", updateCollapsePrefix);
+  }
+  
+  //Adds event listeners for XML options.
+  function addXmlListeners()
+  {
+    //XML Options
+    document.getElementById('elementToggle').addEventListener("change", toggleElement);
+    document.getElementById('exportBoolsAsIntsToggle').addEventListener("change", toggleExportBoolsAsInts);
+    //Advanced Options
+    document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
+    document.getElementById('xmlNameReplaceCharDropdown').addEventListener("change", changeNameReplacementCharXml);
+    document.getElementById('xmlIncludeDeclarationToggle').addEventListener("change", toggleIncludeDeclarationXml);
+    document.getElementById('xmlDeclarationVersionDropdown').addEventListener("change", changeDeclarationVersionXml);
+    document.getElementById('xmlDeclarationEncodingDropdown').addEventListener("change", changeDeclarationEncodingXml);
+    document.getElementById('xmlDeclarationStandaloneDropdown').addEventListener("change", changeDeclarationStandaloneXml);
+    document.getElementById('xmlForceAttributeToggle').addEventListener("change", toggleAttributePrefixXml);
+    //if(forceAttributesXml === true)
+    document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
+    document.getElementById('xmlForceChildElementToggle').addEventListener("change", toggleChildElementPrefixXml);
+    //if(forceChildElementsXml === true)
+    document.getElementById('xmlForceChildElementsTextField').addEventListener("change", updateChildElementPrefixXml);
+    document.getElementById('xmlForceInnerTextToggle').addEventListener("change", toggleInnerTextPrefixXml);
+    //if(forceInnerTextXml === true)
+    document.getElementById('xmlForceInnerTextTextField').addEventListener("change", updateInnerTextPrefixXml);
+  }
+  
+  //Adds event listeners for JSON options.
+  function addJsonListeners()
+  {
+    //JSON Options
+    document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
+    document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
+    document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
+    document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
+    document.getElementById('valueArrayToggle').addEventListener("change", toggleValueArrayJson);
+    document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
+    //Advanced Options
+    document.getElementById('jsonEmptyValueFormatDropdown').addEventListener("change", changeEmptyValueFormatJson);
+    document.getElementById('jsonNullValueFormatDropdown').addEventListener("change", changeNullValueFormatJson);
+    document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
+    document.getElementById('jsonForceArrayToggle').addEventListener("change", toggleArrayPrefixJson);
+    //if(forceArrayJson === true)
+    document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
+    document.getElementById('nestForceArrayToggle').addEventListener("change", toggleArrayPrefixNest);
+    //if(forceArrayNest === true)
+    document.getElementById('nestForceArrayTextField').addEventListener("change", updateArrayPrefixNest);
+  }
+  
+  //Removes event listeners for general options.
   function removeGeneralListeners()
   {
     //Basic
@@ -1540,81 +1552,6 @@
       document.getElementById('nestForceArrayToggle').removeEventListener("change", toggleArrayPrefixNest);
       document.getElementById('nestForceArrayTextField').removeEventListener("change", updateArrayPrefixNest);
     }
-  }
-  
-  //Creates a JSON blob representing the current XML settings
-  function generateXmlSettings(singleSheet, exportSheets)
-  {
-    var settings = {
-      //Format
-      "exportType" : exportType,
-      "exportFolderType" : exportFolderType,
-      "exportFolder" : exportFolder,
-      "visualize" : visualizeData,
-      "singleSheet" : singleSheet,
-      //General
-      "replaceExistingFiles" : replaceExistingFiles,
-      "unwrapSingleRows" : unwrapSingleRows,
-      "collapseSingleRows" : collapseSingleRows,
-      "ignoreEmptyCells" : ignoreEmptyCells,
-      //Advanced
-      "nestedElements" : nestedElements,
-      "minifyData" : minifyData,
-      "includeFirstColumn" : includeFirstColumn,
-      "ignorePrefix" : getIgnorePrefix(),
-      "unwrapPrefix":getUnwrapPrefix(),
-      "collapsePrefix":getCollapsePrefix(),
-      "targetSheets" : exportSheets,
-      //XML
-      "exportChildElements" : exportChildElementXml,
-      "exportBoolsAsInts" : exportBoolsAsIntsXml,
-      "rootElement" : getRootElement(),
-      "nameReplacementChar" : nameReplacementCharXml,
-      "declarationVersion" : getDeclarationVersion(),
-      "declarationEncoding" : getDeclarationEncoding(),
-      "declarationStandalone" : getDeclarationStandalone(),
-      "attributePrefix" : getAttributePrefix(),
-      "childElementPrefix" : getChildElementPrefix(),
-      "innerTextPrefix" : getInnerTextPrefix()
-    };
-    
-    return JSON.stringify(settings);
-  }
-  
-  //Creates a JSON blob representing the current XML settings
-  function generateJsonSettings(singleSheet, exportSheets)
-  {
-    var settings = {
-      "exportType" : exportType,
-      "exportFolderType" : exportFolderType,
-      "exportFolder" : exportFolder,
-      "visualize" : visualizeData,
-      "singleSheet" : singleSheet,
-      "replaceExistingFiles" : replaceExistingFiles,
-      "unwrapSingleRows" : unwrapSingleRows,
-      "collapseSingleRows" : collapseSingleRows,
-      "ignoreEmptyCells" : ignoreEmptyCells,
-      "nestedElements" : nestedElements,
-      "minifyData" : minifyData,
-      "includeFirstColumn" : includeFirstColumn,
-      "ignorePrefix" : getIgnorePrefix(),
-      "unwrapPrefix":getUnwrapPrefix(),
-      "collapsePrefix":getCollapsePrefix(),
-      "targetSheets" : exportSheets,
-      "forceString" : forceStringJson,
-      "exportCellArray" : exportCellArrayJson,
-      "exportSheetArray" : exportSheetArrayJson,
-      "exportValueArray" : exportValueArrayJson,
-      "exportContentsAsArray" : exportContentsAsArrayJson,
-      "exportCellObject" : exportCellObjectJson,
-      "emptyValueFormat" : emptyValueFormatJson,
-      "nullValueFormat" : nullValueFormatJson,
-      "separatorChar" : getSeparatorCharJson(),
-      "forceArrayPrefix" : getForceArrayPrefixJson(),
-      "forceArrayPrefixNest" : getForceArrayPrefixNest()
-    };
-    
-    return JSON.stringify(settings);
   }
   
   //Set selected sheets to be visualized with the current options

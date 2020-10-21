@@ -152,12 +152,12 @@ function getIndent()
   return indent;
 }
 
-//Gets all of the sheet names in the current spreadsheet
+//Gets all of the sheet names in the current spreadsheet.
 function getSheetNames()
 {
   var spreadsheet = SpreadsheetApp.getActive();
   var sheets = spreadsheet.getSheets();
-  var sheetNames = new Array();
+  var sheetNames = [];
   
   for(let i=0; i < sheets.length; i++)
   {
@@ -167,12 +167,45 @@ function getSheetNames()
   return sheetNames;
 }
 
-//Gets the active sheet name in the current spreadsheet
+//Gets the names and IDs for the sheets in the current spreadsheet.
+function getSheetNamesAndIds()
+{
+  var spreadsheet = SpreadsheetApp.getActive();
+  var sheets = spreadsheet.getSheets();
+  var sheetValues = [];
+  
+  for(let i=0; i < sheets.length; i++)
+  {
+    let sheetValue = {};
+    
+    sheetValue["name"] = sheets[i].getName();
+    sheetValue["id"] = sheets[i].getSheetId();
+    
+    sheetValues.push(sheetValue);
+  }
+  
+  return sheetValues;
+}
+
+//Gets the active sheet in the current spreadsheet's name.
 function getActiveSheetName()
 {
   var spreadsheet = SpreadsheetApp.getActive();
   
   return spreadsheet.getActiveSheet().getName();
+}
+
+//Gets the active sheet in the current spreadsheet's name and ID.
+function getActiveSheetNameAndId()
+{
+  var spreadsheet = SpreadsheetApp.getActive();
+  var sheet = spreadsheet.getActiveSheet();
+  var sheetValues = {};
+  
+  sheetValues["name"] = sheet.getName();
+  sheetValues["id"] = sheet.getSheetId();
+  
+  return sheetValues;
 }
 
 //Gets a file's parent folder
@@ -206,10 +239,10 @@ function getFileParentFolderId(file)
 function getCellContentArray(cell, separatorChar)
 {
   var content = cell;
-  var cellArray = new Array();
-  var commaIndicies = new Array();
-  var openQuoteIndicies = new Array();
-  var closeQuoteIndicies = new Array();
+  var cellArray = [];
+  var commaIndicies = [];
+  var openQuoteIndicies = [];
+  var closeQuoteIndicies = [];
   
   //Set the indicies for quotes and commas
   for(let i=0; i < content.length; i++)
@@ -279,7 +312,7 @@ function getCellContentArray(cell, separatorChar)
       var decimalCount = 0;
       
       //Parse float is unreliable, so loop through to make sure the string is actually a float
-      for(var j=0; j < cellArray[i].length; j++)
+      for(let j=0; j < cellArray[i].length; j++)
       {
         if(isNaN(cellArray[i][j]))
         {
@@ -452,8 +485,8 @@ function keyHasPrefixes(key, prefixes)
 //Multiple string values can be passed in for the prefixes argument.
 function getPrefixes(key, prefixes)
 {
-  var values = new Array();
-  var prefixArgs = new Array();
+  var values = [];
+  var prefixArgs = [];
   
   //Set initial values
   for(let i=1; i < arguments.length; i++)
@@ -499,7 +532,7 @@ function stripPrefix(key, prefix)
 //Strips the specified prefixes from the passed key.
 function stripPrefixes(key, prefixes)
 {
-  var prefixArgs = new Array();
+  var prefixArgs = [];
   
   //Set initial values
   for(let i=1; i < arguments.length; i++)
@@ -699,6 +732,7 @@ function trimSafe(value)
 //Formats empty cell values to use the appropriate value (null or "")
 function getEmptyCellValueJson(formatType)
 {
+  //TODO: Convert format type to int value...
   switch(formatType)
   {
     case "string": return "";
