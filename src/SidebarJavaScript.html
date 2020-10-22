@@ -664,6 +664,61 @@
     }
   }
   
+  //XML Namespaces
+  //Update the current root xmlns URI
+  function updateRootNamespaceXml()
+  {
+    rootNamespace = document.getElementById("xmlRootNamespaceField").value;
+  }
+  
+  //Add a new namespace to the list of namespaces
+  function addNamespaceXml()
+  {
+    namespaces.push(
+    {
+      "prefix": "",
+      "uri": ""
+    });
+    
+    var newNamespaceText = getNamespaceTextXml(namespaces.length - 1);
+  
+    document.getElementById("xmlNamespaceParent").innerHTML += newNamespaceText;
+  }
+  
+  function getNamespaceTextXml(index)
+  {
+    //TODO: Apply tinting to empty fields...
+    var newNamespaceText = "<div class='xmlNamespace'>";
+    
+    newNamespaceText += "<p>Prefix: <input id='namespacePrefix" + index + "' type='text' value='" + namespaces[index]["prefix"] + "' onchange='updateNamespacePrefix(" + index + ")'></p>";
+    newNamespaceText += "<p>URI: <input id='namespaceUri" + index + "' type='text' value='" + namespaces[index]["uri"] + "' onchange='updateNamespaceUri(" + index + ")'></p>";
+    
+    newNamespaceText += "</div>";
+    
+    return newNamespaceText;
+  }
+  
+  function updateNamespacePrefix(index)
+  {
+    var i = parseInt(index);
+    
+    namespaces[i]["prefix"] = document.getElementById("namespacePrefix" + index).value;
+    
+    console.log("Updated " + index + " to " + namespaces[i]["prefix"]);
+  }
+  
+  function updateNamespaceUri(index)
+  {
+    var i = parseInt(index);
+    
+    namespaces[i]["uri"] = document.getElementById("namespaceUri" + index).value;
+  }
+  
+  function deleteNamespaceXml(index)
+  {
+    
+  }
+  
   //JSON Options
   function toggleContentArrayJson()
   {
@@ -818,7 +873,7 @@
   {
     removeGeneralListeners();
     
-    var generalText = "<div class='accordion active'><h1>Format</h1></div><div class='accordionPanel'>";
+    var generalText = "<div class='accordion active' id='generalSection'><h1>Format</h1></div><div class='accordionPanel'>";
     //Export Settings
     //Format
     generalText += "<div class='block form-group sectionWrapper'>";
@@ -854,7 +909,7 @@
     generalText += "</div>";
     
     //General Options
-    generalText += "<div class='accordion active'><h1>General</h1></div><div class='accordionPanel'>";
+    generalText += "<div class='accordion active' id='generalSection'><h1>General</h1></div><div class='accordionPanel'>";
     //Replace existing files
     generalText += "<div class='sectionWrapper'><input id='replaceToggle' type='checkbox' value='Replace'";
     if(replaceExistingFiles) generalText += " checked";
@@ -874,7 +929,7 @@
     generalText += "</div>";
     
     //Advanced General Options
-    generalText += "<div class='accordion active'><h1>Advanced</h1></div><div class='accordionPanel'>";
+    generalText += "<div class='accordion active' id='generalSection'><h1>Advanced</h1></div><div class='accordionPanel'>";
     //Nested Elements
     generalText += "<div class='sectionWrapper'><input id='nestedElementsToggle' type='checkbox' value='false'";
     if(nestedElements) generalText += " checked";
@@ -934,10 +989,11 @@
       
       document.getElementById("jsonOptions").innerHTML = "";
       document.getElementById("advancedOptions").innerHTML = "";
+      document.getElementById("xmlNamespaces").innerHTML = "";
       
       removeXmlListeners();
       
-      var xmlText = "<div class='accordion active'><h1>XML</h1></div><div class='accordionPanel'>";
+      var xmlText = "<div class='accordion active' id='xmlSection'><h1>XML</h1></div><div class='accordionPanel'>";
       //Export child elements
       xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
@@ -953,7 +1009,7 @@
       xmlText += "</div>";
       
       //Advanced Options
-      var advancedXmlText = "<div class='accordion active'><h1>Advanced XML</h1></div><div class='accordionPanel'>";
+      var advancedXmlText = "<div class='accordion active' id='xmlSection'><h1>Advanced XML</h1></div><div class='accordionPanel'>";
       //Invalid element name char replacement
       advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Name replacement char</label><div class='tooltip note padded'>What character to use when replacing illegal characters in XML element names.</div></div><select id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
       if(nameReplacementCharXml === "_") advancedXmlText += " selected";
@@ -1052,8 +1108,48 @@
       if(forceInnerTextXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div></div></div>";
       
+      
+      
+      
+      
+      
+      
+      //XML Namespaces
+      var xmlNamespaceText = "<div class='accordion active' id='xmlSection'><h1>XML Namespaces</h1></div><div class='accordionPanel'>";
+      //Root namespace value
+      xmlNamespaceText += "<div class='sectionWrapper'><div class='option'>Root namespace URI<div class='tooltip note padded'>URI for the root <span class='tooltipHighlight'>xmlns</span> namespace used when creating elements in the exported XML document.</div></div><input id='xmlRootNamespaceField' type='text' value=";
+      xmlNamespaceText += "'" + rootNamespace + "'/></div>";
+      //Namespaces
+      xmlNamespaceText += "<div class='sectionWrapper'><div class='option'>Namespaces<div class='tooltip note padded'>Namespaces used when creating elements in the exported XML document.</div></div>";
+      xmlNamespaceText += "<div class='option'><button class='listButton' id='newNamespaceButton'>+</button><div class='tooltip note padded'>Namespaces used when creating elements in the exported XML document.</div></div>";
+      xmlNamespaceText += "<div class='xmlNamespaces' id='xmlNamespaceParent'>";
+      
+      var namespaceText = "";
+      
+      for(let i=0; i < namespaces.length; i++)
+      {
+        let text = getNamespaceTextXml(i);
+        namespaceText += text;
+      }
+      
+      xmlNamespaceText += namespaceText;
+      
+      xmlNamespaceText += "</div>";
+      //Close section div
+      xmlNamespaceText += "</div>";
+      //Close accordion div
+      xmlNamespaceText += "</div>";
+      
+      
+      
+      
+      
+      
+      
+      
       document.getElementById("xmlOptions").innerHTML = xmlText;
       document.getElementById("advancedOptions").innerHTML = advancedXmlText;
+      document.getElementById("xmlNamespaces").innerHTML = xmlNamespaceText;
       
       addXmlListeners();
     }
@@ -1063,11 +1159,12 @@
       
       document.getElementById("xmlOptions").innerHTML = "";
       document.getElementById("advancedOptions").innerHTML = "";
+      document.getElementById("xmlNamespaces").innerHTML = "";
     
       removeJsonListeners();
       
       //JSON Options
-      var jsonText = "<div class='accordion active'><h1>JSON</h1></div><div class='accordionPanel'>";
+      var jsonText = "<div class='accordion active' id='jsonSection'><h1>JSON</h1></div><div class='accordionPanel'>";
       //Force string JSON
       jsonText += "<div class='sectionWrapper'><input id='forceStringToggle' type='checkbox' value='Force'";
       if(forceStringJson) jsonText += " checked";
@@ -1086,15 +1183,15 @@
       jsonText += "><div class='option'>Export value arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div></div>";
       
       //Advanced Options
-      var advancedJsonText = "<div class='accordion active'><h1>Advanced JSON</h1></div><div class='accordionPanel'>";
+      var advancedJsonText = "<div class='accordion active' id='jsonSection'><h1>Advanced JSON</h1></div><div class='accordionPanel'>";
       //Content to array JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
       if(exportContentsAsArrayJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'>Export contents as array<div class='tooltip note'>Export total contents as a raw JSON array. (WARNING: This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
+      advancedJsonText += "><div class='option'>Export contents as array<div class='tooltip note'>Export total contents as a raw JSON array. (<span class='tooltipHighlight'>WARNING:</span> This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
       //Braces to object JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces, or a JSON array if wrapped in brackets. (WARNING: This content will export an empty object/array if not properly formatted.)</div></div></div>";
+      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces, or a JSON array if wrapped in brackets. (<span class='tooltipHighlight'>WARNING:</span> This content will export an empty object/array if not properly formatted.)</div></div></div>";
       //Empty Value Type
       advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='select'>Empty value format</label><div class='tooltip note padded'>What value to export for empty cells.</div></div><select id='jsonEmptyValueFormatDropdown' onchange='changeEmptyValueFormatJson()'><option value='null'";
       if(emptyValueFormatJson === "null") advancedJsonText += " selected";
@@ -1210,7 +1307,7 @@
     //Check if all sheets are being exported
     var allActive = true;
     
-    for(var i=0; i < sheetNames.length; i++)
+    for(let i=0; i < sheetNames.length; i++)
     {
       if(cachedToggles[sheetNames[i]] == null || cachedToggles[sheetNames[i]] === false || cachedToggles[sheetNames[i]] === 'false')
       {
@@ -1225,7 +1322,7 @@
     
     text += "/> All</div><hr><div class='scrollWrapper'>";
     
-    for(var i=0; i < sheetNames.length; i++)
+    for(let i=0; i < sheetNames.length; i++)
     {
       text += "<p>";
       
@@ -1264,7 +1361,7 @@
     
     text += "/> All</div><hr><div class='scrollWrapper'>";
     
-    for(var i=0; i < sheetNames.length; i++)
+    for(let i=0; i < sheetNames.length; i++)
     {
       text += "<p>";
       
@@ -1292,7 +1389,7 @@
   //Creates event listeners for sheet export toggles
   function createSheetToggleListeners()
   {
-    for(var i=0; i < sheets.length; i++)
+    for(let i=0; i < sheets.length; i++)
     {
       (function()
       {
@@ -1307,13 +1404,13 @@
   {
     targetSheets = { };
     
-    for(var i=0; i < sheets.length; i++)
+    for(let i=0; i < sheets.length; i++)
     {
       (function()
       {
         if(document.getElementById(formatSheetName(sheets[i]) + 'Toggle') != null)
         {
-          var targetSheet = sheets[i];
+          let targetSheet = sheets[i];
           document.getElementById(formatSheetName(targetSheet) + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
         }
       }())
@@ -1339,13 +1436,10 @@
     document.getElementById('minifyDataToggle').addEventListener("change", toggleMinifyData);
     document.getElementById('firstColumnToggle').addEventListener("change", toggleIncludeFirstColumn);
     document.getElementById('ignoreColumnsToggle').addEventListener("change",toggleIgnoreColumnsWithPrefix);
-    //if(ignoreColumnsWithPrefix === true)
     document.getElementById('ignoreColumnsPrefixTextField').addEventListener("change", updateIgnorePrefix);
     document.getElementById('unwrapSheetsToggle').addEventListener("change",toggleUnwrapSheetsWithPrefix);
-    //if(unwrapSheetsWithPrefix === true)
     document.getElementById('unwrapSheetsPrefixTextField').addEventListener("change", updateUnwrapPrefix);
     document.getElementById('collapseSheetsToggle').addEventListener("change",toggleCollapseSheetsWithPrefix);
-    //if(collapseSheetsWithPrefix === true)
     document.getElementById('collapseSheetsPrefixTextField').addEventListener("change", updateCollapsePrefix);
   }
   
@@ -1363,14 +1457,14 @@
     document.getElementById('xmlDeclarationEncodingDropdown').addEventListener("change", changeDeclarationEncodingXml);
     document.getElementById('xmlDeclarationStandaloneDropdown').addEventListener("change", changeDeclarationStandaloneXml);
     document.getElementById('xmlForceAttributeToggle').addEventListener("change", toggleAttributePrefixXml);
-    //if(forceAttributesXml === true)
     document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
     document.getElementById('xmlForceChildElementToggle').addEventListener("change", toggleChildElementPrefixXml);
-    //if(forceChildElementsXml === true)
     document.getElementById('xmlForceChildElementsTextField').addEventListener("change", updateChildElementPrefixXml);
     document.getElementById('xmlForceInnerTextToggle').addEventListener("change", toggleInnerTextPrefixXml);
-    //if(forceInnerTextXml === true)
     document.getElementById('xmlForceInnerTextTextField').addEventListener("change", updateInnerTextPrefixXml);
+    //XML Namespaces
+    document.getElementById('xmlRootNamespaceField').addEventListener("change", updateRootNamespaceXml);
+    document.getElementById('newNamespaceButton').addEventListener("click", addNamespaceXml);
   }
   
   //Adds event listeners for JSON options.
@@ -1388,10 +1482,8 @@
     document.getElementById('jsonNullValueFormatDropdown').addEventListener("change", changeNullValueFormatJson);
     document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
     document.getElementById('jsonForceArrayToggle').addEventListener("change", toggleArrayPrefixJson);
-    //if(forceArrayJson === true)
     document.getElementById('jsonForceArrayTextField').addEventListener("change", updateArrayPrefixJson);
     document.getElementById('nestForceArrayToggle').addEventListener("change", toggleArrayPrefixNest);
-    //if(forceArrayNest === true)
     document.getElementById('nestForceArrayTextField').addEventListener("change", updateArrayPrefixNest);
   }
   
@@ -1461,6 +1553,7 @@
   //Removes event listeners for XML option toggles
   function removeXmlListeners()
   {
+    //Basic
     if(document.getElementById('elementToggle') != null)
     {
       document.getElementById('elementToggle').removeEventListener("change", toggleElement);
@@ -1473,6 +1566,8 @@
     {
       document.getElementById('xmlRootField').removeEventListener("change", updateRootElementXml);
     }
+    
+    //Advanced
     if(document.getElementById('xmlNameReplaceCharDropdown') != null)
     {
       document.getElementById('xmlNameReplaceCharDropdown').removeEventListener("change", changeNameReplacementCharXml);
@@ -1501,11 +1596,19 @@
       document.getElementById('xmlForceInnerTextToggle').removeEventListener("change", toggleInnerTextPrefixXml);
       document.getElementById('xmlForceInnerTextTextField').removeEventListener("change", updateInnerTextPrefixXml);
     }
+    
+    //Namespaces
+    if(document.getElementById('xmlRootNamespaceField') != null)
+    {
+      document.getElementById('xmlRootNamespaceField').removeEventListener("change", updateRootNamespaceXml);
+      document.getElementById('newNamespaceButton').removeEventListener("click", addNamespaceXml);
+    }
   }
   
   //Removes event listeners for JSON option toggles
   function removeJsonListeners()
   {
+    //Basic
     if(document.getElementById('contentsArrayToggle') != null)
     {
       document.getElementById('contentsArrayToggle').removeEventListener("change", toggleContentArrayJson);

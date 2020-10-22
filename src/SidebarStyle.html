@@ -1,4 +1,9 @@
 <style>
+  .fillWidth
+  {
+    width: 100%;
+  }
+  
   .paddedV
   {
     min-height: 35px;
@@ -15,6 +20,14 @@
   .buttonPlaceholder
   {
     min-height: 70px;
+  }
+  
+  .listButton
+  {
+    position: relative;
+    /*float: right;*/ /* TODO: Ideally these buttons would float right... */
+    left: 10px;
+    min-width: 30px;
   }
   
   .mainWrapper
@@ -57,12 +70,6 @@
     font-style: italic;
   }
   
-  .option
-  {
-    position: relative;
-    display: inline-block;
-  }
-  
   .subOption
   {
     position: relative;
@@ -79,7 +86,13 @@
     width: 184px;
   }
   
-  .option .tooltip
+  .option
+  {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .tooltip
   {
     visibility: hidden;
     width: 200px;
@@ -99,6 +112,11 @@
   .subOption .option .tooltip
   {
     left: -16px;
+  }
+  
+  .tooltipHighlight
+  {
+    color: yellow;
   }
   
   .option .padded
@@ -129,11 +147,6 @@
     transition: 0.4s;
   }
   
-  .accordion:hover
-  {
-    background-color: #2a5266;
-  }
-  
   .accordion:before
   {
     content: '\25ba';
@@ -152,6 +165,33 @@
   {
     display: block;
     overflow: hidden;
+  }
+  
+  .xmlNamespaces
+  {
+    background-color: gray;
+    padding: 8px;
+  }
+  
+  .xmlNamespace
+  {
+    background-color: white;
+    padding: 8px;
+  }
+  
+  #generalSection:hover
+  {
+    background-color: #0F9D58;
+  }
+  
+  #jsonSection:hover
+  {
+    background-color: #366AD3;
+  }
+  
+  #xmlSection:hover
+  {
+    background-color: #FF6600;
   }
   
   select
