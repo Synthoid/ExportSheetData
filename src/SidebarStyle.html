@@ -4,6 +4,11 @@
     width: 100%;
   }
   
+  .debug
+  {
+    background-color: red;
+  }
+  
   .paddedV
   {
     min-height: 35px;
@@ -24,10 +29,35 @@
   
   .listButton
   {
+    display: inline-block;
     position: relative;
+    float: right;
     /*float: right;*/ /* TODO: Ideally these buttons would float right... */
-    left: 10px;
+    /*left: 10px;*/
     min-width: 30px;
+  }
+  
+  .bottomButton
+  {
+    bottom: 16px;
+  }
+  
+  .topButton
+  {
+    top: 8px;
+  }
+  
+  .listButtonParent
+  {
+    display: inline;
+    width: auto;
+    /*overflow: hidden;*/
+  }
+  
+  .listButtonParent:hover .tooltip
+  {
+    visibility: visible;
+    opacity: 1;
   }
   
   .mainWrapper
@@ -119,15 +149,15 @@
     color: yellow;
   }
   
-  .option .padded
-  {
-    margin-left: 20px;
-  }
-  
   .option:hover .tooltip
   {
     visibility: visible;
     opacity: 1;
+  }
+  
+  .option .padded
+  {
+    margin-left: 20px;
   }
   
   .disabled
@@ -142,7 +172,7 @@
     cursor: pointer;
     width: 100%;
     text-align: left;
-    border-bottom: 5px solid black;
+    border-bottom: 4px solid black;
     outline: none;
     transition: 0.4s;
   }
@@ -156,40 +186,64 @@
     font-size: 16px;
   }
   
-  .active:before
-  {
-    content: '\25bc';
-  }
-  
-  .accodionPanel
+  .accordionPanel
   {
     display: block;
     overflow: hidden;
   }
   
+  .paddedPanel
+  {
+    padding: 8px;
+  }
+  
+  .xmlNamespace .accordion
+  {
+    color: white;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+    padding: 8px 0px 0px 0px;
+  }
+  
+  .xmlNamespace .accordion:before
+  {
+    margin: 4px 4px 0px 10px;
+    font-size: 8px;
+  }
+
+  .namespaceGap
+  {
+    min-height: 10px;
+  }
+  
+  .active:before
+  {
+    content: '\25bc';
+  }
+  
   .xmlNamespaces
   {
     background-color: gray;
-    padding: 8px;
+    padding: 4px;
   }
   
   .xmlNamespace
   {
     background-color: white;
-    padding: 8px;
   }
   
-  #generalSection:hover
+  .generalHeader:hover
   {
     background-color: #0F9D58;
   }
   
-  #jsonSection:hover
+  .jsonHeader:hover
   {
     background-color: #366AD3;
   }
   
-  #xmlSection:hover
+  .xmlHeader:hover
   {
     background-color: #FF6600;
   }

@@ -685,26 +685,16 @@
     document.getElementById("xmlNamespaceParent").innerHTML += newNamespaceText;
   }
   
-  function getNamespaceTextXml(index)
-  {
-    //TODO: Apply tinting to empty fields...
-    var newNamespaceText = "<div class='xmlNamespace'>";
-    
-    newNamespaceText += "<p>Prefix: <input id='namespacePrefix" + index + "' type='text' value='" + namespaces[index]["prefix"] + "' onchange='updateNamespacePrefix(" + index + ")'></p>";
-    newNamespaceText += "<p>URI: <input id='namespaceUri" + index + "' type='text' value='" + namespaces[index]["uri"] + "' onchange='updateNamespaceUri(" + index + ")'></p>";
-    
-    newNamespaceText += "</div>";
-    
-    return newNamespaceText;
-  }
-  
   function updateNamespacePrefix(index)
   {
     var i = parseInt(index);
     
-    namespaces[i]["prefix"] = document.getElementById("namespacePrefix" + index).value;
+    var prefixElement = document.getElementById("namespacePrefix" + index);
     
-    console.log("Updated " + index + " to " + namespaces[i]["prefix"]);
+    //TODO: This breaks when deleting elements... Maybe we DO need to unregister the existing callbacks?
+    namespaces[i]["prefix"] = prefixElement.value;
+    
+    document.getElementById("namespaceAccordion" + index).innerHTML = "xmlns:" + namespaces[i]["prefix"];
   }
   
   function updateNamespaceUri(index)
@@ -716,7 +706,58 @@
   
   function deleteNamespaceXml(index)
   {
+    var i = parseInt(index);
     
+    console.log("count: " + namespaces.length);
+    console.log("index: " + i + " (" + index + ")");
+    
+    namespaces.splice(i, 1);
+    
+    //Delete the namespace's HTML
+    document.getElementById("namespace" + index).remove();
+    
+    //Regenerate namespace callbacks and IDs
+    refreshNamespaceTextXml(i);
+  }
+  
+  function refreshNamespaceTextXml(startIndex)
+  {
+    var root = document.getElementById("xmlNamespaceParent");
+    var namespaceElements = root.getElementsByClassName("xmlNamespace");
+    
+    if(startIndex < 0) startIndex = 0; //Safety check to make sure we don't throw an index out of range exception.
+    
+    for(let i=startIndex; i < namespaceElements.length; i++)
+    {
+      let index = i;
+      let buttonElement = namespaceElements[i].getElementsByClassName("listButton")[0];
+      let inputElements = namespaceElements[i].getElementsByTagName("input");
+      
+      namespaceElements[i].id = "namespace" + index;
+      
+      //Delete Button
+      buttonElement.onclick = deleteNamespaceXml(index);
+      //Prefix
+      inputElements[0].onchange = updateNamespacePrefix(index);
+      inputElements[0].id = "namespacePrefix" + index;
+      //URI
+      inputElements[1].onchange = updateNamespaceUri(index);
+      inputElements[1].id = "namespaceUri" + index;
+    }
+  }
+  
+  function getNamespaceTextXml(index)
+  {
+    //TODO: Apply tinting to empty fields...
+    var newNamespaceText = "<div class='xmlNamespace' id='namespace" + index + "'>";
+    
+    newNamespaceText += "<div class='accordion xmlHeader active' id='namespaceAccordion" + index + "'>xmlns:" + namespaces[index]["prefix"] + "</div><div class='accordionPanel'><div class='paddedPanel'>";
+    newNamespaceText += "<div class='option'>Prefix</div><div class='listButtonParent'><button class='listButton' onclick='deleteNamespaceXml(" + index + ")'>-</button></div><p><input id='namespacePrefix" + index + "' type='text' value='" + namespaces[index]["prefix"] + "' onchange='updateNamespacePrefix(" + index + ")'></p>";
+    newNamespaceText += "<div class='option'>URI</div><p><input id='namespaceUri" + index + "' type='text' value='" + namespaces[index]["uri"] + "' onchange='updateNamespaceUri(" + index + ")'></p>";
+    
+    newNamespaceText += "</div></div></div>";
+    
+    return newNamespaceText;
   }
   
   //JSON Options
@@ -873,7 +914,7 @@
   {
     removeGeneralListeners();
     
-    var generalText = "<div class='accordion active' id='generalSection'><h1>Format</h1></div><div class='accordionPanel'>";
+    var generalText = "<div class='accordion generalHeader active'><h1>Format</h1></div><div class='accordionPanel'>";
     //Export Settings
     //Format
     generalText += "<div class='block form-group sectionWrapper'>";
@@ -909,7 +950,7 @@
     generalText += "</div>";
     
     //General Options
-    generalText += "<div class='accordion active' id='generalSection'><h1>General</h1></div><div class='accordionPanel'>";
+    generalText += "<div class='accordion generalHeader active'><h1>General</h1></div><div class='accordionPanel'>";
     //Replace existing files
     generalText += "<div class='sectionWrapper'><input id='replaceToggle' type='checkbox' value='Replace'";
     if(replaceExistingFiles) generalText += " checked";
@@ -929,7 +970,7 @@
     generalText += "</div>";
     
     //Advanced General Options
-    generalText += "<div class='accordion active' id='generalSection'><h1>Advanced</h1></div><div class='accordionPanel'>";
+    generalText += "<div class='accordion generalHeader active'><h1>Advanced</h1></div><div class='accordionPanel'>";
     //Nested Elements
     generalText += "<div class='sectionWrapper'><input id='nestedElementsToggle' type='checkbox' value='false'";
     if(nestedElements) generalText += " checked";
@@ -993,7 +1034,7 @@
       
       removeXmlListeners();
       
-      var xmlText = "<div class='accordion active' id='xmlSection'><h1>XML</h1></div><div class='accordionPanel'>";
+      var xmlText = "<div class='accordion xmlHeader active'><h1>XML</h1></div><div class='accordionPanel'>";
       //Export child elements
       xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
@@ -1009,7 +1050,7 @@
       xmlText += "</div>";
       
       //Advanced Options
-      var advancedXmlText = "<div class='accordion active' id='xmlSection'><h1>Advanced XML</h1></div><div class='accordionPanel'>";
+      var advancedXmlText = "<div class='accordion xmlHeader active'><h1>Advanced XML</h1></div><div class='accordionPanel'>";
       //Invalid element name char replacement
       advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Name replacement char</label><div class='tooltip note padded'>What character to use when replacing illegal characters in XML element names.</div></div><select id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
       if(nameReplacementCharXml === "_") advancedXmlText += " selected";
@@ -1115,13 +1156,14 @@
       
       
       //XML Namespaces
-      var xmlNamespaceText = "<div class='accordion active' id='xmlSection'><h1>XML Namespaces</h1></div><div class='accordionPanel'>";
+      var xmlNamespaceText = "<div class='accordion xmlHeader active'><h1>XML Namespaces</h1></div><div class='accordionPanel'>";
       //Root namespace value
       xmlNamespaceText += "<div class='sectionWrapper'><div class='option'>Root namespace URI<div class='tooltip note padded'>URI for the root <span class='tooltipHighlight'>xmlns</span> namespace used when creating elements in the exported XML document.</div></div><input id='xmlRootNamespaceField' type='text' value=";
       xmlNamespaceText += "'" + rootNamespace + "'/></div>";
       //Namespaces
       xmlNamespaceText += "<div class='sectionWrapper'><div class='option'>Namespaces<div class='tooltip note padded'>Namespaces used when creating elements in the exported XML document.</div></div>";
-      xmlNamespaceText += "<div class='option'><button class='listButton' id='newNamespaceButton'>+</button><div class='tooltip note padded'>Namespaces used when creating elements in the exported XML document.</div></div>";
+      xmlNamespaceText += "<div class='listButtonParent'><button class='listButton bottomButton' id='newNamespaceButton'>+</button></div>";
+      xmlNamespaceText += "<div class='namespaceGap'></div>"; //Padding to prevent the list button pushing the first namespace down and creating whitespace.
       xmlNamespaceText += "<div class='xmlNamespaces' id='xmlNamespaceParent'>";
       
       var namespaceText = "";
@@ -1164,7 +1206,7 @@
       removeJsonListeners();
       
       //JSON Options
-      var jsonText = "<div class='accordion active' id='jsonSection'><h1>JSON</h1></div><div class='accordionPanel'>";
+      var jsonText = "<div class='accordion jsonHeader active'><h1>JSON</h1></div><div class='accordionPanel'>";
       //Force string JSON
       jsonText += "<div class='sectionWrapper'><input id='forceStringToggle' type='checkbox' value='Force'";
       if(forceStringJson) jsonText += " checked";
@@ -1183,7 +1225,7 @@
       jsonText += "><div class='option'>Export value arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div></div>";
       
       //Advanced Options
-      var advancedJsonText = "<div class='accordion active' id='jsonSection'><h1>Advanced JSON</h1></div><div class='accordionPanel'>";
+      var advancedJsonText = "<div class='accordion jsonHeader active'><h1>Advanced JSON</h1></div><div class='accordionPanel'>";
       //Content to array JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
       if(exportContentsAsArrayJson) advancedJsonText += " checked";
