@@ -159,13 +159,9 @@
   //Actually sets the local properties based on stored settings.
   function updateProperties(properties)
   {
-    var settings;
+    var settings = {};
     
-    if(properties == null || properties === "")
-    {
-      settings = {};
-    }
-    else
+    if(properties != null && properties !== "")
     {
       settings = JSON.parse(properties);
     }
@@ -399,6 +395,55 @@
   function onGetExportFolderName(name)
   {
     document.getElementById("exportFolderName").value = name;
+  }
+  
+  //Generate a unique UUID. Based on the solution found here: https://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid
+  function getUUID()
+  {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c)
+    {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  
+  
+  function stringToHash(string)
+  {
+    var hash = 0;
+    
+    if (string.length == 0) return hash;
+    
+    for (let i = 0; i < string.length; i++)
+    {
+      let char = string.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    
+    return hash;
+  } 
+  
+  //Returns true if the given UUID is not already contained in the existing namespace values.
+  function isNamespaceUUIDUnique(uuid)
+  {
+    for(let i=0; i < namespaces.length; i++)
+    {
+      if(namespaces[i]["uuid"] === uuid) return false;
+    }
+    
+    return true;
+  }
+  
+  //Returns the index for the XML namespace with the given ID, or -1 if it is not found.
+  function getNamespaceIndex(uuid)
+  {
+    for(let i=0; i < namespaces.length; i++)
+    {
+      if(namespaces[i]["uuid"] === uuid) return i;
+    }
+    
+    return -1;
   }
   
   //Checks if all the sheets are selected for export
@@ -671,93 +716,94 @@
     rootNamespace = document.getElementById("xmlRootNamespaceField").value;
   }
   
-  //Add a new namespace to the list of namespaces
+  //Add a new namespace to the list of namespaces and create HTML for it in the sidebar
   function addNamespaceXml()
   {
-    namespaces.push(
+    var newNamespace = { "prefix": "", "uri": "" };
+    var uuid = stringToHash(getUUID());
+    
+    while(!isNamespaceUUIDUnique(uuid))
     {
-      "prefix": "",
-      "uri": ""
-    });
-    
-    var newNamespaceText = getNamespaceTextXml(namespaces.length - 1);
-  
-    document.getElementById("xmlNamespaceParent").innerHTML += newNamespaceText;
-  }
-  
-  function updateNamespacePrefix(index)
-  {
-    var i = parseInt(index);
-    
-    var prefixElement = document.getElementById("namespacePrefix" + index);
-    
-    //TODO: This breaks when deleting elements... Maybe we DO need to unregister the existing callbacks?
-    namespaces[i]["prefix"] = prefixElement.value;
-    
-    document.getElementById("namespaceAccordion" + index).innerHTML = "xmlns:" + namespaces[i]["prefix"];
-  }
-  
-  function updateNamespaceUri(index)
-  {
-    var i = parseInt(index);
-    
-    namespaces[i]["uri"] = document.getElementById("namespaceUri" + index).value;
-  }
-  
-  function deleteNamespaceXml(index)
-  {
-    var i = parseInt(index);
-    
-    console.log("count: " + namespaces.length);
-    console.log("index: " + i + " (" + index + ")");
-    
-    namespaces.splice(i, 1);
-    
-    //Delete the namespace's HTML
-    document.getElementById("namespace" + index).remove();
-    
-    //Regenerate namespace callbacks and IDs
-    refreshNamespaceTextXml(i);
-  }
-  
-  function refreshNamespaceTextXml(startIndex)
-  {
-    var root = document.getElementById("xmlNamespaceParent");
-    var namespaceElements = root.getElementsByClassName("xmlNamespace");
-    
-    if(startIndex < 0) startIndex = 0; //Safety check to make sure we don't throw an index out of range exception.
-    
-    for(let i=startIndex; i < namespaceElements.length; i++)
-    {
-      let index = i;
-      let buttonElement = namespaceElements[i].getElementsByClassName("listButton")[0];
-      let inputElements = namespaceElements[i].getElementsByTagName("input");
-      
-      namespaceElements[i].id = "namespace" + index;
-      
-      //Delete Button
-      buttonElement.onclick = deleteNamespaceXml(index);
-      //Prefix
-      inputElements[0].onchange = updateNamespacePrefix(index);
-      inputElements[0].id = "namespacePrefix" + index;
-      //URI
-      inputElements[1].onchange = updateNamespaceUri(index);
-      inputElements[1].id = "namespaceUri" + index;
+      uuid = stringToHash(getUUID());
     }
+    
+    newNamespace["uuid"] = uuid;
+    
+    namespaces.push(newNamespace);
+    
+    var newNamespaceText = getNamespaceTextXml(namespaces.length - 1, false);
+    var node = document.createElement("div");
+    node.innerHTML = newNamespaceText;
+    
+    document.getElementById("xmlNamespaceParent").appendChild(node);
+    refreshNamespaceAccordionListeners();
   }
   
-  function getNamespaceTextXml(index)
+  //Update the prefix for the namespace with the given UUID
+  function updateNamespacePrefix(uuid)
+  {
+    var index = getNamespaceIndex(uuid);
+    
+    var prefixElement = document.getElementById("namespacePrefix" + uuid);
+    
+    namespaces[index]["prefix"] = prefixElement.value;
+    
+    document.getElementById("namespaceAccordion" + uuid).innerHTML = "xmlns:" + namespaces[index]["prefix"];
+  }
+  
+  //Update the URI for the namespace with the given UUID
+  function updateNamespaceUri(uuid)
+  {
+    var index = getNamespaceIndex(uuid);
+    
+    namespaces[index]["uri"] = document.getElementById("namespaceUri" + uuid).value;
+  }
+  
+  //Delete the namespace with the given UUID and remove its HTML in the sidebar
+  function deleteNamespaceXml(uuid)
+  {
+    var index = getNamespaceIndex(uuid);
+    
+    //Delete the namespace's DOM object
+    document.getElementById("namespace" + uuid).remove();
+    
+    namespaces.splice(index, 1);
+  }
+  
+  //Get HTML text for the namespace at the given index. If hidden is true, the namespace accordion will be hidden
+  function getNamespaceTextXml(index, hidden)
   {
     //TODO: Apply tinting to empty fields...
-    var newNamespaceText = "<div class='xmlNamespace' id='namespace" + index + "'>";
+    var newNamespaceText = "<div class='xmlNamespace' id='namespace" + namespaces[index]["uuid"] + "'>";
     
-    newNamespaceText += "<div class='accordion xmlHeader active' id='namespaceAccordion" + index + "'>xmlns:" + namespaces[index]["prefix"] + "</div><div class='accordionPanel'><div class='paddedPanel'>";
-    newNamespaceText += "<div class='option'>Prefix</div><div class='listButtonParent'><button class='listButton' onclick='deleteNamespaceXml(" + index + ")'>-</button></div><p><input id='namespacePrefix" + index + "' type='text' value='" + namespaces[index]["prefix"] + "' onchange='updateNamespacePrefix(" + index + ")'></p>";
-    newNamespaceText += "<div class='option'>URI</div><p><input id='namespaceUri" + index + "' type='text' value='" + namespaces[index]["uri"] + "' onchange='updateNamespaceUri(" + index + ")'></p>";
+    newNamespaceText += "<div class='accordion xmlHeader' id='namespaceAccordion" + namespaces[index]["uuid"] + "'>xmlns:" + namespaces[index]["prefix"] + "</div><div class='accordionPanel" + (hidden ? " hidden" : "") + "'><div class='paddedPanel'>";
+    newNamespaceText += "<div class='option'>Prefix</div><div class='listButtonParent'><button class='listButton' onclick='deleteNamespaceXml(" + namespaces[index]["uuid"] + ")'>-</button></div><p><input id='namespacePrefix" + namespaces[index]["uuid"] + "' type='text' value='" + namespaces[index]["prefix"] + "' onchange='updateNamespacePrefix(" + namespaces[index]["uuid"] + ")'></p>";
+    newNamespaceText += "<div class='option'>URI</div><p><input id='namespaceUri" + namespaces[index]["uuid"] + "' type='text' value='" + namespaces[index]["uri"] + "' onchange='updateNamespaceUri(" + namespaces[index]["uuid"] + ")'></p>";
     
     newNamespaceText += "</div></div></div>";
     
     return newNamespaceText;
+  }
+  
+  //Refresh onclick event listeners for XML namespace accordions
+  function refreshNamespaceAccordionListeners()
+  {
+    var parent = document.getElementById("xmlNamespaceParent");
+    var accordions = parent.getElementsByClassName("accordion");
+    
+    for(let i=0; i < accordions.length; i++)
+    {
+      let index = i;
+      
+      accordions[index].onclick = function()
+      {
+        this.classList.toggle("active");
+        
+        let panel = this.nextElementSibling;
+        
+        panel.classList.toggle("hidden");
+      };
+    }
   }
   
   //JSON Options
@@ -1149,12 +1195,6 @@
       if(forceInnerTextXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div></div></div>";
       
-      
-      
-      
-      
-      
-      
       //XML Namespaces
       var xmlNamespaceText = "<div class='accordion xmlHeader active'><h1>XML Namespaces</h1></div><div class='accordionPanel'>";
       //Root namespace value
@@ -1170,7 +1210,7 @@
       
       for(let i=0; i < namespaces.length; i++)
       {
-        let text = getNamespaceTextXml(i);
+        let text = getNamespaceTextXml(i, true);
         namespaceText += text;
       }
       
@@ -1182,18 +1222,12 @@
       //Close accordion div
       xmlNamespaceText += "</div>";
       
-      
-      
-      
-      
-      
-      
-      
       document.getElementById("xmlOptions").innerHTML = xmlText;
       document.getElementById("advancedOptions").innerHTML = advancedXmlText;
       document.getElementById("xmlNamespaces").innerHTML = xmlNamespaceText;
       
       addXmlListeners();
+      refreshNamespaceAccordionListeners();
     }
     else //Populate JSON options
     {
@@ -1279,20 +1313,7 @@
     
     if(exportFolderType !== "default" && exportFolder !== "") getExportFolderName(onGetExportFolderName); //Populate the name of the target export folder
     
-    var accordions = document.getElementsByClassName("accordion");
-    
-    for(let i=0; i < accordions.length; i++)
-    {
-      accordions[i].addEventListener("click", function()
-      {
-        this.classList.toggle("active");
-        
-        let panel = this.nextElementSibling;
-        
-        if(panel.style.display === "block" || panel.style.display === "") panel.style.display = "none";
-        else panel.style.display = "block";
-      });
-    }
+    addAccordionListeners();
   }
   
   //Changes export format between XML and JSON
@@ -1483,6 +1504,26 @@
     document.getElementById('unwrapSheetsPrefixTextField').addEventListener("change", updateUnwrapPrefix);
     document.getElementById('collapseSheetsToggle').addEventListener("change",toggleCollapseSheetsWithPrefix);
     document.getElementById('collapseSheetsPrefixTextField').addEventListener("change", updateCollapsePrefix);
+  }
+  
+  //Set up section accordion click interactions.
+  function addAccordionListeners()
+  {
+    var accordions = document.getElementsByClassName("accordion");
+    
+    for(let i=0; i < accordions.length; i++)
+    {
+      if(accordions[i].id.startsWith("namespace")) continue; // Check if the accorion is an XML namespace accordion and skip if it is. These have their own method for assigning event listeners.
+      
+      accordions[i].addEventListener("click", function()
+      {
+        this.classList.toggle("active");
+        
+        let panel = this.nextElementSibling;
+        
+        panel.classList.toggle("hidden");
+      });
+    }
   }
   
   //Adds event listeners for XML options.
