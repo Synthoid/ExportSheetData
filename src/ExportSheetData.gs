@@ -21,6 +21,14 @@ const searchTypeSheet = "Sheet"; //Set the target element to the sheet's root. (
 const searchTypeRow = "Row"; //Search for the index matching a row's index (#ROW)
 const searchTypeIndex = "Index"; //Search for a specific index (#1)
 const searchTypeNone = "None"; //Not a valid search type
+/*const searchTypes = {
+  None: 0, //Not a valid search type
+  Root: 1, //Set the target element to the root JSON object (#ROOT)
+  Sheet: 2, //Set the target element to the sheet's root. (#SHEET)
+  Row: 3, //Search for the index matching a row's index (#ROW)
+  Field: 4, //Search for a specific field value (#FIELD_ID)
+  Index: 5 //Search for a specific index (#1)
+};*/
 
 //Special prefixes to allow XML nested elements
 //const arrayPref = "ARRAY_";
@@ -387,7 +395,7 @@ function formatXmlName(value, replacement)
 }
 
 //Returns an array with the name as the first element and the namespace as the second.
-function getXmlNameWithNamespace(value)
+function getXmlNameAndNamespace(value)
 {
   var values = value.split(':');
   var output = [];
@@ -406,6 +414,17 @@ function getXmlNameWithNamespace(value)
   }
   
   return output;
+}
+
+//Returns a Namespace value with the given prefix, or no namespace.
+function getXmlNamespace(prefix, namespaces)
+{
+  for(let i=0; i < namespaces.length; i++)
+  {
+    if(namespaces[i].getPrefix() === prefix) return namespaces[i];
+  }
+  
+  return XmlService.getNoNamespace();
 }
 
 function formatXmlValue(value, exportBoolsAsInts)
@@ -837,6 +856,21 @@ function exportSpreadsheetXml(formatSettings, callback)
   var attributePrefix = settings["attributePrefix"];
   var childElementPrefix = settings["childElementPrefix"];
   var innerTextPrefix = settings["innerTextPrefix"];
+  //Namepsaces
+  var rootNamespaceRaw = settings["rootNamespace"];
+  var namespacesRaw = settings["namespaces"];
+  
+  //Set up actual XmlNamespace values
+  var rootNamespace = rootNamespaceRaw === "" ? XmlService.getNoNamespace() : XmlService.getNamespace(rootNamespaceRaw);
+  var namespaces = [];
+  
+  for(let i=0; i < namespacesRaw.length; i++)
+  {
+    if(namespacesRaw[i]["prefix"] !== "" && namespacesRaw[i]["uri"] !== "")
+    {
+      namespaces.push(XmlService.getNamespace(namespacesRaw[i]["prefix"], namespacesRaw[i]["uri"]));
+    }
+  }
   
   //Sheets info
   var spreadsheet = SpreadsheetApp.getActive();
@@ -864,7 +898,27 @@ function exportSpreadsheetXml(formatSettings, callback)
   var fileName = spreadsheet.getName() + (singleSheet ? (" - " + sheets[0].getName()) : "") + ".xml";
   var sheetValues = [[]];
   
-  var xmlRoot = XmlService.createElement(formatXmlName(rootElement, nameReplacementChar)); //Create the root XML element. https://developers.google.com/apps-script/reference/xml-service/
+  var xmlRoot = XmlService.createElement(formatXmlName(rootElement, nameReplacementChar), rootNamespace); //Create the root XML element. https://developers.google.com/apps-script/reference/xml-service/
+  
+  if(namespaces.length > 0)
+  {
+    //Manual parsing is needed because Apps Script doesn't support declaring more than one namespace per element currently.
+    var rootString = "<" + formatXmlName(rootElement, nameReplacementChar);
+    
+    if(rootNamespaceRaw !== "") rootString += ` xmlns="${rootNamespaceRaw}"`;
+    
+    for(let i=0; i < namespaces.length; i++)
+    {
+      rootString += ` xmlns:${namespaces[i].getPrefix()}="${namespaces[i].getURI()}"`;
+    }
+    
+    rootString += " />";
+    
+    let tempDoc = XmlService.parse(rootString);
+    
+    xmlRoot = tempDoc.getRootElement();
+    xmlRoot.detach(); //Detatch root element from the parsed XmlDocument for later use.
+  }
   
   for(let i=0; i < sheets.length; i++)
   {
@@ -917,6 +971,8 @@ function exportSpreadsheetXml(formatSettings, callback)
       let attributes = [];
       let childElements = [];
       let innerTextElements = [];
+      let attributeNamespaces = [];
+      let childElementNamespaces = [];
       
       //Build the actual row XML
       let rowXml = XmlService.createElement("Comment");
@@ -928,38 +984,45 @@ function exportSpreadsheetXml(formatSettings, callback)
       {
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
         if((ignoreEmpty || isComment) && values[j][k] === "") continue; //Skip empty cells if desired or a comment
-        if(keyHasPrefix(values[0][k], ignorePrefix)) continue; //Skip columns with the ignore prefix
+        
+        let columnNameAndNamespace = getXmlNameAndNamespace(values[0][k]);
+        
+        if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
+        
+        let columnNamespace = columnNameAndNamespace[1] !== "" ? getXmlNamespace(columnNameAndNamespace[1], namespaces) : rootNamespace;
         
         if(isComment)
         {
           if(values[j][k] == null) continue; //Skip empty cells
           
           let text = rowXml.getText();
-          rowXml.setText((text === "") ? values[j][k] : (text + "\n" + values[j][k]));
+          rowXml.setText((text === "") ? values[j][k] : (text + "\n" + values[j][k])); //TODO: Expose separation char
         }
         else
         {
           //Make a note if an element name gets formatted so users know they do not have proper formatting
-          if(exportMessage === "" && values[0][k] !== formatXmlName(values[0][k], nameReplacementChar))
+          if(exportMessage === "" && columnNameAndNamespace[0] !== formatXmlName(columnNameAndNamespace[0], nameReplacementChar))
           {
             exportMessage = "Some keys have been auto-formatted to match XML standards.";
             exportMessageHeight = 25;
           }
-        
-          if((useChildElements && (attributePrefix === "" || !keyHasPrefix(values[0][k], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))) || 
-            (childElementPrefix !== "" && keyHasPrefix(values[0][k], childElementPrefix)))
+          
+          if((useChildElements && (attributePrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))) || 
+            (childElementPrefix !== "" && keyHasPrefix(columnNameAndNamespace[0], childElementPrefix)))
           {
-            childElementKeys.push(stripPrefix(values[0][k], childElementPrefix));
-            childElements.push(values[j][k]); //TODO: Should convert values if needed. (ie export bools as ints)
+            childElementKeys.push(stripPrefix(columnNameAndNamespace[0], childElementPrefix));
+            childElements.push(values[j][k]);
+            childElementNamespaces.push(columnNamespace);
           }
-          else if(innerTextPrefix === "" || !keyHasPrefix(values[0][k], innerTextPrefix))
+          else if(innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
           {
-            attributeKeys.push(stripPrefix(values[0][k], attributePrefix));
+            attributeKeys.push(stripPrefix(columnNameAndNamespace[0], attributePrefix));
             attributes.push(values[j][k]);
+            attributeNamespaces.push(columnNamespace);
           }
           else
           {
-            innerTextKeys.push(stripPrefix(values[0][k], innerTextPrefix));
+            innerTextKeys.push(stripPrefix(columnNameAndNamespace[0], innerTextPrefix));
             innerTextElements.push(values[j][k]);
           }
         }
@@ -973,19 +1036,25 @@ function exportSpreadsheetXml(formatSettings, callback)
         continue;
       }
       
+      let rowNameAndNamespace = getXmlNameAndNamespace(values[j][0]);
+      let rowNamespace = rowNameAndNamespace[1] !== "" ? getXmlNamespace(rowNameAndNamespace[1], namespaces) : rootNamespace;
+      
       //Build the actual row XML
-      rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar));
+      //rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar), rootNamespace);
+      rowXml = XmlService.createElement(formatXmlName(rowNameAndNamespace[0], nameReplacementChar), rowNamespace);
       
       //Set attributes
       for(let k=0; k < attributes.length; k++)
       {
-        rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts));
+        //Atributes without custom namespaces will throw an error when attempting to set them with a default namespace so just use a namespace-less creation method.
+        if(attributeNamespaces[k].getPrefix() === "") rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts));
+        else rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts), attributeNamespaces[k]);
       }
       
       //Set child elements
       for(let k=0; k < childElements.length; k++)
       {
-        let childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar));
+        let childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar), childElementNamespaces[k]);
         
         childXml.setText(formatXmlValue(trimSafe(childElements[k]), exportBoolsAsInts));
         
@@ -1056,7 +1125,7 @@ function exportSpreadsheetXml(formatSettings, callback)
   
   if(declarationVersion !== "")
   {
-    //TODO: Can probably do this with XmlService?
+    //TODO: Can probably do this with XmlService? https://developers.google.com/apps-script/reference/xml-service/doc-type
     let xmlDeclaration = '<?xml version="' + declarationVersion + '"';
     
     if(declarationEncoding !== "") xmlDeclaration += ' encoding="' + declarationEncoding + '"';
