@@ -12,6 +12,8 @@
   const XML_ATT_DEFAULT = "ATT_";
   const XML_CE_DEFAULT = "CE_";
   const XML_IT_DEFAULT = "IT_";
+  //
+  const XML_NAMESPACE_PLACEHOLDER = "No XML namespaces set. Click the [+] button to add a namespace.";
   //JSON
   const JSON_SEPARATOR_DEFAULT = ","; //TODO: Cannot be " or ' chars
   const JSON_JA_DEFAULT = "JA_";
@@ -736,6 +738,11 @@
     node.innerHTML = newNamespaceText;
     
     document.getElementById("xmlNamespaceParent").appendChild(node);
+    
+    var placeholder = document.getElementById("xmlNamespacePlaceholder");
+    
+    if(placeholder != null) placeholder.remove();
+    
     refreshNamespaceAccordionListeners();
   }
   
@@ -768,6 +775,17 @@
     document.getElementById("namespace" + uuid).remove();
     
     namespaces.splice(index, 1);
+    
+    if(namespaces.length === 0)
+    {
+      var namespaceParent = document.getElementById("xmlNamespaceParent");
+      var node = document.createElement("p");
+      
+      node.id = "xmlNamespacePlaceholder";
+      node.classList.add("namespacePlaceholder");
+      node.innerHTML = XML_NAMESPACE_PLACEHOLDER;
+      namespaceParent.appendChild(node);
+    }
   }
   
   //Get HTML text for the namespace at the given index. If hidden is true, the namespace accordion will be hidden
@@ -776,7 +794,7 @@
     //TODO: Apply tinting to empty fields...
     var newNamespaceText = "<div class='xmlNamespace' id='namespace" + namespaces[index]["uuid"] + "'>";
     
-    newNamespaceText += "<div class='accordion xmlHeader' id='namespaceAccordion" + namespaces[index]["uuid"] + "'>xmlns:" + namespaces[index]["prefix"] + "</div><div class='accordionPanel" + (hidden ? " hidden" : "") + "'><div class='paddedPanel'>";
+    newNamespaceText += "<div class='accordion xmlHeader" + (hidden ? "" : " active") + "' id='namespaceAccordion" + namespaces[index]["uuid"] + "'>xmlns:" + namespaces[index]["prefix"] + "</div><div class='accordionPanel" + (hidden ? " hidden" : "") + "'><div class='paddedPanel'>";
     newNamespaceText += "<div class='option'>Prefix</div><div class='listButtonParent'><button class='listButton' onclick='deleteNamespaceXml(" + namespaces[index]["uuid"] + ")'>-</button></div><p><input id='namespacePrefix" + namespaces[index]["uuid"] + "' type='text' value='" + namespaces[index]["prefix"] + "' onchange='updateNamespacePrefix(" + namespaces[index]["uuid"] + ")'></p>";
     newNamespaceText += "<div class='option'>URI</div><p><input id='namespaceUri" + namespaces[index]["uuid"] + "' type='text' value='" + namespaces[index]["uri"] + "' onchange='updateNamespaceUri(" + namespaces[index]["uuid"] + ")'></p>";
     
@@ -1213,6 +1231,8 @@
         let text = getNamespaceTextXml(i, true);
         namespaceText += text;
       }
+      
+      if(namespaces.length === 0) namespaceText += "<p class='namespacePlaceholder' id='xmlNamespacePlaceholder'>" + XML_NAMESPACE_PLACEHOLDER + "</p>";
       
       xmlNamespaceText += namespaceText;
       
