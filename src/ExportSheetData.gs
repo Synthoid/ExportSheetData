@@ -1,4 +1,4 @@
-const esdVersion = 61;
+const esdVersion = 62;
 
 //Popup message
 const messageLineHeight = 10;
@@ -246,8 +246,16 @@ function getFileParentFolderId(file)
 //Converts the contents of a cell into an array by separating the cell value based on the given separator char.
 function getCellContentArray(cell, separatorChar)
 {
-  var content = cell;
   var cellArray = [];
+  
+  //If the cell isn't a string, it's value can't be split into an array.
+  if(typeof(cell) !== "string")
+  {
+    cellArray.push(cell);
+    return cellArray;
+  }
+  
+  var content = cell;
   var commaIndicies = [];
   var openQuoteIndicies = [];
   var closeQuoteIndicies = [];
