@@ -1,4 +1,4 @@
-const esdVersion = 62;
+const esdVersion = 63;
 
 //Popup message
 const messageLineHeight = 10;
@@ -945,7 +945,7 @@ function exportSpreadsheetXml(formatSettings, callback)
     var activePrefixes = getPrefixes(sheetName, unwrapPrefix, collapsePrefix);
     sheetName = stripPrefixes(sheetName, unwrapPrefix, collapsePrefix);
     
-    var sheetXml = XmlService.createElement(formatXmlName(sheetName, nameReplacementChar));
+    var sheetXml = XmlService.createElement(formatXmlName(sheetName, nameReplacementChar), rootNamespace);
     
     if(activePrefixes[0])
     {
