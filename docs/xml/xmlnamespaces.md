@@ -7,7 +7,7 @@ group: xml
 
 Namespaces
 ----------
-Namespaces used for the exported XML's elements. Attributes and elements can be declared with a namespace by using a name prefix. For example: `ss:Type`, `x:Wdith`, `mx:Platform`, ect. To add a namespace, click the `+` button next to the Namespaces label. To remove a namespace, click the `-` button next to the namespace's prefix label.
+Namespaces used for the exported XML's elements. Attributes and elements can be declared with a namespace by using a name prefix. For example: `ss:Type`, `x:Width`, `mx:Platform`, ect. To add a namespace, click the `+` button next to the Namespaces label. To remove a namespace, click the `-` button next to the namespace's prefix label.
 
 There are two values associated with a namespace:
  - `Prefix`
@@ -17,7 +17,7 @@ There are two values associated with a namespace:
 
 These are defined via `xmlns:prefix` attributes in the document's root element.
 
-**`NOTES:`** 
+**NOTES:** 
   - Prefixes are case sensitive. `sA:test` will not recognize a namespace with the prefix `sa`.
   - When using namespaces in conjuction with prefix options like [Attributes prefix](attributesprefix.md), ESD prefixes must come *after* the namespace prefix.
     - &#9989; Good
