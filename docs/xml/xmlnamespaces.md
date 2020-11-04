@@ -7,7 +7,9 @@ group: xml
 
 Namespaces
 ----------
-Namespaces used for the exported XML's elements. Attributes and elements can be declared with a namespace by using a name prefix. For example: `ss:Type`, `x:Wdith`, `mx:Platform`, ect. There are two values associated with a namespace:
+Namespaces used for the exported XML's elements. Attributes and elements can be declared with a namespace by using a name prefix. For example: `ss:Type`, `x:Wdith`, `mx:Platform`, ect. To add a namespace, click the `+` button next to the Namespaces label. To remove a namespace, click the `-` button next to the namespace's prefix label.
+
+There are two values associated with a namespace:
  - `Prefix`
     - The actual prefix used in element names.
  - `URI`
