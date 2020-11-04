@@ -88,6 +88,11 @@ These settings only affect exported XML data.
 - [Child elements prefix](xml/childelementsprefix.md) - Force elements in a column to export as child elements of their row element
 - [Inner text prefix](xml/innertextprefix.md) - Force elements in a column to export as inner text for their row element
 
+### XML Namespaces
+
+- [Root namespace URI](xml/rootnamespaceuri.md) - Root namespace for the XML document.
+- [Namespaces](xml/xmlnamespaces.md) - Namespaces used in the XML document's elements.
+
 Tips N Tricks
 -------------
 These pages detail various tips for more obscure or esoteric functionality in ESD.
