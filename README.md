@@ -41,6 +41,7 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
 * Automatic formatting of XML illegal characters like `&`, `<`, and `>`
 * Exporting booleans as integers
 * XML comments and declaration support
+* XML namespaces
  
 **General**
 * Visualize data before exporting
