@@ -68,6 +68,10 @@ As a sidenote, you can use namespaces with or without a [root namespace](rootnam
 </data>
 ```
 
-External Resources
+See also
+--------
+ - [Root namespace URI](rootnamespaceuri.md)
+ 
+External resources
 ------------------
 For more information on XML namespaces, check out [w3schools' page on the subject](https://www.w3schools.com/xml/xml_namespaces.asp).
