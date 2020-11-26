@@ -390,9 +390,7 @@ function formatXmlName(value, replacement)
     }
   }
   
-  // /([^a-zA-Z0-9\-\_])/gm
-  // /([^:A-Z0-9\-\_\.])/gim
-  xmlName = xmlName.replace(/([^A-Z0-9\-\_\.])/gim, replacement); //Replace non-alphanumeric, dash, underscore, or period chars with an underscore
+  xmlName = xmlName.replace(/([^A-Z0-9\-\_\.])/gim, replacement); //Replace non-alphanumeric, dash, underscore, or period chars with the replacement char
   
   if(xmlName.search(/[a-zA-Z\_]/g) > 0)
   {
@@ -2098,6 +2096,8 @@ function openSidebar()
     .setWidth(300);
 
   SpreadsheetApp.getUi().showSidebar(html);
+  
+  checkVersionNumber();
 }
 
 
@@ -2108,6 +2108,26 @@ function openAboutModal()
     .setHeight(185);
   
   SpreadsheetApp.getUi().showModelessDialog(html, 'About ESD');
+}
+
+
+function openSupportModal()
+{
+  var html = HtmlService.createTemplateFromFile('Modal_Support').evaluate()
+    .setWidth(375)
+    .setHeight(185);
+  
+  SpreadsheetApp.getUi().showModelessDialog(html, 'Support ESD');
+}
+
+
+function openNewVersionModal()
+{
+  var html = HtmlService.createTemplateFromFile('Modal_NewVersion').evaluate()
+    .setWidth(275)
+    .setHeight(150);
+    
+  SpreadsheetApp.getUi().showModelessDialog(html, "What's New");
 }
 
 
@@ -2166,6 +2186,25 @@ function include(filename)
 }
 
 
+function checkVersionNumber()
+{
+  var temp = PropertiesService.getUserProperties();
+  var latestVersion = temp.getProperty("esd-latestVersion");
+  
+  if(latestVersion === "" || parseInt(latestVersion) !== esdVersion)
+  {
+    PropertiesService.getUserProperties().setProperty("esd-latestVersion", esdVersion.toString());
+    openNewVersionModal();
+  }
+  else
+  {
+    PropertiesService.getUserProperties().setProperty("esd-latestVersion", "");
+  }
+  
+  return true;
+}
+
+
 function onInstall(e)
 {
   onOpen(e);
@@ -2179,5 +2218,6 @@ function onOpen(e)
   .addItem("Open Sidebar", "openSidebar")
   .addSeparator()
   .addItem("About (v" + esdVersion + ")", "openAboutModal")
+  .addItem("Support ESD", "openSupportModal")
   .addToUi();
 };

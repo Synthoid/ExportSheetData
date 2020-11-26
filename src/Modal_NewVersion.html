@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <style>
+      button.close {
+        position: fixed;
+        bottom: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <p>ESD has updated to version: <span id="versionNumber" style="color:green"></span></p>
+      <p>For more information, see <a href="https://github.com/Synthoid/ExportSheetData/blob/master/ReleaseNotes.pdf" target="blank">ESD's release notes</a></p>
+      <button class="close" onclick="google.script.host.close()">Close</button>
+    </div>
+    <script type="application/javascript">
+      function refreshVersion()
+      {
+        google.script.run.withSuccessHandler(onVersionSuccess).getVersion()
+      }
+      
+      function onVersionSuccess(version)
+      {
+        document.getElementById("versionNumber").innerHTML = "v" + version;
+      }
+      
+      refreshVersion();
+    </script>
+  </body>
+</html>
