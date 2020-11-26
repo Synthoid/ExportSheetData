@@ -4,7 +4,19 @@
     <base target="_top">
     <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
     <style>
-      button.close {
+      .highlights {
+        width: 95%;
+        height: 115px;
+        overflow: auto;
+        border: 1px solid gray;
+        padding: 4px;
+      }
+      
+      .title {
+        font-weight: bold;
+      }
+      
+      button .close {
         position: fixed;
         bottom: 0px;
       }
@@ -13,9 +25,19 @@
   <body>
     <div>
       <p>ESD has updated to version: <span id="versionNumber" style="color:green"></span></p>
-      <p>For more information, see <a href="https://github.com/Synthoid/ExportSheetData/blob/master/ReleaseNotes.pdf" target="blank">ESD's release notes</a></p>
-      <button class="close" onclick="google.script.host.close()">Close</button>
     </div>
+    <div class="highlights">
+      <!--Release Highlights-->
+      <div class="title">General</div>
+      <ul>
+        <li>ESD will now show a "What's New" window when opening the sidebar for the first time after a new version is released.</li>
+        <li>Added "Support ESD" menu item.</li>
+      </ul>
+    </div>
+    <div>
+      <p>For more information, see <a href="https://github.com/Synthoid/ExportSheetData/blob/master/ReleaseNotes.pdf" target="blank">ESD's release notes</a></p>
+    </div>
+    <button class="close" onclick="google.script.host.close()">Close</button>
     <script type="application/javascript">
       function refreshVersion()
       {

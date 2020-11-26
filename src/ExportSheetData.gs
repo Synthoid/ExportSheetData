@@ -2124,8 +2124,8 @@ function openSupportModal()
 function openNewVersionModal()
 {
   var html = HtmlService.createTemplateFromFile('Modal_NewVersion').evaluate()
-    .setWidth(275)
-    .setHeight(150);
+    .setWidth(375)
+    .setHeight(250);
     
   SpreadsheetApp.getUi().showModelessDialog(html, "What's New");
 }
@@ -2143,16 +2143,6 @@ function openErrorModal(title, message, error)
     .setHeight(200);
       
   SpreadsheetApp.getUi().showModelessDialog(html, title);
-}
-
-
-function openUpdateWindow()
-{
-  var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><div><p>Export Sheet Data has been updated to v' + esdVersion + '</p><p>Release notes can be viewed on GitHub: <a href="https://github.com/Synthoid/ExportSheetData/blob/master/ReleaseNotes.pdf" target="blank">here</a></p><br><button onclick="google.script.host.close()">Close</button></div>')
-      .setWidth(275)
-      .setHeight(130);
-      
-  SpreadsheetApp.getUi().showModelessDialog(html, 'ESD Update Notes');
 }
 
 
@@ -2196,12 +2186,7 @@ function checkVersionNumber()
     PropertiesService.getUserProperties().setProperty("esd-latestVersion", esdVersion.toString());
     openNewVersionModal();
   }
-  else
-  {
-    PropertiesService.getUserProperties().setProperty("esd-latestVersion", "");
-  }
-  
-  return true;
+  //openNewVersionModal();
 }
 
 
