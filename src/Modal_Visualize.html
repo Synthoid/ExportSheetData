@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <style>
+      .displayWrapper {
+        height: 400px;
+      }
+      
+      .display {
+        width: 100%;
+        height: 98%;
+        overflow: auto;
+        resize: none;
+      }
+      
+      textarea {
+        width: 98%;
+      }
+      
+      button .action {
+        position: fixed;
+        bottom: 0px;
+      }
+      
+      button .close {
+        position: fixed;
+        bottom: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <button onclick="copyContent()">&#128203; <b>Copy</b></button>
+    </div>
+    <div class="displayWrapper">
+      <!--Exported Data-->
+      <textarea class="display" id="clipboard" readonly>{f117b2c2-1d31-4d46-bcd1-d99dda128059}</textarea>
+    </div>
+    <div>
+      <p>
+        Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.
+      </p>
+    </div>
+    <div>
+      <p>
+        <!--Custom message-->
+        {4297f144-6a18-49df-b298-29fdfcf1a092}
+      </p>
+    <div>
+    <div>
+      <button class="action" onclick="google.script.run.reexportFile()">Export</button>
+      <button class="close" onclick="google.script.host.close()">Close</button>
+    </div>
+    <script type="application/javascript">
+      function copyContent()
+      {
+        var copyText = document.getElementById("clipboard");
+
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+        document.execCommand("copy");
+      }
+    </script>
+  </body>
+</html>

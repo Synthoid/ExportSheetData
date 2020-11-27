@@ -1,4 +1,4 @@
-const esdVersion = 63;
+const esdVersion = 64;
 
 //Popup message
 const messageLineHeight = 10;
@@ -46,6 +46,22 @@ function getProperties()
 function setProperties(newProperties)
 {
   var properties = PropertiesService.getDocumentProperties();
+  
+  properties.setProperties(JSON.parse(newProperties));
+}
+
+//Gets the script properties for ESD.
+function getScriptProperties()
+{
+  var properties = PropertiesService.getScriptProperties();
+  
+  return JSON.stringify(properties.getProperties());
+}
+
+//Sets script properties for ESD.
+function setScriptProperties(newProperties)
+{
+  var properties = PropertiesService.getScriptProperties();
   
   properties.setProperties(JSON.parse(newProperties));
 }
@@ -403,6 +419,11 @@ function formatXmlName(value, replacement)
 //Returns an array with the name as the first element and the namespace as the second.
 function getXmlNameAndNamespace(value)
 {
+  if(typeof(value) !== "string")
+  {
+    return [ value, "" ];
+  }
+  
   var values = value.split(':');
   var output = [];
   
@@ -801,7 +822,16 @@ function tryParseJsonArrayString(jsonString)
 function exportXml(formatSettings, callback)
 {
   showCompilingMessage('Compiling XML...');
-  exportSpreadsheetXml(formatSettings, callback == null ? exportDocument : callback);
+  
+  try
+  {
+    exportSpreadsheetXml(formatSettings, callback == null ? exportDocument : callback);
+  }
+  catch (e)
+  {
+    openErrorModal('XML Export Error!', "Encountered an error while exporting XML. See the error below for more details.", e.stack);
+    return;
+  }
   
   var tempSettings = JSON.parse(formatSettings);
   
@@ -816,7 +846,16 @@ function exportXml(formatSettings, callback)
 function exportJson(formatSettings, callback)
 {
   showCompilingMessage('Compiling JSON...');
-  exportSpreadsheetJson(formatSettings, callback == null ? exportDocument : callback);
+  
+  try
+  {
+    exportSpreadsheetJson(formatSettings, callback == null ? exportDocument : callback);
+  }
+  catch (e)
+  {
+    openErrorModal('JSON Export Error!', "Encountered an error while exporting JSON. See the error below for more details.", e.stack);
+    return;
+  }
   
   var tempSettings = JSON.parse(formatSettings);
   
@@ -1959,9 +1998,14 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
 {
   if(visualize == true)
   {
-    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:555px; height:425px; }</style><textarea class="display">' + escapeHtml(content) + '</textarea><br>Note: Escaped characters may not display properly when visualized, but will be properly formatted in the exported data.<br><br>' + (exportMessage === "" ? '' : exportMessage + '<br><br>') + '<button class="action" onclick="google.script.run.reexportFile()">Export</button><button onclick="google.script.host.close()">Close</button>')
+    var htmlString = HtmlService.createTemplateFromFile('Modal_Visualize').getRawContent();
+  
+    htmlString = htmlString.replace('{f117b2c2-1d31-4d46-bcd1-d99dda128059}', escapeHtml(content)); //Visualized data
+    htmlString = htmlString.replace('{4297f144-6a18-49df-b298-29fdfcf1a092}', (exportMessage === "" ? '' : exportMessage)); //Custom message
+  
+    var html = HtmlService.createHtmlOutput(htmlString)
       .setWidth(600)
-      .setHeight(525 + exportMessageHeight);
+      .setHeight(530 + exportMessageHeight);
       
     SpreadsheetApp.getUi().showModelessDialog(html, 'Visualized Data: ' + filename);
   }
@@ -2140,7 +2184,7 @@ function openErrorModal(title, message, error)
   
   var html = HtmlService.createHtmlOutput(htmlString)
     .setWidth(360)
-    .setHeight(200);
+    .setHeight(270);
       
   SpreadsheetApp.getUi().showModelessDialog(html, title);
 }
@@ -2186,7 +2230,6 @@ function checkVersionNumber()
     PropertiesService.getUserProperties().setProperty("esd-latestVersion", esdVersion.toString());
     openNewVersionModal();
   }
-  //openNewVersionModal();
 }
 
 

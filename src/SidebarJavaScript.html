@@ -142,7 +142,7 @@
   {
     google.script.run.openErrorModal("Settings Error", 
       "There was an error retrieving user settings, so default settings have been loaded. This is most often due to multiple accounts being signed in.", 
-      error.message + "\n" + error.stack);
+      error.stack);
       
     //Open the sidebar with default values.
     updateProperties(null);
