@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <base target="_top">
+    <base target="_blank">
     <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
     <style>
       div.content {
         width: 100%;
-        height: 165px;
-        overflow: auto;
+        height: 95px;
       }
       
       textarea {
         width: 98%;
+        height: 98%;
+        overflow: auto;
+        resize: none;
         color: rgba(255, 150, 150, 1);
         background-color: rgba(50, 0, 0, 1);
       }
@@ -23,11 +25,17 @@
     </style>
   </head>
   <body>
-    <div class="content">
-      <p>{5fd5c101-9583-456a-8c32-857c0fe3d1db}</p> <!--Custom message-->
+    <div>
+      <!--Custom message-->
+      <p id="message">{5fd5c101-9583-456a-8c32-857c0fe3d1db}</p>
+      <p>Visit ESD's <a href='https://github.com/Synthoid/ExportSheetData/blob/master/docs/troubleshooting.md'>troubleshooting page</a> for help. If you have multiple accounts signed in, see <a href="https://github.com/Synthoid/ExportSheetData/blob/master/docs/troubleshooting.md#multiple-accounts">this section</a> specifically.</p>
+    </div>
+    <div>
       <button onclick="copyError()">&#128203; <b>Error</b></button>
-      
-      <textarea class="display" id="clipboard" readonly>{34f48d68-d9b5-4c63-8a62-a25f5a412313}</textarea> <!--Error readout-->
+    </div>
+    <div class="content">
+      <!--Error readout-->
+      <textarea class="display" id="clipboard" readonly>{34f48d68-d9b5-4c63-8a62-a25f5a412313}</textarea>
     </div>
     <div>
       <button class="close" onclick="google.script.host.close()">Close</button>
@@ -42,16 +50,6 @@
 
         document.execCommand("copy");
       }
-      
-      function resizeTextArea()
-      {
-        var textArea = document.getElementById("clipboard");
-        
-        textArea.style.height = "auto";
-        textArea.style.height = (textArea.scrollHeight + 5) + "px";
-      }
-      
-      resizeTextArea();
     </script>
   </body>
 </html>
