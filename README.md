@@ -14,6 +14,10 @@ Export Sheet Data is available in both the Chrome Web Store and the G Suite Mark
 
 **NOTE:** There is a known bug when using add-ons while multiple accounts are signed in. If you run into a situation where the ESD sidebar doesn't seem to load, visit the [troubleshooting](docs/troubleshooting.md) page for help.
 
+Frequently Asked Questions
+--------------------------
+You can see answers to frequently asked questions about ESD [here](docs/faq.md).
+
 Documentation
 -------------
 The best way to figure out how to use Export Sheet Data is by opening the sidebar, reading the tooltips of various options and experimenting with the output using the Visualize option.
@@ -52,6 +56,10 @@ Export Sheet Data supports a wide variety of features. Currently, this includes:
 Contributing
 ------------
 If you would like to add a feature to Export Sheet Data, be sure to read the [wiki page on contributing](https://github.com/Synthoid/ExportSheetData/wiki/Contributing). Also, take a look at the [notes on project structure](https://github.com/Synthoid/ExportSheetData/wiki/Project-Structure) and check out the [currently open issues](https://github.com/Synthoid/ExportSheetData/issues).
+
+Supporting ESD
+--------------
+If you use ESD and want to help ensure its continued development, consider supporting ESD via GitHub Sponsors! While ESD will remain free for everyone to use, supporting development with a few dollars a month will go a long way to helping me create examples, develop new features, and fix existing bugs.
 
 Credits
 -------
