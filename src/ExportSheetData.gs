@@ -2114,7 +2114,14 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
       height += exportMessageHeight + 25;
     }
     
-    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:355px; height:85px; text-align: center; overflow: auto; } </style>File exported successfully. You can view the file here:<div class="display"><br><br><a href="' + file.getUrl() + '" target="_blank">' + file.getName() + '</a></div>' + message + '<button onclick="google.script.host.close()">Close</button>')
+    var htmlString = HtmlService.createTemplateFromFile('Modal_Export').getRawContent();
+  
+    htmlString = htmlString.replace('{e607f5a8-6dc2-4636-a4fc-1b94c97f1ea8}', file.getUrl()); //Set the file URL
+    htmlString = htmlString.replace('{a7372abf-bd7e-4c13-8d54-0c0b3603a816}', file.getName()); //Set the file name
+    htmlString = htmlString.replace('{393b3288-20f3-48f6-9255-07f11a84e7e2}', message); //Set the message
+    htmlString = htmlString.replace('{03d82c9a-41ba-4fcf-9757-addea4fdb371}', file.getDownloadUrl()); //Set the download URL
+    
+    var html = HtmlService.createHtmlOutput(htmlString)
         .setWidth(400)
         .setHeight(height);
     
