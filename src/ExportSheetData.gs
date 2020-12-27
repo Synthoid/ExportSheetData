@@ -3,6 +3,9 @@ const esdVersion = 64;
 //Popup message
 const messageLineHeight = 10;
 
+//Export Timing
+var exportTime = 0;
+
 //Indenting
 const indentValue = "  "; //'\t'
 var indentAmount = 0;
@@ -823,6 +826,8 @@ function exportXml(formatSettings, callback)
 {
   showCompilingMessage('Compiling XML...');
   
+  exportTime = Date.now();
+  
   try
   {
     exportSpreadsheetXml(formatSettings, callback == null ? exportDocument : callback);
@@ -846,6 +851,8 @@ function exportXml(formatSettings, callback)
 function exportJson(formatSettings, callback)
 {
   showCompilingMessage('Compiling JSON...');
+  
+  exportTime = Date.now();
   
   try
   {
@@ -1030,13 +1037,13 @@ function exportSpreadsheetXml(formatSettings, callback)
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
         if((ignoreEmpty || isComment) && values[j][k] === "") continue; //Skip empty cells if desired or a comment
         
-        let columnNameAndNamespace = getXmlNameAndNamespace(values[0][k]);
+        let columnNameAndNamespace = getXmlNameAndNamespace(values[0][k]); //TODO: Should cache these values?
         
         if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
         
         let columnNamespace = columnNameAndNamespace[1] !== "" ? getXmlNamespace(columnNameAndNamespace[1], namespaces) : rootNamespace;
         
-        if(isComment)
+        if(isComment) //TODO: Should move this above name and namespace retrieval...
         {
           if(values[j][k] == null) continue; //Skip empty cells
           
@@ -1181,7 +1188,18 @@ function exportSpreadsheetXml(formatSettings, callback)
     xmlRaw = xmlDeclaration + xmlRaw;
   }
   
-  callback(fileName, xmlRaw, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
+  let exportSettings = {
+    "filename" : fileName,
+    "content" : xmlRaw,
+    "export-folder" : (exportFolderType === "default" ? "" : exportFolder),
+    "mime" : ContentService.MimeType.XML,
+    "visualize" : visualize,
+    "replace-file" : replaceFile,
+    "message" : exportMessage,
+    "message-height" : exportMessageHeight
+  };
+  
+  callback(exportSettings);
 }
 
 //Convert sheet data into a JSON string. The string, along with relevant publishing data, will be passed to the given callback function.
@@ -1964,7 +1982,18 @@ function exportSpreadsheetJson(formatSettings, callback)
     exportMessage += nestedFormattingErrorMessage;
   }
   
-  callback(fileName, rawValue, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
+  let exportSettings = {
+    "filename" : fileName,
+    "content" : rawValue,
+    "export-folder" : (exportFolderType === "default" ? "" : exportFolder),
+    "mime" : ContentService.MimeType.JSON,
+    "visualize" : visualize,
+    "replace-file" : replaceFile,
+    "message" : exportMessage,
+    "message-height" : exportMessageHeight
+  };
+  
+  callback(exportSettings);
 }
 
 //Exports a file using the last settings used.
@@ -1994,23 +2023,36 @@ function escapeHtml(content)
 }
 
 //Export the given content as a file with the given properties.
-function exportDocument(filename, content, exportFolder, type, visualize, replaceFile, exportMessage, exportMessageHeight)
+function exportDocument(blob)
 {
+  exportTime = (Date.now() - exportTime) / 1000; //Date.now() returns miliseconds, so divide by 1000
+  
+  var visualize = blob["visualize"];
+  var filename = blob["filename"];
+  var content = blob["content"];
+  var exportMessage = blob["message"];
+  var exportMessageHeight = blob["message-height"];
+  
   if(visualize == true)
   {
-    var htmlString = HtmlService.createTemplateFromFile('Modal_Visualize').getRawContent();
+    let htmlString = HtmlService.createTemplateFromFile('Modal_Visualize').getRawContent();
   
     htmlString = htmlString.replace('{f117b2c2-1d31-4d46-bcd1-d99dda128059}', escapeHtml(content)); //Visualized data
     htmlString = htmlString.replace('{4297f144-6a18-49df-b298-29fdfcf1a092}', (exportMessage === "" ? '' : exportMessage)); //Custom message
-  
-    var html = HtmlService.createHtmlOutput(htmlString)
+    
+    let title = `Visualize: ${filename} (${exportTime} sec)`;
+    let html = HtmlService.createHtmlOutput(htmlString)
       .setWidth(600)
       .setHeight(530 + exportMessageHeight);
-      
-    SpreadsheetApp.getUi().showModelessDialog(html, 'Visualized Data: ' + filename);
+    
+    SpreadsheetApp.getUi().showModelessDialog(html, title);
   }
   else
   {
+    var exportFolder = blob["export-folder"];
+    var type = blob["mime"];
+    var replaceFile = blob["replace-file"];
+  
     //Creates the document and moves it into the same folder as the original file
     //If the user does not have permission to write in the specified location, the file will be created in the base folder in "My Drive"
     var user = Session.getEffectiveUser();
@@ -2114,18 +2156,19 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
       height += exportMessageHeight + 25;
     }
     
-    var htmlString = HtmlService.createTemplateFromFile('Modal_Export').getRawContent();
+    let title = `Export Complete! (${exportTime} sec)`;
+    let htmlString = HtmlService.createTemplateFromFile('Modal_Export').getRawContent();
   
     htmlString = htmlString.replace('{e607f5a8-6dc2-4636-a4fc-1b94c97f1ea8}', file.getUrl()); //Set the file URL
     htmlString = htmlString.replace('{a7372abf-bd7e-4c13-8d54-0c0b3603a816}', file.getName()); //Set the file name
     htmlString = htmlString.replace('{393b3288-20f3-48f6-9255-07f11a84e7e2}', message); //Set the message
     htmlString = htmlString.replace('{03d82c9a-41ba-4fcf-9757-addea4fdb371}', file.getDownloadUrl()); //Set the download URL
     
-    var html = HtmlService.createHtmlOutput(htmlString)
+    let html = HtmlService.createHtmlOutput(htmlString)
         .setWidth(400)
         .setHeight(height);
     
-    SpreadsheetApp.getUi().showModelessDialog(html, 'Export Complete!');
+    SpreadsheetApp.getUi().showModelessDialog(html, title);
   }
 }
 
@@ -2226,7 +2269,7 @@ function include(filename)
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-
+//Check that the user has opened the newest version of ESD. If not, show the what's new modal.
 function checkVersionNumber()
 {
   var temp = PropertiesService.getUserProperties();
