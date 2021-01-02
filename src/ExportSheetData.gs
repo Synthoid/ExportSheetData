@@ -3,7 +3,7 @@ const esdVersion = 64;
 //Popup message
 const messageLineHeight = 10;
 
-//Export Timing
+//Export Stats
 var exportTime = 0;
 
 //Indenting
@@ -11,27 +11,23 @@ const indentValue = "  "; //'\t'
 var indentAmount = 0;
 
 //Subpath types
-const jsonArraySubpath = "Array"; //JSON Array
-const jsonObjectSubpath = "Object"; //JSON Object
-const xmlArraySubpath = "Array"; //XML element with child elements
-const xmlAttributeSubpath = "Attibute"; //XML element attribute
-const keySubpath = "Key"; //JSON field or XML element key
+const SubpathTypes = {
+  None: 0,
+  Key: 1, //JSON field or XML element key
+  Array: 2, //JSON Array or XML element with child elements
+  Object: 3, //JSON Object
+  Attribute: 4 //XML element attribute
+};
 
 //Search types
-const searchTypeField = "Field"; //Search for a specific field value (#FIELD_ID)
-const searchTypeRoot = "Root"; //Set the target element to the root JSON object (#ROOT)
-const searchTypeSheet = "Sheet"; //Set the target element to the sheet's root. (#SHEET)
-const searchTypeRow = "Row"; //Search for the index matching a row's index (#ROW)
-const searchTypeIndex = "Index"; //Search for a specific index (#1)
-const searchTypeNone = "None"; //Not a valid search type
-/*const searchTypes = {
+const SearchTypes = {
   None: 0, //Not a valid search type
   Root: 1, //Set the target element to the root JSON object (#ROOT)
   Sheet: 2, //Set the target element to the sheet's root. (#SHEET)
   Row: 3, //Search for the index matching a row's index (#ROW)
   Field: 4, //Search for a specific field value (#FIELD_ID)
   Index: 5 //Search for a specific index (#1)
-};*/
+};
 
 //Special prefixes to allow XML nested elements
 //const arrayPref = "ARRAY_";
@@ -420,11 +416,14 @@ function formatXmlName(value, replacement)
 }
 
 //Returns an array with the name as the first element and the namespace as the second.
-function getXmlNameAndNamespace(value)
+function getXmlNameAndNamespace(value, namespaces, rootNamespace)
 {
+  //TODO: Should format name and namespace values to comply with XML standards.
+  //Should return an array of JSON objects?
+  
   if(typeof(value) !== "string")
   {
-    return [ value, "" ];
+    return [ value, rootNamespace ];
   }
   
   var values = value.split(':');
@@ -433,13 +432,15 @@ function getXmlNameAndNamespace(value)
   switch(values.length)
   {
     case 0:
-      output = [ "", "" ];
+      output = [ "", rootNamespace ];
       break;
     case 1:
-      output = [ values[0], "" ];
+      output = [ values[0], rootNamespace ];
       break;
     default:
-      output = [ values[values.length-1], values[0] ];
+      output = [ values[values.length-1], getXmlNamespace(values[0], namespaces) ];
+      
+      if(output[1] == XmlService.getNoNamespace()) output[1] = rootNamespace;
       break;
   }
   
@@ -669,7 +670,7 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
     if(subPath.length > 0) path.push(subPath);
     
     //Check that the last element in the path is a key path type. If not, make one from the last existing element.
-    if(getSubpathTypeJson(path[path.length-1]) !== keySubpath)
+    if(getSubpathTypeJson(path[path.length-1]) !== SubpathTypes.Key)
     {
       let keyPath = trimKeySubpath(path[path.length-1]);
       
@@ -694,18 +695,18 @@ function trimKeySubpath(key)
 //Gets the type of a subpath in an XML export nested element key.
 function getSubpathTypeXml(subpath)
 {
-  var type = keySubpath;
+  var type = SubpathTypes.Key;
   
   if(subpath.length > 0)
   {
     switch(subpath[0])
     {
       case '[':
-      type = xmlArraySubpath;
+      type = SubpathTypes.Array;
       break;
       
       case '{':
-      type = xmlAttributeSubpath;
+      type = SubpathTypes.Attribute;
       break;
     }
   }
@@ -716,18 +717,18 @@ function getSubpathTypeXml(subpath)
 //Gets the type of a subpath in a JSON export nested element key.
 function getSubpathTypeJson(subpath)
 {
-  var type = keySubpath;
+  var type = SubpathTypes.Key;
   
   if(subpath.length > 0)
   {
     switch(subpath[0])
     {
       case '[':
-      type = jsonArraySubpath;
+      type = SubpathTypes.Array;
       break;
       
       case '{':
-      type = jsonObjectSubpath;
+      type = SubpathTypes.Object;
       break;
     }
   }
@@ -738,32 +739,30 @@ function getSubpathTypeJson(subpath)
 //What type of search does the subpath indicate?
 function getSubpathSearchType(subpath)
 {
-  var type = searchTypeNone;
+  var type = SearchTypes.None;
   
   if(subpath.length > 0)
   {
-    //subpath = subpath.substring(1);
-    
     if(!isNaN(Number(subpath))) //Index
     {
-      type = searchTypeIndex;
+      type = SearchTypes.Index;
     }
     //TODO: This can only work if sheetJsonArray/Object are added to the root object first...
     /*else if(subpath == "ROOT")
     {
-      type = searchTypeRoot;
+      type = SearchTypes.Root;
     }*/
     else if(subpath == "SHEET")
     {
-      type = searchTypeSheet;
+      type = SearchTypes.Sheet;
     }
     else if(subpath == "ROW") //Row based index
     {
-      type = searchTypeRow;
+      type = SearchTypes.Row;
     }
     else //Field
     {
-      type = searchTypeField;
+      type = SearchTypes.Field;
     }
   }
   
@@ -873,6 +872,7 @@ function exportJson(formatSettings, callback)
   setPrevExportProperties(formatSettings);
 }
 
+//TODO: This is taking WAY too long to export data. JSON export can export in 3 seconds what it takes XML 300 seconds.
 //Convert sheet data into an XML string. The string, along with relevant publishing data, will be passed to the given callback function.
 function exportSpreadsheetXml(formatSettings, callback)
 {
@@ -933,7 +933,7 @@ function exportSpreadsheetXml(formatSettings, callback)
   if(customSheets != null)
   {
     var exportSheets = sheets;
-    sheets = new Array();
+    sheets = [];
     
     for(let i=0; i < exportSheets.length; i++)
     {
@@ -1012,6 +1012,13 @@ function exportSpreadsheetXml(formatSettings, callback)
       collapseSheet = true;
     }
     
+    var columnNamesAndNamespaces = [];
+    
+    for(let j=0; j < columns; j++)
+    {
+      columnNamesAndNamespaces.push(getXmlNameAndNamespace(values[0][j], namespaces, rootNamespace));
+    }
+    
     for(let j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
       if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
@@ -1037,13 +1044,7 @@ function exportSpreadsheetXml(formatSettings, callback)
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
         if((ignoreEmpty || isComment) && values[j][k] === "") continue; //Skip empty cells if desired or a comment
         
-        let columnNameAndNamespace = getXmlNameAndNamespace(values[0][k]); //TODO: Should cache these values?
-        
-        if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
-        
-        let columnNamespace = columnNameAndNamespace[1] !== "" ? getXmlNamespace(columnNameAndNamespace[1], namespaces) : rootNamespace;
-        
-        if(isComment) //TODO: Should move this above name and namespace retrieval...
+        if(isComment)
         {
           if(values[j][k] == null) continue; //Skip empty cells
           
@@ -1052,6 +1053,12 @@ function exportSpreadsheetXml(formatSettings, callback)
         }
         else
         {
+          let columnNameAndNamespace = columnNamesAndNamespaces[k];//getXmlNameAndNamespace(values[0][k]); //TODO: Should cache these values?
+        
+          if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
+        
+          let columnNamespace = columnNameAndNamespace[1];//columnNameAndNamespace[1] !== "" ? getXmlNamespace(columnNameAndNamespace[1], namespaces) : rootNamespace;
+        
           //Make a note if an element name gets formatted so users know they do not have proper formatting
           if(exportMessage === "" && columnNameAndNamespace[0] !== formatXmlName(columnNameAndNamespace[0], nameReplacementChar))
           {
@@ -1059,14 +1066,17 @@ function exportSpreadsheetXml(formatSettings, callback)
             exportMessageHeight = 25;
           }
           
-          if((useChildElements && (attributePrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))) || 
+          //if((useChildElements && (attributePrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))) || 
+          //  (childElementPrefix !== "" && keyHasPrefix(columnNameAndNamespace[0], childElementPrefix)))
+          if((useChildElements && !(attributePrefix !== "" && keyHasPrefix(columnNameAndNamespace[0], attributePrefix)) && !(innerTextPrefix !== "" && !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))) || 
             (childElementPrefix !== "" && keyHasPrefix(columnNameAndNamespace[0], childElementPrefix)))
           {
             childElementKeys.push(stripPrefix(columnNameAndNamespace[0], childElementPrefix));
             childElements.push(values[j][k]);
             childElementNamespaces.push(columnNamespace);
           }
-          else if(innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
+          //else if(innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
+          else if(!(innerTextPrefix !== "" || keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix)))
           {
             attributeKeys.push(stripPrefix(columnNameAndNamespace[0], attributePrefix));
             attributes.push(values[j][k]);
@@ -1088,11 +1098,10 @@ function exportSpreadsheetXml(formatSettings, callback)
         continue;
       }
       
-      let rowNameAndNamespace = getXmlNameAndNamespace(values[j][0]);
-      let rowNamespace = rowNameAndNamespace[1] !== "" ? getXmlNamespace(rowNameAndNamespace[1], namespaces) : rootNamespace;
+      let rowNameAndNamespace = getXmlNameAndNamespace(values[j][0], namespaces, rootNamespace);
+      let rowNamespace = rowNameAndNamespace[1];//rowNameAndNamespace[1] !== "" ? getXmlNamespace(rowNameAndNamespace[1], namespaces) : rootNamespace;
       
       //Build the actual row XML
-      //rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar), rootNamespace);
       rowXml = XmlService.createElement(formatXmlName(rowNameAndNamespace[0], nameReplacementChar), rowNamespace);
       
       //Set attributes
@@ -1249,7 +1258,7 @@ function exportSpreadsheetJson(formatSettings, callback)
     if((isObject(customSheets) && Object.keys(customSheets).length > 0) || (!isObject(customSheets) && customSheets.length > 2))
     {
       var exportSheets = sheets;
-      sheets = new Array();
+      sheets = [];
       
       for(var i=0; i < exportSheets.length; i++)
       {
@@ -1520,7 +1529,7 @@ function exportSpreadsheetJson(formatSettings, callback)
               var foundMatch = false;
               
               //Check if the subpath points to an object and is meant to be searched for somehow (either by key or index)
-              if(subpathType == jsonObjectSubpath && isSearchSubpath(subpath))
+              if(subpathType == SubpathTypes.Object && isSearchSubpath(subpath))
               {
                 subpath = subpath.substring(1); //Get the substring of the key so we know what type of search to perform
                 var searchType = getSubpathSearchType(subpath); //Get the type of search specified by nesting formatting in the column key
@@ -1529,7 +1538,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                 switch(searchType)
                 {
                   //Search for a field with a matching name and value
-                  case searchTypeField:
+                  case SearchTypes.Field:
                   //The current element is an array, so look through each element for the first element with the target field with a matching value
                   if(isArray(element))
                   {
@@ -1591,18 +1600,18 @@ function exportSpreadsheetJson(formatSettings, callback)
                   }
                   break;
                   
-                  case searchTypeRoot:
+                  case SearchTypes.Root:
                   foundMatch = true;
                   element = objectValue;
                   break;
                   
-                  case searchTypeSheet:
+                  case SearchTypes.Sheet:
                   foundMatch = true;
                   element = useNestingArray ? sheetJsonArray : sheetJsonObject;
                   break;
                   
                   //Search for an array element at the index matching this row's index
-                  case searchTypeRow:
+                  case SearchTypes.Row:
                   if(isArray(element)) //Only update the value if the element is an array
                   {
                     var rowIndex = j - 1; //j - 1, subtracting 1 for the key row
@@ -1642,7 +1651,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                   break;
                   
                   //Search for an array element at the specified index
-                  case searchTypeIndex:
+                  case SearchTypes.Index:
                   if(isArray(element))
                   {
                     var subpathIndex = Number(subpath) - 1;
@@ -1713,7 +1722,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                 //Create the element at the expected path.
                 switch(subpathType)
                 {
-                  case jsonArraySubpath:
+                  case SubpathTypes.Array:
                   if(isArray(element))
                   {
                     if(firstObjectIndex < element.length-1)
@@ -1758,7 +1767,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                   }
                   break;
                   
-                  case jsonObjectSubpath:
+                  case SubpathTypes.Object:
                   if(isArray(element))
                   {
                     if(firstObjectIndex < element.length-1)
