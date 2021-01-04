@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
     <style>
       .displayWrapper {
-        height: 440px;
+        height: 415px;
       }
       
       .display {
@@ -20,8 +20,25 @@
         font-weight: bold;
       }
       
+      .buttonsLeft {
+        float: left;
+      }
+      
+      .buttonsRight {
+        float: right;
+      }
+      
       textarea {
         width: 98%;
+      }
+      
+      textarea:read-only {
+        background: #595959;
+        color: white;
+      }
+      
+      button {
+        cursor: pointer;
       }
       
       button .action {
@@ -33,32 +50,35 @@
         position: fixed;
         bottom: 0px;
       }
+      
+      button .clear {
+        position: fixed;
+        bottom: 0px;
+      }
     </style>
   </head>
   <body>
     <div class="displayWrapper">
       <p>
-        Paste ESD settings copied from another sheet into the field below to load them into this sheet.
+        ESD's current settings for this sheet are shown in the top field. Paste ESD settings copied from another sheet into the bottom field to load them into this sheet.
       </p>
-      <div class="title">
-        New Settings
-      </div>
-      <!--New Settings-->
-      <textarea class="display" id="load-clipboard" oninput="validateLoadButton()"></textarea>
       <div>
         <button onclick="copyContent()">&#128203; <b>Current Settings</b></button>
       </div>
       <!--Current Settings-->
       <textarea class="display" id="current-clipboard" readonly>Loading...</textarea>
+      <div class="title">
+        New Settings
+      </div>
+      <!--New Settings-->
+      <textarea class="display" id="load-clipboard" oninput="validateLoadButton()"></textarea>
     </div>
-    <div>
-      <p>
-      <!--Message-->
-      </p>
-    </div>
-    <div>
+    <div class="buttonsLeft">
       <button class="action" id="load-button" onclick="loadSettings()" disabled>Load Settings</button>
       <button class="close" onclick="google.script.host.close()">Close</button>
+    </div>
+    <div class="buttonsRight">
+      <button class="create clear" onclick="clearSettings()">Clear</button>
     </div>
     <script type="application/javascript">
       function copyContent()
@@ -98,6 +118,12 @@
         newSettingsString = JSON.stringify(settings);
         
         google.script.run.validateAndSetExportProperties(newSettingsString);
+      }
+      
+      
+      function clearSettings()
+      {
+        google.script.run.clearExportProperties(true);
       }
       
       

@@ -1,4 +1,4 @@
-const esdVersion = 64;
+const esdVersion = 65;
 
 //Popup message
 const messageLineHeight = 10;
@@ -79,6 +79,17 @@ function setExportProperties(newProperties)
   var properties = PropertiesService.getDocumentProperties();
   
   properties.setProperty("settings", newProperties);
+}
+
+function clearExportProperties(showModal)
+{
+  var properties = PropertiesService.getDocumentProperties();
+  
+  if(properties.getProperty("settings") != null) properties.deleteProperty("settings");
+  
+  if(showModal) SpreadsheetApp.getUi().alert("ESD export settings have been cleared! The sidebar will now refresh.");
+  
+  openSidebar();
 }
 
 //Gets the settings used in the last export.
@@ -525,7 +536,7 @@ function formatJsonString(value, asObject)
 //Returns true if a key starts with the specified prefix.
 function keyHasPrefix(key, prefix)
 {
-  if(prefix.length > key.length || prefix.length === 0) return false;
+  if(prefix.length === 0 || (prefix.length > key.length)) return false;
   
   var newKey = "";
   
@@ -892,7 +903,6 @@ function exportJson(formatSettings, callback)
   setPrevExportProperties(formatSettings);
 }
 
-//TODO: This is taking WAY too long to export data. JSON export can export in 3 seconds what it takes XML 300 seconds.
 //Convert sheet data into an XML string. The string, along with relevant publishing data, will be passed to the given callback function.
 function exportSpreadsheetXml(formatSettings, callback)
 {
@@ -1073,11 +1083,11 @@ function exportSpreadsheetXml(formatSettings, callback)
         }
         else
         {
-          let columnNameAndNamespace = columnNamesAndNamespaces[k];//getXmlNameAndNamespace(values[0][k]); //TODO: Should cache these values?
+          let columnNameAndNamespace = columnNamesAndNamespaces[k];
         
           if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
         
-          let columnNamespace = columnNameAndNamespace[1];//columnNameAndNamespace[1] !== "" ? getXmlNamespace(columnNameAndNamespace[1], namespaces) : rootNamespace;
+          let columnNamespace = columnNameAndNamespace[1];
         
           //Make a note if an element name gets formatted so users know they do not have proper formatting
           if(exportMessage === "" && columnNameAndNamespace[0] !== formatXmlName(columnNameAndNamespace[0], nameReplacementChar))
@@ -1086,17 +1096,14 @@ function exportSpreadsheetXml(formatSettings, callback)
             exportMessageHeight = 25;
           }
           
-          //if((useChildElements && (attributePrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))) || 
-          //  (childElementPrefix !== "" && keyHasPrefix(columnNameAndNamespace[0], childElementPrefix)))
-          if((useChildElements && !(attributePrefix !== "" && keyHasPrefix(columnNameAndNamespace[0], attributePrefix)) && !(innerTextPrefix !== "" && !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))) || 
-            (childElementPrefix !== "" && keyHasPrefix(columnNameAndNamespace[0], childElementPrefix)))
+          if((useChildElements && !keyHasPrefix(columnNameAndNamespace[0], attributePrefix) && !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix)) || 
+            keyHasPrefix(columnNameAndNamespace[0], childElementPrefix))
           {
             childElementKeys.push(stripPrefix(columnNameAndNamespace[0], childElementPrefix));
             childElements.push(values[j][k]);
             childElementNamespaces.push(columnNamespace);
           }
-          //else if(innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
-          else if(!(innerTextPrefix !== "" || keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix)))
+          else if(!keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
           {
             attributeKeys.push(stripPrefix(columnNameAndNamespace[0], attributePrefix));
             attributes.push(values[j][k]);
@@ -1119,7 +1126,7 @@ function exportSpreadsheetXml(formatSettings, callback)
       }
       
       let rowNameAndNamespace = getXmlNameAndNamespace(values[j][0], namespaces, rootNamespace);
-      let rowNamespace = rowNameAndNamespace[1];//rowNameAndNamespace[1] !== "" ? getXmlNamespace(rowNameAndNamespace[1], namespaces) : rootNamespace;
+      let rowNamespace = rowNameAndNamespace[1];
       
       //Build the actual row XML
       rowXml = XmlService.createElement(formatXmlName(rowNameAndNamespace[0], nameReplacementChar), rowNamespace);
@@ -2069,7 +2076,7 @@ function exportDocument(blob)
       { id : '{4297f144-6a18-49df-b298-29fdfcf1a092}', value : (exportMessage === "" ? '' : exportMessage) } //Custom message
     ];
     
-    openFormattedModal('Modal_Visualize', formatting, `Visualize: ${filename} (${exportTime} sec)`, 600, 530 + exportMessageHeight)
+    openFormattedModal('Modal_Visualize', formatting, `Visualize: ${filename} (${exportTime} sec)`, 600, 530 + exportMessageHeight, false);
   }
   else
   {
@@ -2187,7 +2194,7 @@ function exportDocument(blob)
       { id : '{03d82c9a-41ba-4fcf-9757-addea4fdb371}', value : file.getDownloadUrl() } //Set the download URL
     ];
     
-    openFormattedModal('Modal_Export', formatting, `Export Complete! (${exportTime} sec)`, 400, height)
+    openFormattedModal('Modal_Export', formatting, `Export Complete! (${exportTime} sec)`, 400, height, false);
   }
 }
 
@@ -2216,25 +2223,25 @@ function openSidebar()
 
 function openSettingsModal()
 {
-  openGenericModal('Modal_Settings', 'Export/Import Settings', 500, 500);
+  openGenericModal('Modal_Settings', 'Export/Import Settings', 500, 460, true);
 }
 
 
 function openAboutModal()
 {
-  openGenericModal('Modal_About', 'About ESD', 275, 185);
+  openGenericModal('Modal_About', 'About ESD', 275, 185, false);
 }
 
 
 function openSupportModal()
 {
-  openGenericModal('Modal_Support', 'Support ESD', 375, 185);
+  openGenericModal('Modal_Support', 'Support ESD', 375, 185, false);
 }
 
 
 function openNewVersionModal()
 {
-  openGenericModal('Modal_NewVersion', "What's New", 375, 250);
+  openGenericModal('Modal_NewVersion', "What's New", 375, 250, true);
 }
 
 
@@ -2245,21 +2252,22 @@ function openErrorModal(title, message, error)
     { id : '{34f48d68-d9b5-4c63-8a62-a25f5a412313}', value : error }
   ];
   
-  openFormattedModal('Modal_Error', formatting, title, 360, 270);
+  openFormattedModal('Modal_Error', formatting, title, 360, 270, true);
 }
 
 //Open a generic modal.
-function openGenericModal(modal, title, width, height)
+function openGenericModal(modal, title, width, height, blockInput)
 {
   var html = HtmlService.createTemplateFromFile(modal).evaluate()
     .setWidth(width)
     .setHeight(height);
-    
-  SpreadsheetApp.getUi().showModelessDialog(html, title);
+  
+  if(blockInput) SpreadsheetApp.getUi().showModalDialog(html, title);
+  else SpreadsheetApp.getUi().showModelessDialog(html, title);
 }
 
 //Open a modal after formatting its raw HTML.
-function openFormattedModal(modal, formatting, title, width, height)
+function openFormattedModal(modal, formatting, title, width, height, blockInput)
 {
   var htmlString = HtmlService.createTemplateFromFile(modal).getRawContent();
   
@@ -2272,7 +2280,8 @@ function openFormattedModal(modal, formatting, title, width, height)
     .setWidth(width)
     .setHeight(height);
       
-  SpreadsheetApp.getUi().showModelessDialog(html, title);
+  if(blockInput) SpreadsheetApp.getUi().showModalDialog(html, title);
+  else SpreadsheetApp.getUi().showModelessDialog(html, title);
 }
 
 
@@ -2331,6 +2340,7 @@ function onOpen(e)
   ui.createAddonMenu()
   .addItem("Open Sidebar", "openSidebar")
   .addItem("Settings", "openSettingsModal")
+  //.addItem("What's New", "openNewVersionModal") //For testing purposes
   .addSeparator()
   .addItem("About (v" + esdVersion + ")", "openAboutModal")
   .addItem("Support ESD", "openSupportModal")
