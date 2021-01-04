@@ -113,6 +113,26 @@ function setUserProperties(newProperties)
   properties.setProperties(JSON.parse(newProperties));
 }
 
+//Ensures the passed settings are valid and sets them if so.
+function validateAndSetExportProperties(settingsString)
+{
+  var settings = JSON.parse(settingsString);
+  var message = "Settings have been imported from another ESD document. The sidebar will now refresh.";
+  
+  if(settings.hasOwnProperty("targetSheets"))
+  {
+    if(settings["targetSheets"] !== "{}") message += "\n\nNote: Custom export sheet targets are not imported and will need to be set up.";
+    
+    settings["targetSheets"] = "{}"; //Don't populate export sheets since those are likely to be custom per sheet.
+  }
+  
+  setExportProperties(JSON.stringify(settings));
+  
+  SpreadsheetApp.getUi().alert(message);
+  
+  openSidebar();
+}
+
 //Get the current version of ESD.
 function getVersion()
 {
@@ -2044,17 +2064,12 @@ function exportDocument(blob)
   
   if(visualize == true)
   {
-    let htmlString = HtmlService.createTemplateFromFile('Modal_Visualize').getRawContent();
-  
-    htmlString = htmlString.replace('{f117b2c2-1d31-4d46-bcd1-d99dda128059}', escapeHtml(content)); //Visualized data
-    htmlString = htmlString.replace('{4297f144-6a18-49df-b298-29fdfcf1a092}', (exportMessage === "" ? '' : exportMessage)); //Custom message
+    let formatting = [
+      { id : '{f117b2c2-1d31-4d46-bcd1-d99dda128059}', value : escapeHtml(content) }, //Visualized data
+      { id : '{4297f144-6a18-49df-b298-29fdfcf1a092}', value : (exportMessage === "" ? '' : exportMessage) } //Custom message
+    ];
     
-    let title = `Visualize: ${filename} (${exportTime} sec)`;
-    let html = HtmlService.createHtmlOutput(htmlString)
-      .setWidth(600)
-      .setHeight(530 + exportMessageHeight);
-    
-    SpreadsheetApp.getUi().showModelessDialog(html, title);
+    openFormattedModal('Modal_Visualize', formatting, `Visualize: ${filename} (${exportTime} sec)`, 600, 530 + exportMessageHeight)
   }
   else
   {
@@ -2165,19 +2180,14 @@ function exportDocument(blob)
       height += exportMessageHeight + 25;
     }
     
-    let title = `Export Complete! (${exportTime} sec)`;
-    let htmlString = HtmlService.createTemplateFromFile('Modal_Export').getRawContent();
-  
-    htmlString = htmlString.replace('{e607f5a8-6dc2-4636-a4fc-1b94c97f1ea8}', file.getUrl()); //Set the file URL
-    htmlString = htmlString.replace('{a7372abf-bd7e-4c13-8d54-0c0b3603a816}', file.getName()); //Set the file name
-    htmlString = htmlString.replace('{393b3288-20f3-48f6-9255-07f11a84e7e2}', message); //Set the message
-    htmlString = htmlString.replace('{03d82c9a-41ba-4fcf-9757-addea4fdb371}', file.getDownloadUrl()); //Set the download URL
+    let formatting = [
+      { id : '{e607f5a8-6dc2-4636-a4fc-1b94c97f1ea8}', value : file.getUrl() }, //Set the file URL
+      { id : '{a7372abf-bd7e-4c13-8d54-0c0b3603a816}', value : file.getName() }, //Set the file name
+      { id : '{393b3288-20f3-48f6-9255-07f11a84e7e2}', value : message }, //Set the message
+      { id : '{03d82c9a-41ba-4fcf-9757-addea4fdb371}', value : file.getDownloadUrl() } //Set the download URL
+    ];
     
-    let html = HtmlService.createHtmlOutput(htmlString)
-        .setWidth(400)
-        .setHeight(height);
-    
-    SpreadsheetApp.getUi().showModelessDialog(html, title);
+    openFormattedModal('Modal_Export', formatting, `Export Complete! (${exportTime} sec)`, 400, height)
   }
 }
 
@@ -2204,46 +2214,63 @@ function openSidebar()
 }
 
 
+function openSettingsModal()
+{
+  openGenericModal('Modal_Settings', 'Export/Import Settings', 500, 500);
+}
+
+
 function openAboutModal()
 {
-  var html = HtmlService.createTemplateFromFile('Modal_About').evaluate()
-    .setWidth(275)
-    .setHeight(185);
-  
-  SpreadsheetApp.getUi().showModelessDialog(html, 'About ESD');
+  openGenericModal('Modal_About', 'About ESD', 275, 185);
 }
 
 
 function openSupportModal()
 {
-  var html = HtmlService.createTemplateFromFile('Modal_Support').evaluate()
-    .setWidth(375)
-    .setHeight(185);
-  
-  SpreadsheetApp.getUi().showModelessDialog(html, 'Support ESD');
+  openGenericModal('Modal_Support', 'Support ESD', 375, 185);
 }
 
 
 function openNewVersionModal()
 {
-  var html = HtmlService.createTemplateFromFile('Modal_NewVersion').evaluate()
-    .setWidth(375)
-    .setHeight(250);
-    
-  SpreadsheetApp.getUi().showModelessDialog(html, "What's New");
+  openGenericModal('Modal_NewVersion', "What's New", 375, 250);
 }
 
 
 function openErrorModal(title, message, error)
 {
-  var htmlString = HtmlService.createTemplateFromFile('Modal_Error').getRawContent();
+  var formatting = [
+    { id : '{5fd5c101-9583-456a-8c32-857c0fe3d1db}', value : message },
+    { id : '{34f48d68-d9b5-4c63-8a62-a25f5a412313}', value : error }
+  ];
   
-  htmlString = htmlString.replace('{5fd5c101-9583-456a-8c32-857c0fe3d1db}', message); //Set the message content
-  htmlString = htmlString.replace('{34f48d68-d9b5-4c63-8a62-a25f5a412313}', error); //Set the error content
+  openFormattedModal('Modal_Error', formatting, title, 360, 270);
+}
+
+//Open a generic modal.
+function openGenericModal(modal, title, width, height)
+{
+  var html = HtmlService.createTemplateFromFile(modal).evaluate()
+    .setWidth(width)
+    .setHeight(height);
+    
+  SpreadsheetApp.getUi().showModelessDialog(html, title);
+}
+
+//Open a modal after formatting its raw HTML.
+function openFormattedModal(modal, formatting, title, width, height)
+{
+  var htmlString = HtmlService.createTemplateFromFile(modal).getRawContent();
+  
+  for(let i=0; i < formatting.length; i++)
+  {
+    htmlString = htmlString.replace(formatting[i]["id"], formatting[i]["value"]);
+  }
   
   var html = HtmlService.createHtmlOutput(htmlString)
-    .setWidth(360)
-    .setHeight(270);
+    .setWidth(width)
+    .setHeight(height);
       
   SpreadsheetApp.getUi().showModelessDialog(html, title);
 }
@@ -2303,6 +2330,7 @@ function onOpen(e)
   var ui = SpreadsheetApp.getUi();
   ui.createAddonMenu()
   .addItem("Open Sidebar", "openSidebar")
+  .addItem("Settings", "openSettingsModal")
   .addSeparator()
   .addItem("About (v" + esdVersion + ")", "openAboutModal")
   .addItem("Support ESD", "openSupportModal")

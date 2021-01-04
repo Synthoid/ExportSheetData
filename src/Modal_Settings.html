@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <style>
+      .displayWrapper {
+        height: 440px;
+      }
+      
+      .display {
+        width: 100%;
+        height: 150px;
+        overflow: auto;
+        resize: none;
+      }
+      
+      .title
+      {
+        font-weight: bold;
+      }
+      
+      textarea {
+        width: 98%;
+      }
+      
+      button .action {
+        position: fixed;
+        bottom: 0px;
+      }
+      
+      button .close {
+        position: fixed;
+        bottom: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="displayWrapper">
+      <p>
+        Paste ESD settings copied from another sheet into the field below to load them into this sheet.
+      </p>
+      <div class="title">
+        New Settings
+      </div>
+      <!--New Settings-->
+      <textarea class="display" id="load-clipboard" oninput="validateLoadButton()"></textarea>
+      <div>
+        <button onclick="copyContent()">&#128203; <b>Current Settings</b></button>
+      </div>
+      <!--Current Settings-->
+      <textarea class="display" id="current-clipboard" readonly>Loading...</textarea>
+    </div>
+    <div>
+      <p>
+      <!--Message-->
+      </p>
+    </div>
+    <div>
+      <button class="action" id="load-button" onclick="loadSettings()" disabled>Load Settings</button>
+      <button class="close" onclick="google.script.host.close()">Close</button>
+    </div>
+    <script type="application/javascript">
+      function copyContent()
+      {
+        var copyText = document.getElementById("current-clipboard");
+
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+        document.execCommand("copy");
+      }
+      
+      
+      function validateLoadButton()
+      {
+        var newSettingsString = document.getElementById("load-clipboard").value;
+        var button = document.getElementById("load-button");
+        
+        button.disabled = (newSettingsString === "");
+      }
+      
+      
+      function loadSettings()
+      {
+        var newSettingsString = document.getElementById("load-clipboard").value;
+        var settings = {};
+        
+        try
+        {
+          settings = JSON.parse(newSettingsString);
+        }
+        catch(e)
+        {
+          settings = {};
+        }
+        
+        newSettingsString = JSON.stringify(settings);
+        
+        google.script.run.validateAndSetExportProperties(newSettingsString);
+      }
+      
+      
+      function getCurrentSettings()
+      {
+        google.script.run.withSuccessHandler(onCurrentSettingsSuccess).withFailureHandler(onCurrentSettingsFail).getProperties();
+      }
+      
+      
+      function onCurrentSettingsSuccess(settings)
+      {
+        var allSettings = JSON.parse(settings);
+        var currentSettings = allSettings.hasOwnProperty("settings") ? JSON.stringify(JSON.parse(allSettings["settings"]), null, 2) : "No settings created yet! Please export or visualize data to create settings values.";
+      
+        document.getElementById("current-clipboard").value = currentSettings;
+      }
+      
+      
+      function onCurrentSettingsFail(error)
+      {
+        google.script.run.openErrorModal("Issue loading settings", "Could not retrieve settings.", error.stack);
+      }
+      
+      getCurrentSettings();
+    </script>
+  </body>
+</html>

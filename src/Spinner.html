@@ -7,11 +7,36 @@
       {
         /*max-height: 80px;*/
       }
+      
+      .counter
+      {
+        text-align: center;
+      }
     </style>
   </head>
   <body>
     <div class='spinWrap' id='spinner-wrapper'></div>
-
+    <div class='counter'>
+      <p id='counter'>0 seconds</p>
+    </div>
+    <script type="application/javascript">
+    var currentTime = 0;
+    var currentTotal = 0;
+    
+    function incrementCounter()
+    {
+      currentTime += 1;
+      
+      document.getElementById("counter").innerHTML = `${currentTime} seconds`;
+    }
+    
+    function startCounter()
+    {
+      setInterval(incrementCounter, 1000);
+    }
+    
+    startCounter();
+    </script>
     <script type="application/javascript">
      /**
      * Copyright (c) 2011-2014 Felix Gnass
