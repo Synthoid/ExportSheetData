@@ -30,6 +30,6 @@ ESD is an add-on for Google Sheets, and as such requires specific authorizations
   - Grants access to email information about the user using ESD.
   - Needed for:
     - Storing and loading settings for ESD.
-    - Executing ESD's various processes (when an add-on executes code, it is done under the email ofthe user)
+    - Executing ESD's various processes (when an add-on executes code, it is done under the email of the user)
     
-*These scopes are the minimum required scopes needed for ESD to function.* While it is understandable for some users to be uncomfortable granting ESD access to certain things, every scope used is needed and ESD does not do anything nefarious. Your data is *your* data!
+***These scopes are the minimum required scopes needed for ESD to function.*** While it is understandable for some users to be uncomfortable granting ESD access to certain things, every scope used is needed and ESD does not do anything nefarious. Your data is *your* data!
