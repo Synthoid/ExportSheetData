@@ -1,34 +1,33 @@
-const esdVersion = 64;
+const esdVersion = 65;
 
 //Popup message
 const messageLineHeight = 10;
+
+//Export Stats
+var exportTime = 0;
 
 //Indenting
 const indentValue = "  "; //'\t'
 var indentAmount = 0;
 
 //Subpath types
-const jsonArraySubpath = "Array"; //JSON Array
-const jsonObjectSubpath = "Object"; //JSON Object
-const xmlArraySubpath = "Array"; //XML element with child elements
-const xmlAttributeSubpath = "Attibute"; //XML element attribute
-const keySubpath = "Key"; //JSON field or XML element key
+const SubpathTypes = {
+  None: 0,
+  Key: 1, //JSON field or XML element key
+  Array: 2, //JSON Array or XML element with child elements
+  Object: 3, //JSON Object
+  Attribute: 4 //XML element attribute
+};
 
 //Search types
-const searchTypeField = "Field"; //Search for a specific field value (#FIELD_ID)
-const searchTypeRoot = "Root"; //Set the target element to the root JSON object (#ROOT)
-const searchTypeSheet = "Sheet"; //Set the target element to the sheet's root. (#SHEET)
-const searchTypeRow = "Row"; //Search for the index matching a row's index (#ROW)
-const searchTypeIndex = "Index"; //Search for a specific index (#1)
-const searchTypeNone = "None"; //Not a valid search type
-/*const searchTypes = {
+const SearchTypes = {
   None: 0, //Not a valid search type
   Root: 1, //Set the target element to the root JSON object (#ROOT)
   Sheet: 2, //Set the target element to the sheet's root. (#SHEET)
   Row: 3, //Search for the index matching a row's index (#ROW)
   Field: 4, //Search for a specific field value (#FIELD_ID)
   Index: 5 //Search for a specific index (#1)
-};*/
+};
 
 //Special prefixes to allow XML nested elements
 //const arrayPref = "ARRAY_";
@@ -82,6 +81,17 @@ function setExportProperties(newProperties)
   properties.setProperty("settings", newProperties);
 }
 
+function clearExportProperties(showModal)
+{
+  var properties = PropertiesService.getDocumentProperties();
+  
+  if(properties.getProperty("settings") != null) properties.deleteProperty("settings");
+  
+  if(showModal) SpreadsheetApp.getUi().alert("ESD export settings have been cleared! The sidebar will now refresh.");
+  
+  openSidebar();
+}
+
 //Gets the settings used in the last export.
 function getPrevExportProperties()
 {
@@ -112,6 +122,26 @@ function setUserProperties(newProperties)
   var properties = PropertiesService.getUserProperties();
   
   properties.setProperties(JSON.parse(newProperties));
+}
+
+//Ensures the passed settings are valid and sets them if so.
+function validateAndSetExportProperties(settingsString)
+{
+  var settings = JSON.parse(settingsString);
+  var message = "Settings have been imported from another ESD document. The sidebar will now refresh.";
+  
+  if(settings.hasOwnProperty("targetSheets"))
+  {
+    if(settings["targetSheets"] !== "{}") message += "\n\nNote: Custom export sheet targets are not imported and will need to be set up.";
+    
+    settings["targetSheets"] = "{}"; //Don't populate export sheets since those are likely to be custom per sheet.
+  }
+  
+  setExportProperties(JSON.stringify(settings));
+  
+  SpreadsheetApp.getUi().alert(message);
+  
+  openSidebar();
 }
 
 //Get the current version of ESD.
@@ -417,11 +447,14 @@ function formatXmlName(value, replacement)
 }
 
 //Returns an array with the name as the first element and the namespace as the second.
-function getXmlNameAndNamespace(value)
+function getXmlNameAndNamespace(value, namespaces, rootNamespace)
 {
+  //TODO: Should format name and namespace values to comply with XML standards.
+  //Should return an array of JSON objects?
+  
   if(typeof(value) !== "string")
   {
-    return [ value, "" ];
+    return [ value, rootNamespace ];
   }
   
   var values = value.split(':');
@@ -430,13 +463,15 @@ function getXmlNameAndNamespace(value)
   switch(values.length)
   {
     case 0:
-      output = [ "", "" ];
+      output = [ "", rootNamespace ];
       break;
     case 1:
-      output = [ values[0], "" ];
+      output = [ values[0], rootNamespace ];
       break;
     default:
-      output = [ values[values.length-1], values[0] ];
+      output = [ values[values.length-1], getXmlNamespace(values[0], namespaces) ];
+      
+      if(output[1] == XmlService.getNoNamespace()) output[1] = rootNamespace;
       break;
   }
   
@@ -501,7 +536,7 @@ function formatJsonString(value, asObject)
 //Returns true if a key starts with the specified prefix.
 function keyHasPrefix(key, prefix)
 {
-  if(prefix.length > key.length || prefix.length === 0) return false;
+  if(prefix.length === 0 || (prefix.length > key.length)) return false;
   
   var newKey = "";
   
@@ -666,7 +701,7 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
     if(subPath.length > 0) path.push(subPath);
     
     //Check that the last element in the path is a key path type. If not, make one from the last existing element.
-    if(getSubpathTypeJson(path[path.length-1]) !== keySubpath)
+    if(getSubpathTypeJson(path[path.length-1]) !== SubpathTypes.Key)
     {
       let keyPath = trimKeySubpath(path[path.length-1]);
       
@@ -691,18 +726,18 @@ function trimKeySubpath(key)
 //Gets the type of a subpath in an XML export nested element key.
 function getSubpathTypeXml(subpath)
 {
-  var type = keySubpath;
+  var type = SubpathTypes.Key;
   
   if(subpath.length > 0)
   {
     switch(subpath[0])
     {
       case '[':
-      type = xmlArraySubpath;
+      type = SubpathTypes.Array;
       break;
       
       case '{':
-      type = xmlAttributeSubpath;
+      type = SubpathTypes.Attribute;
       break;
     }
   }
@@ -713,18 +748,18 @@ function getSubpathTypeXml(subpath)
 //Gets the type of a subpath in a JSON export nested element key.
 function getSubpathTypeJson(subpath)
 {
-  var type = keySubpath;
+  var type = SubpathTypes.Key;
   
   if(subpath.length > 0)
   {
     switch(subpath[0])
     {
       case '[':
-      type = jsonArraySubpath;
+      type = SubpathTypes.Array;
       break;
       
       case '{':
-      type = jsonObjectSubpath;
+      type = SubpathTypes.Object;
       break;
     }
   }
@@ -735,32 +770,30 @@ function getSubpathTypeJson(subpath)
 //What type of search does the subpath indicate?
 function getSubpathSearchType(subpath)
 {
-  var type = searchTypeNone;
+  var type = SearchTypes.None;
   
   if(subpath.length > 0)
   {
-    //subpath = subpath.substring(1);
-    
     if(!isNaN(Number(subpath))) //Index
     {
-      type = searchTypeIndex;
+      type = SearchTypes.Index;
     }
     //TODO: This can only work if sheetJsonArray/Object are added to the root object first...
     /*else if(subpath == "ROOT")
     {
-      type = searchTypeRoot;
+      type = SearchTypes.Root;
     }*/
     else if(subpath == "SHEET")
     {
-      type = searchTypeSheet;
+      type = SearchTypes.Sheet;
     }
     else if(subpath == "ROW") //Row based index
     {
-      type = searchTypeRow;
+      type = SearchTypes.Row;
     }
     else //Field
     {
-      type = searchTypeField;
+      type = SearchTypes.Field;
     }
   }
   
@@ -823,6 +856,8 @@ function exportXml(formatSettings, callback)
 {
   showCompilingMessage('Compiling XML...');
   
+  exportTime = Date.now();
+  
   try
   {
     exportSpreadsheetXml(formatSettings, callback == null ? exportDocument : callback);
@@ -846,6 +881,8 @@ function exportXml(formatSettings, callback)
 function exportJson(formatSettings, callback)
 {
   showCompilingMessage('Compiling JSON...');
+  
+  exportTime = Date.now();
   
   try
   {
@@ -926,7 +963,7 @@ function exportSpreadsheetXml(formatSettings, callback)
   if(customSheets != null)
   {
     var exportSheets = sheets;
-    sheets = new Array();
+    sheets = [];
     
     for(let i=0; i < exportSheets.length; i++)
     {
@@ -1005,6 +1042,13 @@ function exportSpreadsheetXml(formatSettings, callback)
       collapseSheet = true;
     }
     
+    var columnNamesAndNamespaces = [];
+    
+    for(let j=0; j < columns; j++)
+    {
+      columnNamesAndNamespaces.push(getXmlNameAndNamespace(values[0][j], namespaces, rootNamespace));
+    }
+    
     for(let j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
     {
       if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
@@ -1030,12 +1074,6 @@ function exportSpreadsheetXml(formatSettings, callback)
         if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
         if((ignoreEmpty || isComment) && values[j][k] === "") continue; //Skip empty cells if desired or a comment
         
-        let columnNameAndNamespace = getXmlNameAndNamespace(values[0][k]);
-        
-        if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
-        
-        let columnNamespace = columnNameAndNamespace[1] !== "" ? getXmlNamespace(columnNameAndNamespace[1], namespaces) : rootNamespace;
-        
         if(isComment)
         {
           if(values[j][k] == null) continue; //Skip empty cells
@@ -1045,6 +1083,12 @@ function exportSpreadsheetXml(formatSettings, callback)
         }
         else
         {
+          let columnNameAndNamespace = columnNamesAndNamespaces[k];
+        
+          if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
+        
+          let columnNamespace = columnNameAndNamespace[1];
+        
           //Make a note if an element name gets formatted so users know they do not have proper formatting
           if(exportMessage === "" && columnNameAndNamespace[0] !== formatXmlName(columnNameAndNamespace[0], nameReplacementChar))
           {
@@ -1052,14 +1096,14 @@ function exportSpreadsheetXml(formatSettings, callback)
             exportMessageHeight = 25;
           }
           
-          if((useChildElements && (attributePrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], attributePrefix)) && (innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))) || 
-            (childElementPrefix !== "" && keyHasPrefix(columnNameAndNamespace[0], childElementPrefix)))
+          if((useChildElements && !keyHasPrefix(columnNameAndNamespace[0], attributePrefix) && !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix)) || 
+            keyHasPrefix(columnNameAndNamespace[0], childElementPrefix))
           {
             childElementKeys.push(stripPrefix(columnNameAndNamespace[0], childElementPrefix));
             childElements.push(values[j][k]);
             childElementNamespaces.push(columnNamespace);
           }
-          else if(innerTextPrefix === "" || !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
+          else if(!keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
           {
             attributeKeys.push(stripPrefix(columnNameAndNamespace[0], attributePrefix));
             attributes.push(values[j][k]);
@@ -1081,11 +1125,10 @@ function exportSpreadsheetXml(formatSettings, callback)
         continue;
       }
       
-      let rowNameAndNamespace = getXmlNameAndNamespace(values[j][0]);
-      let rowNamespace = rowNameAndNamespace[1] !== "" ? getXmlNamespace(rowNameAndNamespace[1], namespaces) : rootNamespace;
+      let rowNameAndNamespace = getXmlNameAndNamespace(values[j][0], namespaces, rootNamespace);
+      let rowNamespace = rowNameAndNamespace[1];
       
       //Build the actual row XML
-      //rowXml = XmlService.createElement(formatXmlName(values[j][0], nameReplacementChar), rootNamespace);
       rowXml = XmlService.createElement(formatXmlName(rowNameAndNamespace[0], nameReplacementChar), rowNamespace);
       
       //Set attributes
@@ -1181,7 +1224,18 @@ function exportSpreadsheetXml(formatSettings, callback)
     xmlRaw = xmlDeclaration + xmlRaw;
   }
   
-  callback(fileName, xmlRaw, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.XML, visualize, replaceFile, exportMessage, exportMessageHeight);
+  let exportSettings = {
+    "filename" : fileName,
+    "content" : xmlRaw,
+    "export-folder" : (exportFolderType === "default" ? "" : exportFolder),
+    "mime" : ContentService.MimeType.XML,
+    "visualize" : visualize,
+    "replace-file" : replaceFile,
+    "message" : exportMessage,
+    "message-height" : exportMessageHeight
+  };
+  
+  callback(exportSettings);
 }
 
 //Convert sheet data into a JSON string. The string, along with relevant publishing data, will be passed to the given callback function.
@@ -1231,7 +1285,7 @@ function exportSpreadsheetJson(formatSettings, callback)
     if((isObject(customSheets) && Object.keys(customSheets).length > 0) || (!isObject(customSheets) && customSheets.length > 2))
     {
       var exportSheets = sheets;
-      sheets = new Array();
+      sheets = [];
       
       for(var i=0; i < exportSheets.length; i++)
       {
@@ -1502,7 +1556,7 @@ function exportSpreadsheetJson(formatSettings, callback)
               var foundMatch = false;
               
               //Check if the subpath points to an object and is meant to be searched for somehow (either by key or index)
-              if(subpathType == jsonObjectSubpath && isSearchSubpath(subpath))
+              if(subpathType == SubpathTypes.Object && isSearchSubpath(subpath))
               {
                 subpath = subpath.substring(1); //Get the substring of the key so we know what type of search to perform
                 var searchType = getSubpathSearchType(subpath); //Get the type of search specified by nesting formatting in the column key
@@ -1511,7 +1565,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                 switch(searchType)
                 {
                   //Search for a field with a matching name and value
-                  case searchTypeField:
+                  case SearchTypes.Field:
                   //The current element is an array, so look through each element for the first element with the target field with a matching value
                   if(isArray(element))
                   {
@@ -1573,18 +1627,18 @@ function exportSpreadsheetJson(formatSettings, callback)
                   }
                   break;
                   
-                  case searchTypeRoot:
+                  case SearchTypes.Root:
                   foundMatch = true;
                   element = objectValue;
                   break;
                   
-                  case searchTypeSheet:
+                  case SearchTypes.Sheet:
                   foundMatch = true;
                   element = useNestingArray ? sheetJsonArray : sheetJsonObject;
                   break;
                   
                   //Search for an array element at the index matching this row's index
-                  case searchTypeRow:
+                  case SearchTypes.Row:
                   if(isArray(element)) //Only update the value if the element is an array
                   {
                     var rowIndex = j - 1; //j - 1, subtracting 1 for the key row
@@ -1624,7 +1678,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                   break;
                   
                   //Search for an array element at the specified index
-                  case searchTypeIndex:
+                  case SearchTypes.Index:
                   if(isArray(element))
                   {
                     var subpathIndex = Number(subpath) - 1;
@@ -1695,7 +1749,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                 //Create the element at the expected path.
                 switch(subpathType)
                 {
-                  case jsonArraySubpath:
+                  case SubpathTypes.Array:
                   if(isArray(element))
                   {
                     if(firstObjectIndex < element.length-1)
@@ -1740,7 +1794,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                   }
                   break;
                   
-                  case jsonObjectSubpath:
+                  case SubpathTypes.Object:
                   if(isArray(element))
                   {
                     if(firstObjectIndex < element.length-1)
@@ -1964,7 +2018,18 @@ function exportSpreadsheetJson(formatSettings, callback)
     exportMessage += nestedFormattingErrorMessage;
   }
   
-  callback(fileName, rawValue, (exportFolderType === "default" ? "" : exportFolder), ContentService.MimeType.JSON, visualize, replaceFile, exportMessage, exportMessageHeight);
+  let exportSettings = {
+    "filename" : fileName,
+    "content" : rawValue,
+    "export-folder" : (exportFolderType === "default" ? "" : exportFolder),
+    "mime" : ContentService.MimeType.JSON,
+    "visualize" : visualize,
+    "replace-file" : replaceFile,
+    "message" : exportMessage,
+    "message-height" : exportMessageHeight
+  };
+  
+  callback(exportSettings);
 }
 
 //Exports a file using the last settings used.
@@ -1994,23 +2059,31 @@ function escapeHtml(content)
 }
 
 //Export the given content as a file with the given properties.
-function exportDocument(filename, content, exportFolder, type, visualize, replaceFile, exportMessage, exportMessageHeight)
+function exportDocument(blob)
 {
+  exportTime = (Date.now() - exportTime) / 1000; //Date.now() returns miliseconds, so divide by 1000
+  
+  var visualize = blob["visualize"];
+  var filename = blob["filename"];
+  var content = blob["content"];
+  var exportMessage = blob["message"];
+  var exportMessageHeight = blob["message-height"];
+  
   if(visualize == true)
   {
-    var htmlString = HtmlService.createTemplateFromFile('Modal_Visualize').getRawContent();
-  
-    htmlString = htmlString.replace('{f117b2c2-1d31-4d46-bcd1-d99dda128059}', escapeHtml(content)); //Visualized data
-    htmlString = htmlString.replace('{4297f144-6a18-49df-b298-29fdfcf1a092}', (exportMessage === "" ? '' : exportMessage)); //Custom message
-  
-    var html = HtmlService.createHtmlOutput(htmlString)
-      .setWidth(600)
-      .setHeight(530 + exportMessageHeight);
-      
-    SpreadsheetApp.getUi().showModelessDialog(html, 'Visualized Data: ' + filename);
+    let formatting = [
+      { id : '{f117b2c2-1d31-4d46-bcd1-d99dda128059}', value : escapeHtml(content) }, //Visualized data
+      { id : '{4297f144-6a18-49df-b298-29fdfcf1a092}', value : (exportMessage === "" ? '' : exportMessage) } //Custom message
+    ];
+    
+    openFormattedModal('Modal_Visualize', formatting, `Visualize: ${filename} (${exportTime} sec)`, 600, 530 + exportMessageHeight, false);
   }
   else
   {
+    var exportFolder = blob["export-folder"];
+    var type = blob["mime"];
+    var replaceFile = blob["replace-file"];
+  
     //Creates the document and moves it into the same folder as the original file
     //If the user does not have permission to write in the specified location, the file will be created in the base folder in "My Drive"
     var user = Session.getEffectiveUser();
@@ -2114,11 +2187,14 @@ function exportDocument(filename, content, exportFolder, type, visualize, replac
       height += exportMessageHeight + 25;
     }
     
-    var html = HtmlService.createHtmlOutput('<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css"><style>.display { width:355px; height:85px; text-align: center; overflow: auto; } </style>File exported successfully. You can view the file here:<div class="display"><br><br><a href="' + file.getUrl() + '" target="_blank">' + file.getName() + '</a></div>' + message + '<button onclick="google.script.host.close()">Close</button>')
-        .setWidth(400)
-        .setHeight(height);
+    let formatting = [
+      { id : '{e607f5a8-6dc2-4636-a4fc-1b94c97f1ea8}', value : file.getUrl() }, //Set the file URL
+      { id : '{a7372abf-bd7e-4c13-8d54-0c0b3603a816}', value : file.getName() }, //Set the file name
+      { id : '{393b3288-20f3-48f6-9255-07f11a84e7e2}', value : message }, //Set the message
+      { id : '{03d82c9a-41ba-4fcf-9757-addea4fdb371}', value : file.getDownloadUrl() } //Set the download URL
+    ];
     
-    SpreadsheetApp.getUi().showModelessDialog(html, 'Export Complete!');
+    openFormattedModal('Modal_Export', formatting, `Export Complete! (${exportTime} sec)`, 400, height, false);
   }
 }
 
@@ -2145,48 +2221,67 @@ function openSidebar()
 }
 
 
+function openSettingsModal()
+{
+  openGenericModal('Modal_Settings', 'Export/Import Settings', 500, 460, true);
+}
+
+
 function openAboutModal()
 {
-  var html = HtmlService.createTemplateFromFile('Modal_About').evaluate()
-    .setWidth(275)
-    .setHeight(185);
-  
-  SpreadsheetApp.getUi().showModelessDialog(html, 'About ESD');
+  openGenericModal('Modal_About', 'About ESD', 275, 185, false);
 }
 
 
 function openSupportModal()
 {
-  var html = HtmlService.createTemplateFromFile('Modal_Support').evaluate()
-    .setWidth(375)
-    .setHeight(185);
-  
-  SpreadsheetApp.getUi().showModelessDialog(html, 'Support ESD');
+  openGenericModal('Modal_Support', 'Support ESD', 375, 185, false);
 }
 
 
 function openNewVersionModal()
 {
-  var html = HtmlService.createTemplateFromFile('Modal_NewVersion').evaluate()
-    .setWidth(375)
-    .setHeight(250);
-    
-  SpreadsheetApp.getUi().showModelessDialog(html, "What's New");
+  openGenericModal('Modal_NewVersion', "What's New", 375, 250, true);
 }
 
 
 function openErrorModal(title, message, error)
 {
-  var htmlString = HtmlService.createTemplateFromFile('Modal_Error').getRawContent();
+  var formatting = [
+    { id : '{5fd5c101-9583-456a-8c32-857c0fe3d1db}', value : message },
+    { id : '{34f48d68-d9b5-4c63-8a62-a25f5a412313}', value : error }
+  ];
   
-  htmlString = htmlString.replace('{5fd5c101-9583-456a-8c32-857c0fe3d1db}', message); //Set the message content
-  htmlString = htmlString.replace('{34f48d68-d9b5-4c63-8a62-a25f5a412313}', error); //Set the error content
+  openFormattedModal('Modal_Error', formatting, title, 360, 270, true);
+}
+
+//Open a generic modal.
+function openGenericModal(modal, title, width, height, blockInput)
+{
+  var html = HtmlService.createTemplateFromFile(modal).evaluate()
+    .setWidth(width)
+    .setHeight(height);
+  
+  if(blockInput) SpreadsheetApp.getUi().showModalDialog(html, title);
+  else SpreadsheetApp.getUi().showModelessDialog(html, title);
+}
+
+//Open a modal after formatting its raw HTML.
+function openFormattedModal(modal, formatting, title, width, height, blockInput)
+{
+  var htmlString = HtmlService.createTemplateFromFile(modal).getRawContent();
+  
+  for(let i=0; i < formatting.length; i++)
+  {
+    htmlString = htmlString.replace(formatting[i]["id"], formatting[i]["value"]);
+  }
   
   var html = HtmlService.createHtmlOutput(htmlString)
-    .setWidth(360)
-    .setHeight(270);
+    .setWidth(width)
+    .setHeight(height);
       
-  SpreadsheetApp.getUi().showModelessDialog(html, title);
+  if(blockInput) SpreadsheetApp.getUi().showModalDialog(html, title);
+  else SpreadsheetApp.getUi().showModelessDialog(html, title);
 }
 
 
@@ -2219,7 +2314,7 @@ function include(filename)
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-
+//Check that the user has opened the newest version of ESD. If not, show the what's new modal.
 function checkVersionNumber()
 {
   var temp = PropertiesService.getUserProperties();
@@ -2244,6 +2339,8 @@ function onOpen(e)
   var ui = SpreadsheetApp.getUi();
   ui.createAddonMenu()
   .addItem("Open Sidebar", "openSidebar")
+  .addItem("Settings", "openSettingsModal")
+  //.addItem("What's New", "openNewVersionModal") //For testing purposes
   .addSeparator()
   .addItem("About (v" + esdVersion + ")", "openAboutModal")
   .addItem("Support ESD", "openSupportModal")

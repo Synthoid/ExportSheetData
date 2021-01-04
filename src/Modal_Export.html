@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_blank">
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+    <style>
+      .display {
+        width: 355px;
+        height: 55px;
+        text-align: center;
+        overflow: auto;
+      }
+      
+      button {
+        cursor: pointer;
+      }
+      
+      button .action {
+        position: fixed;
+        bottom: 0px;
+      }
+      
+      button .close {
+        position: fixed;
+        bottom: 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <p>
+        File exported successfully. You can view the file here:
+      </p>
+    </div>
+    <div class="display">
+      <p>
+      <!--File URL | Filename-->
+      <a href="{e607f5a8-6dc2-4636-a4fc-1b94c97f1ea8}" target="_blank">{a7372abf-bd7e-4c13-8d54-0c0b3603a816}</a>
+      </p>
+    </div>
+    <div>
+      <p>
+        <!--Message-->
+        {393b3288-20f3-48f6-9255-07f11a84e7e2}
+      </p>
+    </div>
+    <!--File Download URL-->
+    <a href="{03d82c9a-41ba-4fcf-9757-addea4fdb371}" download><button class="action">Download</button></a>
+    <button class="close" onclick="google.script.host.close()">Close</button>
+  </body>
+</html>
