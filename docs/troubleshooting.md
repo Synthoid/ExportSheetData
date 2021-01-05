@@ -12,7 +12,9 @@ This page contains suggestions for common issues you may encounter when using ES
 
 Multiple Accounts
 -----------------
-There is a known bug when using add-ons while multiple accounts are signed in which seems to be caused by apps script using the incorrect account to execute the add-on. Unfortunately this is on Google's side so ESD cannot fix the issue directly. This is even more frustrating because the issue will not *always* show up when multiple accounts are signed in so it is possible for you to use ESD for a while before it suddenly occurs. **Most issues encountered when using ESD can be fixed by just logging out of all but one account**.
+There is a known bug when using add-ons while multiple accounts are signed in which seems to be caused by apps script using the incorrect account to execute the add-on. Unfortunately this is on ***Google's side*** so ESD cannot fix the issue directly. This is even more frustrating because the issue will not *always* show up when multiple accounts are signed in so it is possible for you to use ESD for a while before it suddenly occurs.
+
+**Most issues encountered when using ESD can be fixed by just logging out of all but one account**. After signing out of all but one account, you should be able to sign into multiple accounts again and run ESD with no issue (at least until the bug occurs again).
 
 My sidebar is not functioning or I have a popup saying settings couldn't be loaded
 ----------------------------------------------------------------------------------
