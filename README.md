@@ -10,7 +10,9 @@ Goals
 
 Install
 -------
-Export Sheet Data is available in both the Chrome Web Store and the G Suite Marketplace. You can install it [here](https://chrome.google.com/webstore/detail/export-sheet-data/bfdcopkbamihhchdnjghdknibmcnfplk?utm_source=permalink)
+[Install link](https://chrome.google.com/webstore/detail/export-sheet-data/bfdcopkbamihhchdnjghdknibmcnfplk?utm_source=permalink)
+
+Export Sheet Data is available on the Google Workspace Marketplace.
 
 **NOTE:** There is a known bug when using add-ons while multiple accounts are signed in. If you run into a situation where the ESD sidebar doesn't seem to load, visit the [troubleshooting](docs/troubleshooting.md) page for help.
 
@@ -20,9 +22,11 @@ You can see answers to frequently asked questions about ESD [here](docs/faq.md).
 
 Documentation
 -------------
+[Documentation index page](https://github.com/Synthoid/ExportSheetData/blob/master/docs/index.md)
+
 The best way to figure out how to use Export Sheet Data is by opening the sidebar, reading the tooltips of various options and experimenting with the output using the Visualize option.
 
-For detailed documentation on each option, take a look at [Export Sheet Data's documentation](https://github.com/Synthoid/ExportSheetData/blob/master/docs/index.md).
+For detailed documentation on each option, take a look at the documentation.
 
 If you want to create more advanced data structures, make sure to read the Wiki page about [Nested Elements](https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements).
 
