@@ -26,6 +26,12 @@ If you run into a situation where the ESD sidebar doesn't seem to load or export
 
 As of v61, ESD will attempt to catch this bug and show a popup window to let you know that there was a problem. If you see this, you should log out of all but one account and try opening the sidebar again.
 
+My file is taking a long time to export
+---------------------------------------
+Google allocates resources for Apps Script operations as they are available. This means that exports can vary in their duration depending on time of day and traffic, and of course the amount of data being exported.
+
+Currently, XML exports of large data sets (ie 1,000's of lines) can take a few minutes to export due to using [XmlService](https://developers.google.com/apps-script/reference/xml-service/xml-service) to create XML. A custom version of XmlService is being written currently that exports dramatically faster (less than 1 second vs 80 seconds). This is targeted to be released with v66.
+
 My JSON export is missing rows
 ------------------------------
 JSON does not support multiple fields with the same key. A sheet with the following values:
