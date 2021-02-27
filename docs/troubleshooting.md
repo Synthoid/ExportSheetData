@@ -32,6 +32,8 @@ Google allocates resources for Apps Script operations as they are available. Thi
 
 Currently, XML exports of large data sets (ie 1,000's of lines) can take a few minutes to export due to using [XmlService](https://developers.google.com/apps-script/reference/xml-service/xml-service) to create XML. A custom version of XmlService is being written currently that exports dramatically faster (less than 1 second vs 80 seconds). This is targeted to be released with v66.
 
+***NOTE: Google does not allow processes to run longer than 360 seconds (6 minutes). If an export process takes longer than this, it will fail.***
+
 My JSON export is missing rows
 ------------------------------
 JSON does not support multiple fields with the same key. A sheet with the following values:
