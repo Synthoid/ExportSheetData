@@ -20,7 +20,7 @@ Name | Human | Age | Superpower
 Batman | true | 30 | 
 
 *Default Output:*
-```
+```json
 {
   "Heroes": {
     "Batman": {
@@ -34,7 +34,7 @@ Batman | true | 30 |
 ```
 
 *Force String Output:*
-```
+```json
 {
   "Heroes": {
     "Batman": {
