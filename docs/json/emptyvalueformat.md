@@ -21,7 +21,7 @@ George | Creation
 JJ | 
 
 *Null Output:*
-```
+```json
 {
   "Directors" : {
     "George" : {
@@ -37,7 +37,7 @@ JJ |
 ```
 
 *Empty String Output:*
-```
+```json
 {
   "Directors" : {
     "George" : {
