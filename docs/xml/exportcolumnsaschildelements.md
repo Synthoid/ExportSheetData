@@ -22,7 +22,7 @@ Ice | 2 | Freeze
 Light | 5 | Flare
 
 *Default Output:*
-```
+```xml
 <data>
   <Arrows>
     <Normal Damage="1" Effect="None"/>
@@ -34,7 +34,7 @@ Light | 5 | Flare
 ```
 
 *Child Elements Output:*
-```
+```xml
 <data>
   <Arrows>
     <Normal>
