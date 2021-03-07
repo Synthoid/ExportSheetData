@@ -26,7 +26,7 @@ Venusaur | Grass | Poison | Leech Seed | Razor Leaf | Synthesis | Solar Beam
 *Default Outputs:*
 
 JSON:
-```
+```json
 {
   "Pokemon": [
     {
@@ -60,7 +60,7 @@ JSON:
 ```
 
 XML:
-```
+```xml
 <data>
   <Pokemon>
     <Bulbasaur>
@@ -96,11 +96,11 @@ XML:
 *Minify Outputs:*
 
 JSON:
-```
+```json
 {"Pokemon":[{"Name":"Bulbasaur","Type1":"Grass","Move1":"Tackle","Move2":"Growl","Move3":"Leech Seed","Move4":"Vine Whip"},{"Name":"Ivysaur","Type1":"Grass","Type2":"Poison","Move1":"Leech Seed","Move2":"Vine Whip","Move3":"Sleep Powder","Move4":"Take Down"},{"Name":"Venusaur","Type1":"Grass","Type2":"Poison","Move1":"Leech Seed","Move2":"Razor Leaf","Move3":"Synthesis","Move4":"Solar Beam"}]}
 ```
 
 XML:
-```
+```xml
 <data><Pokemon><Bulbasaur><Name>Bulbasaur</Name><Type1>Grass</Type1><Move1>Tackle</Move1><Move2>Growl</Move2><Move3>Leech Seed</Move3><Move4>Vine Whip</Move4></Bulbasaur><Ivysaur><Name>Ivysaur</Name><Type1>Grass</Type1><Type2>Poison</Type2><Move1>Leech Seed</Move1><Move2>Vine Whip</Move2><Move3>Sleep Powder</Move3><Move4>Take Down</Move4></Ivysaur><Venusaur><Name>Venusaur</Name><Type1>Grass</Type1><Type2>Poison</Type2><Move1>Leech Seed</Move1><Move2>Razor Leaf</Move2><Move3>Synthesis</Move3><Move4>Solar Beam</Move4></Venusaur></Pokemon></data>
 ```
