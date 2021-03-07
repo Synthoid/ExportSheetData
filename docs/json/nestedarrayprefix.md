@@ -21,7 +21,7 @@ ID | Element | [Effects]{#1}Name | [Effects]{#1}Type | [Effects]{#2}Name	| [Effe
 2	| Fire | Burn | Damage | | 
 
 *Output:*
-```
+```json
 {
   "Sample": [
     {
