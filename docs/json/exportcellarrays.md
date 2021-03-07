@@ -20,7 +20,7 @@ Name | Age | Aliases
 Sterling | 30 | Duchess, Randy, "Sterling Archer, world's greatest spy"
 
 *Default Output:*
-```
+```json
 {
   "Spies" : {
     "Sterling" : {
@@ -33,7 +33,7 @@ Sterling | 30 | Duchess, Randy, "Sterling Archer, world's greatest spy"
 ```
 
 *Cell Array Output:*
-```
+```json
 {
   "Spies" : {
     "Sterling" : {
