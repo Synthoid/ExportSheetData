@@ -40,7 +40,7 @@ JSON does not support multiple fields with the same key. A sheet with the follow
 
 id | name | age
 -- | ---- | ---
-Loz | Link | 18
+LoZ | Link | 18
 SMB | Mario | 25
 SF | Fox | 21
 LoZ | Zelda | 17
