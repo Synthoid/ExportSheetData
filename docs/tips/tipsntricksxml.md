@@ -27,7 +27,7 @@ Mars | 1.52 AU | A red mote glittering in the dark.
 !-- | Hyphens ( - ) are replaced with Underscores ( _ ) |
 
 *Output:*
-```
+```xml
 <data>
   <Planets>
     <Venus Orbit="0.72 AU" Description="An ethereal puff burning through the sky." />
