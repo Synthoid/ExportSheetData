@@ -22,7 +22,7 @@ TRUE|
 Three| 
 
 *Default Output:*
-```
+```json
 {
   "Random" : {
     "1" : {
@@ -39,7 +39,7 @@ Three|
 ```
 
 *Value Array Output:*
-```
+```json
 {
   "Values" [
     1,
