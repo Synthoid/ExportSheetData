@@ -31,7 +31,7 @@ Io | Jupiter | 1821.6
 *`All sheets` Output:*
 
 JSON:
-```
+```json
 {
   "Planets": {
     "Earth": {
@@ -70,7 +70,7 @@ JSON:
 *`Current sheet only` Output (while viewing **Planets**):*
 
 JSON:
-```
+```json
 {
   "Earth": {
     "Name": "Earth",
@@ -90,7 +90,7 @@ JSON:
 *`Custom` Output (with only **Planets** selected):*
 
 JSON:
-```
+```json
 {
   "Planets": {
     "Earth": {
