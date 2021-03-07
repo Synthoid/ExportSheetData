@@ -47,7 +47,7 @@ LoZ | Zelda | 17
 
 Would produce the following JSON:
 
-```
+```json
 {
   "LoZ": {
     "name": "Zelda",
