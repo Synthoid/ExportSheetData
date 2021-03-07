@@ -26,7 +26,7 @@ Earth | true
 Venus | false
 
 *Default Output:*
-```
+```xml
 <data>
   <Planets>
     <Earth Habitable="true" />
@@ -36,7 +36,7 @@ Venus | false
 ```
 
 *With "Export bools as ints" enabled*
-```
+```xml
 <data>
   <Planets>
     <Earth Habitable="1" />
