@@ -22,7 +22,7 @@ Cid | 25 | Fighter
 *Default Output:*
 
 JSON:
-```
+```json
 {
   "Character" : {
     "Cid" : {
@@ -34,7 +34,7 @@ JSON:
 }
 ```
 XML:
-```
+```xml
 <data>
   <Character>
     <Cid>
@@ -48,7 +48,7 @@ XML:
 *Collapsed Output:*
 
 JSON:
-```
+```json
 {
   "Character" : {
     "Name":"Cid",
@@ -58,7 +58,7 @@ JSON:
 }
 ```
 XML:
-```
+```xml
 <data>
   <Character>
     <Age>25</Age>
@@ -70,7 +70,7 @@ XML:
 *Unwrapped Output:*
 
 JSON:
-```
+```json
 {
   "Name":"Cid",
   "Age":25,
@@ -78,7 +78,7 @@ JSON:
 }
 ```
 XML:
-```
+```xml
 <data>
   <Cid>
     <Age>25</Age>
