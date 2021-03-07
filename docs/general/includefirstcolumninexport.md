@@ -29,7 +29,7 @@ Winter | Cold
 *Default Output:*
 
 JSON:
-```
+```json
 {
   "Seasons": {
     "Spring": {
@@ -49,7 +49,7 @@ JSON:
 ```
 
 XML:
-```
+```xml
 <data>
   <Seasons>
     <Spring Temperature="Warm"/>
@@ -63,7 +63,7 @@ XML:
 *Include First Column Output:*
 
 JSON:
-```
+```json
 {
   "Seasons": {
     "Spring": {
@@ -87,7 +87,7 @@ JSON:
 ```
 
 XML:
-```
+```xml
 <data>
   <Seasons>
     <Spring Name="Spring" Temperature="Warm"/>
