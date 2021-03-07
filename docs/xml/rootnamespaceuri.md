@@ -22,7 +22,7 @@ Sheets | Google | G
 Numbers | Apple | A
 
 *Empty root namespace URI:*
-```
+```xml
 <data>
   <SheetPrograms>
     <Excel Company="Microsoft" ID="MS" />
@@ -33,7 +33,7 @@ Numbers | Apple | A
 ```
 
 *Root namespace URI set to `urn:schemas-microsoft-com:office:spreadsheet`*
-```
+```xml
 <data xmlns="urn:schemas-microsoft-com:office:spreadsheet">
   <SheetPrograms>
     <Excel Company="Microsoft" ID="MS" />
