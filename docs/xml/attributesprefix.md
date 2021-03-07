@@ -22,7 +22,7 @@ Name | ATT_Orbit | Description
 Earth | 1 AU | A pale blue dot suspended in a sunbeam.
 
 *Default Output:*
-```
+```xml
 <data>
   <Planets>
     <Earth>
@@ -34,7 +34,7 @@ Earth | 1 AU | A pale blue dot suspended in a sunbeam.
 ```
 
 *With "Attributes prefix" and "Export columns as child elements" enabled:*
-```
+```xml
 <data>
   <Planets>
     <Earth Orbit="1 AU">
