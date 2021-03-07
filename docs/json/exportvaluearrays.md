@@ -41,7 +41,7 @@ Three|
 *Value Array Output:*
 ```json
 {
-  "Values" [
+  "Values" : [
     1,
     true,
     "Three"
