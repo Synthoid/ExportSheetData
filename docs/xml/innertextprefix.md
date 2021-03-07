@@ -20,7 +20,7 @@ Name | Orbit | IT_Description
 Earth | 1 AU | A pale blue dot suspended in a sunbeam.
 
 *Default Output:*
-```
+```xml
 <data>
   <Planets>
     <Earth Orbit="1 AU" IT_Descripition="A pale blue dot suspended in a sunbeam." />
@@ -29,7 +29,7 @@ Earth | 1 AU | A pale blue dot suspended in a sunbeam.
 ```
 
 *With "Inner text prefix" enabled:*
-```
+```xml
 <data>
   <Planets>
     <Earth Orbit="1 AU">
