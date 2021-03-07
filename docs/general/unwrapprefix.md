@@ -34,7 +34,7 @@ Neptune | 8
 *Default Output:*
 
 JSON:
-```
+```json
 {
   "US_Planets": {
     "Mercury": {
@@ -64,8 +64,9 @@ JSON:
   }
 }
 ```
+
 XML:
-```
+```xml
 <data>
   <US_Planets>
     <Mercury Orbit_Index="1" />
@@ -83,7 +84,7 @@ XML:
 *Unwrapped Output:*
 
 JSON:
-```
+```json
 {
   "Mercury": {
     "Orbit Index": 1
@@ -111,8 +112,9 @@ JSON:
   }
 }
 ```
+
 XML:
-```
+```xml
 <data>
   <Mercury Orbit_Index="1" />
   <Venus Orbit_Index="2" />
