@@ -23,8 +23,7 @@ Diamond Shield | 1000 | Ha! You can only carry 999 monies!
 Health Potion | 3 | Restores some health.
 
 *Default Output:*
-
-```
+```json
 {
   "Items": {
     "Wooden Sword": {
@@ -52,8 +51,7 @@ Health Potion | 3 | Restores some health.
 ```
 
 *Export Contents As Array Output:*
-
-```
+```json
 [
   {
     "Wooden Sword": {
@@ -81,8 +79,7 @@ Health Potion | 3 | Restores some health.
 ```
 
 *Export Contents As Array Output (with [Select Sheets(s)](../format/selectsheets.md) set to `Current sheet only`):*
-
-```
+```json
 [
   {
     "Item": "Wooden Sword",
