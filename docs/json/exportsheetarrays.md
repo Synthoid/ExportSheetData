@@ -20,7 +20,7 @@ Nintendo | Switch
 Sony | Playstation 4
 
 *Default Output:*
-```
+```json
 {
   "Companies" : {
     "Microsoft" : {
@@ -40,7 +40,7 @@ Sony | Playstation 4
 ```
 
 *Sheet Array Output:*
-```
+```json
 {
   "Companies" : [
     {
