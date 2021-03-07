@@ -24,7 +24,7 @@ Charizard | Fire | Flying
 *Default Outputs:*
   
 JSON:
-```
+```json
 {
   "Flame Pokemon" : {
     "Charmander" : {
@@ -46,7 +46,7 @@ JSON:
 }
 ```
 XML:
-```
+```xml
 <pokedex>
   <Flame_Pokemon>
     <Charmander>
@@ -68,7 +68,7 @@ XML:
 *Ignore Outputs:*
 
 JSON:
-```
+```json
 {
   "Flame Pokemon" : {
     "Charmander" : {
@@ -88,7 +88,7 @@ JSON:
 }
 ```
 XML:
-```
+```xml
 <pokedex>
   <Flame_Pokemon>
     <Charmander>
