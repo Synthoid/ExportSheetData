@@ -25,7 +25,7 @@ Frostfire | Creates an explosion of cold fire affecting everyone around you. | B
 
 *Default Output:*
 
-```
+```json
 {
   "Spells": {
     "Cold Touch": {
@@ -49,7 +49,7 @@ Frostfire | Creates an explosion of cold fire affecting everyone around you. | B
 
 *Array Prefix Output:*
 
-```
+```json
 {
   "Spells": {
     "Cold Touch": {
@@ -94,7 +94,7 @@ Frostfire | Creates an explosion of cold fire affecting everyone around you. | B
 
 *Default Output:*
 
-```
+```json
 {
   "JA_Spells": {
     "Cold Touch": {
@@ -118,7 +118,7 @@ Frostfire | Creates an explosion of cold fire affecting everyone around you. | B
 
 *Array Prefix Output:*
 
-```
+```json
 {
   "Spells": [
     {
