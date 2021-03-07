@@ -20,7 +20,7 @@ ID | Value
 Null Value | null
 
 *Null Output:*
-```
+```json
 {
   "Test" : {
     "Null Value" : null
@@ -29,7 +29,7 @@ Null Value | null
 ```
 
 *String Output:*
-```
+```json
 
 {
   "Test" : {
