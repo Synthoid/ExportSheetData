@@ -20,7 +20,7 @@ Green | 0 | 1 | 0
 Blue | 0 | 0 | 1
 
 *Default Root Element:*
-```
+```xml
 <data>
   <Colors>
     <Red R="1" G="0" B="0"/>
@@ -31,7 +31,7 @@ Blue | 0 | 0 | 1
 ```
 
 *Root Element "Art":*
-```
+```xml
 <Art>
   <Colors>
     <Red R="1" G="0" B="0"/>
