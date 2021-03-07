@@ -36,7 +36,7 @@ sg:Sheets | Google | G
 sa:Numbers | Apple | A
 
 *No namespaces set:*
-```
+```xml
 <data>
   <SheetPrograms>
     <sm_Excel Company="Microsoft" ss_ID="MS" />
@@ -49,7 +49,7 @@ sa:Numbers | Apple | A
 Note that the colons (`:`) have been replaced with underscores (`_`) in this export, as colons are not valid XML tag characters unless they are used for namespaces.
 
 *Various namespaces set:*
-```
+```xml
 <data xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:sa="https://www.apple.com" xmlns:sg="https://www.google.com" xmlns:sm="https://www.microsoft.com">
   <SheetPrograms>
     <sm:Excel Company="Microsoft" ss:ID="MS" />
@@ -60,7 +60,7 @@ Note that the colons (`:`) have been replaced with underscores (`_`) in this exp
 ```
 
 As a sidenote, you can use namespaces with or without a [root namespace](rootnamespaceuri.md) for the XML document. The above examples do not include a root namespace for simplicity, but it could be included if desired:
-```
+```xml
 <data xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:sa="https://www.apple.com" xmlns:sg="https://www.google.com" xmlns:sm="https://www.microsoft.com">
   <SheetPrograms>
     <sm:Excel Company="Microsoft" ss:ID="MS" />
