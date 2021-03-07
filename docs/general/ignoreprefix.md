@@ -25,7 +25,7 @@ Wraith	| 2	| 10 |	5 |	3	| 4	| Immune to phyiscal attacks.
 *Default Outputs:*
 
 JSON:
-```
+```json
 {
   "Monsters": {
     "Gorgon": {
@@ -73,7 +73,7 @@ JSON:
 ```
 
 XML:
-```
+```xml
 <data>
   <Monsters>
     <Gorgon>
@@ -120,7 +120,7 @@ XML:
 *Ignore Prefix Outputs:*
 
 JSON:
-```
+```json
 {
   "Monsters": {
     "Gorgon": {
@@ -164,7 +164,7 @@ JSON:
 ```
 
 XML:
-```
+```xml
 <data>
   <Monsters>
     <Gorgon>
