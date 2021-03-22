@@ -1,0 +1,28 @@
+{
+  "timeZone": "America/New_York",
+  "dependencies": {
+  },
+  "addOns": {
+    "common": {
+      "name": "Export Sheet Data",
+      "logoUrl": "https://github.com/Synthoid/ExportSheetData/blob/master/images/esd_icon.svg",
+      "openLinkUrlPrefixes": [
+        "https://www.github.com/"
+      ]
+    },
+    "sheets": {
+
+    }
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/spreadsheets.currentonly",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/userinfo.email"
+  ],
+  "urlFetchWhitelist": [
+    "https://www.github.com/"
+  ],
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8"
+}
