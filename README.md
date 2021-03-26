@@ -10,7 +10,7 @@ Goals
 
 Install
 -------
-[Install link](https://chrome.google.com/webstore/detail/export-sheet-data/bfdcopkbamihhchdnjghdknibmcnfplk?utm_source=permalink)
+[Install link](https://workspace.google.com/marketplace/app/export_sheet_data/903838927001)
 
 Export Sheet Data is available on the Google Workspace Marketplace.
 
