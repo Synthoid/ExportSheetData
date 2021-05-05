@@ -19,18 +19,6 @@ const messageLineHeight = 10;
  **/
 var exportTime = 0;
 
-//Indenting
-/**
- * Value for indent strings.
- * @type {string}
- **/
-const indentValue = "  "; //'\t'
-/**
- * Current indent level.
- * @type {number}
- **/
-var indentAmount = 0;
-
 /**
  * Subpath types used in Nested Element operations.
  * @enum {number}
@@ -269,22 +257,6 @@ function getIndexOf(array, value)
   }
   
   return index;
-}
-
-/**
- * Returns the index string used based on the current indent level.
- * @return {string}
- **/
-function getIndent()
-{
-  var indent = "";
-  
-  for(let i=0; i < indentAmount; i++)
-  {
-    indent += indentValue;
-  }
-  
-  return indent;
 }
 
 /**

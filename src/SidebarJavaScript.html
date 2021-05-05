@@ -239,6 +239,10 @@
     rootNamespace = settings["rootNamespace"] != null ? (settings["rootNamespace"] === "" ? rootNamespace : settings["rootNamespace"]) : rootNamespace;
     namespaces = settings["namespaces"] != null ? settings["namespaces"] : namespaces;
     
+    //Enable export and visualize buttons
+    document.getElementById("exportButton").disabled = false;
+    document.getElementById("visualizeButton").disabled = false;
+
     refreshSideBar();
   }
   
