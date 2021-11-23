@@ -1,16 +1,28 @@
+//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
+/**
+ * Current version number for ESD.
+ * @type {number}
+ **/
 const esdVersion = 65;
 
-//Popup message
+//Popup Message
+/**
+ * Height for lines in popup messages.
+ * @type {number}
+ **/
 const messageLineHeight = 10;
 
 //Export Stats
+/**
+ * Start time for an export process.
+ * @type {number}
+ **/
 var exportTime = 0;
 
-//Indenting
-const indentValue = "  "; //'\t'
-var indentAmount = 0;
-
-//Subpath types
+/**
+ * Subpath types used in Nested Element operations.
+ * @enum {number}
+ **/
 const SubpathTypes = {
   None: 0,
   Key: 1, //JSON field or XML element key
@@ -19,7 +31,10 @@ const SubpathTypes = {
   Attribute: 4 //XML element attribute
 };
 
-//Search types
+/**
+ * Search types for key values used in Nested Element operations.
+ * @enum {number}
+ **/
 const SearchTypes = {
   None: 0, //Not a valid search type
   Root: 1, //Set the target element to the root JSON object (#ROOT)
@@ -33,7 +48,10 @@ const SearchTypes = {
 //const arrayPref = "ARRAY_";
 //const attributePref = "ATTRIBUTE_";
 
-//Gets the last settings for ESD in the open document.
+/**
+ * Returns the last settings for ESD in the open document as a stringified JSON blob.
+ * @return {string}
+ **/
 function getProperties()
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -41,7 +59,10 @@ function getProperties()
   return JSON.stringify(properties.getProperties());
 }
 
-//Saves the settings last used for ESD so the user doesn't need to reselect them next time ESD is opened.
+/**
+ * Saves the settings last used for ESD so the user doesn't need to reselect them next time ESD is opened.
+ * @param {string} newProperties Stringified JSON blob representing properties.
+ **/
 function setProperties(newProperties)
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -49,7 +70,10 @@ function setProperties(newProperties)
   properties.setProperties(JSON.parse(newProperties));
 }
 
-//Gets the script properties for ESD.
+/**
+ * Returns the script properties for ESD as a stringified JSON blob.
+ * @return {string}
+ **/
 function getScriptProperties()
 {
   var properties = PropertiesService.getScriptProperties();
@@ -57,7 +81,10 @@ function getScriptProperties()
   return JSON.stringify(properties.getProperties());
 }
 
-//Sets script properties for ESD.
+/**
+ * Sets script properties for ESD.
+ * @param {string} newProperties Stringified JSON blob representing properties.
+ **/
 function setScriptProperties(newProperties)
 {
   var properties = PropertiesService.getScriptProperties();
@@ -65,7 +92,10 @@ function setScriptProperties(newProperties)
   properties.setProperties(JSON.parse(newProperties));
 }
 
-//Gets the total export settings for ESD in the open document.
+/**
+ * Returns the total export settings for ESD in the open document as a stringified JSON blob.
+ * @return {string}
+ **/
 function getExportProperties()
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -73,7 +103,10 @@ function getExportProperties()
   return properties.getProperty("settings");
 }
 
-//Saves the total export settings for ESD in the open document so the user doesn't need to reselect them next time ESD is opened.
+/**
+ * Saves the total export settings for ESD in the open document so the user doesn't need to reselect them next time ESD is opened.
+ * @param {string} newProperties Stringified JSON blob representing properties.
+ **/
 function setExportProperties(newProperties)
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -81,6 +114,10 @@ function setExportProperties(newProperties)
   properties.setProperty("settings", newProperties);
 }
 
+/**
+ * Clears ESD export settings for the current document.
+ * @param {bool} showModal If true, a popup will be shown noting that settings have been cleared.
+ **/
 function clearExportProperties(showModal)
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -92,7 +129,10 @@ function clearExportProperties(showModal)
   openSidebar();
 }
 
-//Gets the settings used in the last export.
+/**
+ * Returns the settings used in the last export as a stringified JSON blob.
+ * @return {string}
+ **/
 function getPrevExportProperties()
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -100,7 +140,10 @@ function getPrevExportProperties()
   return properties.getProperty("prev");
 }
 
-//Saves the settings used in the last export.
+/**
+ * Saves the settings used in the last export.
+ * @param {string} newProperties Stringified JSON blob representing properties.
+ **/
 function setPrevExportProperties(newProperties)
 {
   var properties = PropertiesService.getDocumentProperties();
@@ -108,7 +151,10 @@ function setPrevExportProperties(newProperties)
   properties.setProperty("prev", newProperties);
 }
 
-//Get the ESD properties for a specific user.
+/**
+ * Returns the ESD properties for a specific user as a stringified JSON blob.
+ * @return {string}
+ **/
 function getUserProperties()
 {
   var properties = PropertiesService.getUserProperties();
@@ -116,7 +162,10 @@ function getUserProperties()
   return JSON.stringify(properties.getProperties());
 }
 
-//Saves user settings for ESD.
+/**
+ * Saves user settings for ESD.
+ * @param {string} newProperties Stringified JSON blob representing properties.
+ **/
 function setUserProperties(newProperties)
 {
   var properties = PropertiesService.getUserProperties();
@@ -124,7 +173,9 @@ function setUserProperties(newProperties)
   properties.setProperties(JSON.parse(newProperties));
 }
 
-//Ensures the passed settings are valid and sets them if so.
+/**
+ * Ensures the passed settings are valid and sets them if so.
+ **/
 function validateAndSetExportProperties(settingsString)
 {
   var settings = JSON.parse(settingsString);
@@ -144,37 +195,52 @@ function validateAndSetExportProperties(settingsString)
   openSidebar();
 }
 
-//Get the current version of ESD.
+/**
+ * Returns the current version of ESD.
+ * @return {number}
+ **/
 function getVersion()
 {
   return esdVersion;
 }
 
-//Returns the name of the folder with the given ID.
+/**
+ * Returns the name of the folder with the given ID.
+ * @return {string}
+ **/
 function getFolderNameFromId(id)
 {
   return DriveApp.getFolderById(id).getName();
 }
 
-//Returns true if the passed value is an array.
+/**
+ * Returns true if the passed value is an array.
+ * @return {boolean}
+ **/
 function isArray(array)
 {
   return Array.isArray(array);
 }
 
-//Returns true if the pased value is an object and is not null.
+/**
+ * Returns true if the pased value is an object and is not null.
+ * @return {boolean}
+ **/
 function isObject(object)
 {
   return (typeof(object) === 'object' && object !== null);
 }
 
 //Returns true if the passed value is undefined.
-function isUndefined(value)
+/*function isUndefined(value)
 {
   return (typeof(value) === 'undefined');
-}
+}*/
 
-//Returns the index of the given value in an array.
+/**
+ * Returns the index of the given value in an array.
+ * @return {number}
+ **/
 function getIndexOf(array, value)
 {
   if(!isArray(array)) return -1;
@@ -193,20 +259,10 @@ function getIndexOf(array, value)
   return index;
 }
 
-//Gets the number of indents to use when formatting
-function getIndent()
-{
-  var indent = "";
-  
-  for(let i=0; i < indentAmount; i++)
-  {
-    indent += indentValue;
-  }
-  
-  return indent;
-}
-
-//Gets all of the sheet names in the current spreadsheet.
+/**
+ * Returns all of the sheet names in the current spreadsheet.
+ * @return {Array<string>}
+ **/
 function getSheetNames()
 {
   var spreadsheet = SpreadsheetApp.getActive();
@@ -221,7 +277,10 @@ function getSheetNames()
   return sheetNames;
 }
 
-//Gets the names and IDs for the sheets in the current spreadsheet.
+/**
+ * Returns the names and IDs for the sheets in the current spreadsheet.
+ * @return {Array<Object>}
+ **/
 function getSheetNamesAndIds()
 {
   var spreadsheet = SpreadsheetApp.getActive();
@@ -241,7 +300,10 @@ function getSheetNamesAndIds()
   return sheetValues;
 }
 
-//Gets the active sheet in the current spreadsheet's name.
+/**
+ * Returns the name of the currently active sheet in the spreadsheet. (ie the sheet that is visible)
+ * @return {string}
+ **/
 function getActiveSheetName()
 {
   var spreadsheet = SpreadsheetApp.getActive();
@@ -249,7 +311,10 @@ function getActiveSheetName()
   return spreadsheet.getActiveSheet().getName();
 }
 
-//Gets the active sheet in the current spreadsheet's name and ID.
+/**
+ * Returns the name and ID of the currently active sheet in the spreadsheet. (ie the sheet that is visible)
+ * @return {Object}
+ **/
 function getActiveSheetNameAndId()
 {
   var spreadsheet = SpreadsheetApp.getActive();
@@ -262,7 +327,10 @@ function getActiveSheetNameAndId()
   return sheetValues;
 }
 
-//Gets a file's parent folder
+/**
+ * Returns a file's immediate parent folder.
+ * @return {DriveApp.Folder}
+ **/
 function getFileParentFolder(file)
 {
   var folders = file.getParents();
@@ -276,7 +344,10 @@ function getFileParentFolder(file)
   return parentFolder;
 }
 
-//Gets a file's parent folder's ID, or the root Drive folder ID if the parent folder is null
+/**
+ * Returns the ID for the given file's parent folder, or the root Drive folder ID if the parent folder is null
+ * @return {string}
+ **/
 function getFileParentFolderId(file)
 {
   var folder = getFileParentFolder(file);
@@ -289,10 +360,15 @@ function getFileParentFolderId(file)
   return folder.getId();
 }
 
-//Converts the contents of a cell into an array by separating the cell value based on the given separator char.
+/**
+ * Converts the contents of a cell into an array by separating the cell value based on the given separator char.
+ * If the cell is not a string, an array with a single value is returned.
+ * @param {string} separatorChar
+ * @return {Array}
+ **/
 function getCellContentArray(cell, separatorChar)
 {
-  var cellArray = [];
+  let cellArray = [];
   
   //If the cell isn't a string, it's value can't be split into an array.
   if(typeof(cell) !== "string")
@@ -301,10 +377,10 @@ function getCellContentArray(cell, separatorChar)
     return cellArray;
   }
   
-  var content = cell;
-  var commaIndicies = [];
-  var openQuoteIndicies = [];
-  var closeQuoteIndicies = [];
+  let content = cell;
+  let commaIndicies = [];
+  let openQuoteIndicies = [];
+  let closeQuoteIndicies = [];
   
   //Set the indicies for quotes and commas
   for(let i=0; i < content.length; i++)
@@ -340,7 +416,7 @@ function getCellContentArray(cell, separatorChar)
   }
         
   //Populate the array
-  var startIndex = 0;
+  let startIndex = 0;
   for(let i=0; i < commaIndicies.length; i++)
   {
     let arrayString = content.slice(startIndex, commaIndicies[i]);
@@ -369,9 +445,9 @@ function getCellContentArray(cell, separatorChar)
   {
     if(!isNaN(parseFloat(cellArray[i])))
     {
-      var isNumber = true;
-      var minusCount = 0;
-      var decimalCount = 0;
+      let isNumber = true;
+      let minusCount = 0;
+      let decimalCount = 0;
       
       //Parse float is unreliable, so loop through to make sure the string is actually a float
       for(let j=0; j < cellArray[i].length; j++)
@@ -414,13 +490,28 @@ function getCellContentArray(cell, separatorChar)
     }
     else if(cellArray[i] === 'true') cellArray[i] = true;
     else if(cellArray[i] === 'false') cellArray[i] = false;
+    else if(cellArray[i].length > 1)
+    {
+      Logger.log(`${cellArray[i]}: ${cellArray[i][0] === '"'} | ${cellArray[i][cellArray[i].length - 1] === '"'}`);
+      //Strip wrapping quotes...
+      if(cellArray[i][0] === '"' && cellArray[i][cellArray[i].length - 1] === '"')
+      {
+        cellArray[i] = cellArray[i].substring(1, cellArray[i].length - 1);
+        Logger.log(cellArray[i]);
+      }
+    }
   }
   
   return cellArray;
 }
 
-//Formats a string to adhere to XML element naming conventions
-//See: https://www.w3schools.com/xml/xml_elements.asp
+/**
+ * Formats a string to adhere to XML element naming conventions
+ * See: https://www.w3schools.com/xml/xml_elements.asp
+ * @param {stirng} value Name for an XML element or attribute.
+ * @param {string} replacement Replacement char for invalid chars in the value.
+ * @return {string}
+ **/
 function formatXmlName(value, replacement)
 {
   var xmlName = value;
@@ -446,8 +537,14 @@ function formatXmlName(value, replacement)
   return xmlName;
 }
 
-//Returns an array with the name as the first element and the namespace as the second.
-function getXmlNameAndNamespace(value, namespaces, rootNamespace)
+/**
+ * Returns an array with the name as the first element and the namespace as the second.
+ * @param namespaces {Array<XmlService.Namespace>} Current namespaces used in the document.
+ * @param {XmlService.Namespace} rootNamespace Root namespace for the document.
+ * @param {XmlService.Namespace} noNamespace Namespace representing no namespace.
+ * @return {Array}
+ **/
+function getXmlNameAndNamespace(value, namespaces, rootNamespace, noNamespace)
 {
   //TODO: Should format name and namespace values to comply with XML standards.
   //Should return an array of JSON objects?
@@ -469,26 +566,37 @@ function getXmlNameAndNamespace(value, namespaces, rootNamespace)
       output = [ values[0], rootNamespace ];
       break;
     default:
-      output = [ values[values.length-1], getXmlNamespace(values[0], namespaces) ];
+      output = [ values[values.length-1], getXmlNamespace(values[0], namespaces, noNamespace) ];
       
-      if(output[1] == XmlService.getNoNamespace()) output[1] = rootNamespace;
+      //TODO: Don't call XmlService here, check if the prefix and uri are empty strings?
+      if(output[1] == noNamespace) output[1] = rootNamespace;
       break;
   }
   
   return output;
 }
 
-//Returns a Namespace value with the given prefix, or no namespace.
-function getXmlNamespace(prefix, namespaces)
+/**
+ * Returns a Namespace value with the given prefix, or no namespace if one cannot be found.
+ * @param {string} prefix Prefix used by the desired namespace.
+ * @param {Array<XmlService.Namespace>} namespaces Current namespaces used in the document.
+ * @param {XmlService.Namespace} noNamespace Namespace representing no namespace.
+ * @return {XmlService.Namespace}
+ **/
+function getXmlNamespace(prefix, namespaces, noNamespace)
 {
   for(let i=0; i < namespaces.length; i++)
   {
     if(namespaces[i].getPrefix() === prefix) return namespaces[i];
   }
   
-  return XmlService.getNoNamespace();
+  return noNamespace;
 }
 
+/**
+ * Formats the given XML value based on user settings.
+ * @return {any}
+ **/
 function formatXmlValue(value, exportBoolsAsInts)
 {
   //TODO: Move to JSON settings object
@@ -508,13 +616,15 @@ function formatXmlValue(value, exportBoolsAsInts)
   return value;
 }
 
-
+/**
+ * @return {string}
+ **/
 function formatJsonString(value, asObject)
 {
   if(value.length > 1)
   {
     //Get rid of wrapping quotes (")
-    if(value[0] == '"' && value[value.length-1] == '"')
+    if(value[0] === '"' && value[value.length-1] === '"')
     {
       let endValue = value.length - 1;
       
@@ -523,7 +633,7 @@ function formatJsonString(value, asObject)
       value = value.substring(1, endValue);
     }
     //Don't format object values (wrapped with {})
-    if(asObject && value[0] == '{' && value[value.length-1] == '}')
+    if(asObject && value[0] === '{' && value[value.length-1] === '}')
     {
       //Need to format to match the rest of the file
       return value;
@@ -533,7 +643,12 @@ function formatJsonString(value, asObject)
   return JSON.stringify(value);
 }
 
-//Returns true if a key starts with the specified prefix.
+/**
+ * Returns true if a key starts with the specified prefix.
+ * @param {string} key
+ * @param {string} prefix
+ * @return {boolean}
+ **/
 function keyHasPrefix(key, prefix)
 {
   if(prefix.length === 0 || (prefix.length > key.length)) return false;
@@ -548,7 +663,12 @@ function keyHasPrefix(key, prefix)
   return newKey === prefix;
 }
 
-//Returns true if a key starts with any of the specified prefixes.
+/**
+ * Returns true if a key starts with any of the specified prefixes.
+ * @param {string} key
+ * @param {Array<string>} prefixes
+ * @return {boolean}
+ **/
 function keyHasPrefixes(key, prefixes)
 {
   for(let i=0; i < prefixes.length; i++)
@@ -562,8 +682,13 @@ function keyHasPrefixes(key, prefixes)
   return false;
 }
 
-//Returns an array indicating if specific prefixes are used in a given key.
-//Multiple string values can be passed in for the prefixes argument.
+/**
+ * Returns an array indicating if specific prefixes are used in a given key.
+ * Multiple string values can be passed in for the prefixes argument. See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments
+ * @param {string} key
+ * @param {...string} prefixes
+ * @return {Array<boolean>}
+ **/
 function getPrefixes(key, prefixes)
 {
   var values = [];
@@ -592,7 +717,12 @@ function getPrefixes(key, prefixes)
   return values;
 }
 
-//Strips a given prefix from the passed key (so prefixes like forced JSON arrays' JA_ are not included in the actual exported key value)
+/**
+ * Strips a given prefix from the passed key (so prefixes like forced JSON arrays' JA_ are not included in the actual exported key value)
+ * @param {string} key
+ * @param {string} prefix
+ * @return {string}
+ **/
 function stripPrefix(key, prefix)
 {
   if(keyHasPrefix(key, prefix) === true)
@@ -610,7 +740,12 @@ function stripPrefix(key, prefix)
   return key;
 }
 
-//Strips the specified prefixes from the passed key.
+/**
+ * Strips the specified prefixes from the passed key.
+ * @param {string} key
+ * @param {...string} prefixes
+ * @return {string}
+ **/
 function stripPrefixes(key, prefixes)
 {
   var prefixArgs = [];
@@ -636,7 +771,11 @@ function stripPrefixes(key, prefixes)
   return key;
 }
 
-//Is the subpath a search pattern (prefixed with #), or is it a hardset path
+/**
+ * Is the subpath a search pattern (prefixed with #), or is it a hardset path?
+ * @param {string} subpath
+ * @return {boolean}
+ **/
 function isSearchSubpath(subpath)
 {
   return subpath.length > 0 ? subpath[0] === '#' : false;
@@ -658,7 +797,11 @@ function getKeyPathString(path, index)
   return pathstring;
 }
 
-//Returns an array representing a key separated into subpaths. Used for nested objects
+/**
+ * Returns an array representing a key separated into subpaths. Used for nested objects.
+ * @param {string} key
+ * @return {Array<string>}
+ **/
 function getKeyPath(key, implicitNames, implicitValues, nestedElements)
 {
   var path = [];
@@ -717,13 +860,21 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
   return path;
 }
 
-
+/**
+ * Trims leading and trailing reserved chars such as '{' and '['
+ * @param {string} key
+ * @return {string}
+ **/
 function trimKeySubpath(key)
 {
   return key.substring(1, key.length-1);
 }
 
-//Gets the type of a subpath in an XML export nested element key.
+/**
+ * Returns the type of a subpath in an XML export nested element key.
+ * @param {string} subpath
+ * @return {number}
+ **/
 function getSubpathTypeXml(subpath)
 {
   var type = SubpathTypes.Key;
@@ -745,7 +896,11 @@ function getSubpathTypeXml(subpath)
   return type;
 }
 
-//Gets the type of a subpath in a JSON export nested element key.
+/**
+ * Returns the type of a subpath in a JSON export nested element key.
+ * @param {string} subpath
+ * @return {number}
+ **/
 function getSubpathTypeJson(subpath)
 {
   var type = SubpathTypes.Key;
@@ -767,7 +922,11 @@ function getSubpathTypeJson(subpath)
   return type;
 }
 
-//What type of search does the subpath indicate?
+/**
+ * What type of search does the subpath indicate?
+ * @param {string} subpath
+ * @return {number}
+ **/
 function getSubpathSearchType(subpath)
 {
   var type = SearchTypes.None;
@@ -800,7 +959,9 @@ function getSubpathSearchType(subpath)
   return type;
 }
 
-//Trims a value of whitespace if it is a string. Otherwise returns the value unaltered.
+/**
+ * Trims a value of whitespace if it is a string. Otherwise returns the value unaltered.
+ **/
 function trimSafe(value)
 {
   if(typeof(value) === 'string') return value.trim();
@@ -808,7 +969,9 @@ function trimSafe(value)
   return value;
 }
 
-//Formats empty cell values to use the appropriate value (null or "")
+/**
+ * Formats empty cell values to use the appropriate value (null or "")
+ **/
 function getEmptyCellValueJson(formatType)
 {
   //TODO: Convert format type to int value...
@@ -820,7 +983,9 @@ function getEmptyCellValueJson(formatType)
   return null;
 }
 
-//Formats cell values containing the string "null" to use the appropriate value (null or "null")
+/**
+ * Formats cell values containing the string "null" to use the appropriate value (null or "null")
+ **/
 function getNullCellValueJson(formatType)
 {
   switch(formatType)
@@ -831,7 +996,11 @@ function getNullCellValueJson(formatType)
   return null;
 }
 
-//Attempts to parse a JSON string representing an array and return its contents in a list.
+/**
+ * Attempts to parse a JSON string representing an array and return its contents in an array.
+ * @param {string} jsonString
+ * @return {Array}
+ **/
 function tryParseJsonArrayString(jsonString)
 {
   var newJsonString = '{"json":' + jsonString + '}'; //Make a JSON object string.
@@ -851,7 +1020,9 @@ function tryParseJsonArrayString(jsonString)
   return results;
 }
 
-//Export data as XML.
+/**
+ * Export data as XML.
+ **/
 function exportXml(formatSettings, callback)
 {
   showCompilingMessage('Compiling XML...');
@@ -877,7 +1048,9 @@ function exportXml(formatSettings, callback)
   setPrevExportProperties(formatSettings);
 }
 
-//Export data as JSON.
+/**
+ * Export data as JSON.
+ **/
 function exportJson(formatSettings, callback)
 {
   showCompilingMessage('Compiling JSON...');
@@ -903,7 +1076,10 @@ function exportJson(formatSettings, callback)
   setPrevExportProperties(formatSettings);
 }
 
-//Convert sheet data into an XML string. The string, along with relevant publishing data, will be passed to the given callback function.
+/**
+ * Convert sheet data into an XML string. The string, along with relevant publishing data, will be passed to the given callback function.
+ * @param {string} formatSettings
+ **/
 function exportSpreadsheetXml(formatSettings, callback)
 {
   //Settings
@@ -943,6 +1119,7 @@ function exportSpreadsheetXml(formatSettings, callback)
   var namespacesRaw = settings["namespaces"];
   
   //Set up actual XmlNamespace values
+  var noNamespace = XmlService.getNoNamespace();
   var rootNamespace = rootNamespaceRaw === "" ? XmlService.getNoNamespace() : XmlService.getNamespace(rootNamespaceRaw);
   var namespaces = [];
   
@@ -1002,8 +1179,12 @@ function exportSpreadsheetXml(formatSettings, callback)
     xmlRoot.detach(); //Detatch root element from the parsed XmlDocument for later use.
   }
   
+  var cachedRowNames = {};
+  
   for(let i=0; i < sheets.length; i++)
   {
+    var cachedColumnNames = {};
+    var cachedColumnNamespaces = {};
     var sheetName = sheets[i].getName();
     var range = sheets[i].getDataRange();
     var values = range.getValues();
@@ -1046,7 +1227,7 @@ function exportSpreadsheetXml(formatSettings, callback)
     
     for(let j=0; j < columns; j++)
     {
-      columnNamesAndNamespaces.push(getXmlNameAndNamespace(values[0][j], namespaces, rootNamespace));
+      columnNamesAndNamespaces.push(getXmlNameAndNamespace(values[0][j], namespaces, rootNamespace, noNamespace));
     }
     
     for(let j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
@@ -1084,35 +1265,44 @@ function exportSpreadsheetXml(formatSettings, callback)
         else
         {
           let columnNameAndNamespace = columnNamesAndNamespaces[k];
-        
+          
+          //TODO: Chaced column name should use the prefix stripped values...
+          //if(!cachedColumnNames.hasOwnProperty(columnNameAndNamespace[0])) cachedColumnNames[columnNameAndNamespace[0]] = formatXmlName(columnNameAndNamespace[0], nameReplacementChar);
+          
           if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
         
           let columnNamespace = columnNameAndNamespace[1];
-        
-          //Make a note if an element name gets formatted so users know they do not have proper formatting
-          if(exportMessage === "" && columnNameAndNamespace[0] !== formatXmlName(columnNameAndNamespace[0], nameReplacementChar))
-          {
-            exportMessage = "Some keys have been auto-formatted to match XML standards.";
-            exportMessageHeight = 25;
-          }
           
           if((useChildElements && !keyHasPrefix(columnNameAndNamespace[0], attributePrefix) && !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix)) || 
             keyHasPrefix(columnNameAndNamespace[0], childElementPrefix))
           {
-            childElementKeys.push(stripPrefix(columnNameAndNamespace[0], childElementPrefix));
+            if(!cachedColumnNames.hasOwnProperty(columnNameAndNamespace[0])) cachedColumnNames[columnNameAndNamespace[0]] = formatXmlName(stripPrefix(columnNameAndNamespace[0], childElementPrefix), nameReplacementChar);
+            
+            childElementKeys.push(cachedColumnNames[columnNameAndNamespace[0]])//stripPrefix(columnNameAndNamespace[0], childElementPrefix));
             childElements.push(values[j][k]);
             childElementNamespaces.push(columnNamespace);
           }
           else if(!keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
           {
-            attributeKeys.push(stripPrefix(columnNameAndNamespace[0], attributePrefix));
+            if(!cachedColumnNames.hasOwnProperty(columnNameAndNamespace[0])) cachedColumnNames[columnNameAndNamespace[0]] = formatXmlName(stripPrefix(columnNameAndNamespace[0], attributePrefix), nameReplacementChar);
+            
+            attributeKeys.push(cachedColumnNames[columnNameAndNamespace[0]])//stripPrefix(columnNameAndNamespace[0], attributePrefix));
             attributes.push(values[j][k]);
             attributeNamespaces.push(columnNamespace);
           }
           else
           {
-            innerTextKeys.push(stripPrefix(columnNameAndNamespace[0], innerTextPrefix));
+            if(!cachedColumnNames.hasOwnProperty(columnNameAndNamespace[0])) cachedColumnNames[columnNameAndNamespace[0]] = formatXmlName(stripPrefix(columnNameAndNamespace[0], innerTextPrefix), nameReplacementChar);
+            
+            innerTextKeys.push(cachedColumnNames[columnNameAndNamespace[0]])//stripPrefix(columnNameAndNamespace[0], innerTextPrefix));
             innerTextElements.push(values[j][k]);
+          }
+          
+          //Make a note if an element name gets formatted so users know they do not have proper formatting
+          if(exportMessage === "" && columnNameAndNamespace[0] !== cachedColumnNames[columnNameAndNamespace[0]])//formatXmlName(columnNameAndNamespace[0], nameReplacementChar))
+          {
+            exportMessage = "Some keys have been auto-formatted to match XML standards.";
+            exportMessageHeight = 25;
           }
         }
       }
@@ -1125,24 +1315,29 @@ function exportSpreadsheetXml(formatSettings, callback)
         continue;
       }
       
-      let rowNameAndNamespace = getXmlNameAndNamespace(values[j][0], namespaces, rootNamespace);
+      let rowNameAndNamespace = getXmlNameAndNamespace(values[j][0], namespaces, rootNamespace, noNamespace);
       let rowNamespace = rowNameAndNamespace[1];
       
+      if(!cachedRowNames.hasOwnProperty(rowNameAndNamespace[0])) cachedRowNames[rowNameAndNamespace[0]] = formatXmlName(rowNameAndNamespace[0], nameReplacementChar);
+      
       //Build the actual row XML
-      rowXml = XmlService.createElement(formatXmlName(rowNameAndNamespace[0], nameReplacementChar), rowNamespace);
+      rowXml = XmlService.createElement(cachedRowNames[rowNameAndNamespace[0]], rowNamespace);//formatXmlName(rowNameAndNamespace[0], nameReplacementChar), rowNamespace);
       
       //Set attributes
       for(let k=0; k < attributes.length; k++)
       {
         //Atributes without custom namespaces will throw an error when attempting to set them with a default namespace so just use a namespace-less creation method.
-        if(attributeNamespaces[k].getPrefix() === "") rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts));
-        else rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts), attributeNamespaces[k]);
+        //if(attributeNamespaces[k].getPrefix() === "") rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts));
+        //else rowXml.setAttribute(formatXmlName(attributeKeys[k], nameReplacementChar), formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts), attributeNamespaces[k]);
+        if(attributeNamespaces[k].getPrefix() === "") rowXml.setAttribute(attributeKeys[k], formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts));
+        else rowXml.setAttribute(attributeKeys[k], formatXmlValue(trimSafe(attributes[k]), exportBoolsAsInts), attributeNamespaces[k]);
       }
       
       //Set child elements
       for(let k=0; k < childElements.length; k++)
       {
-        let childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar), childElementNamespaces[k]);
+        //let childXml = XmlService.createElement(formatXmlName(childElementKeys[k], nameReplacementChar), childElementNamespaces[k]);
+        let childXml = XmlService.createElement(childElementKeys[k], childElementNamespaces[k]);
         
         childXml.setText(formatXmlValue(trimSafe(childElements[k]), exportBoolsAsInts));
         
@@ -1238,7 +1433,10 @@ function exportSpreadsheetXml(formatSettings, callback)
   callback(exportSettings);
 }
 
-//Convert sheet data into a JSON string. The string, along with relevant publishing data, will be passed to the given callback function.
+/**
+ * Convert sheet data into a JSON string. The string, along with relevant publishing data, will be passed to the given callback function.
+ * @param {string} formatSettings
+ **/
 function exportSpreadsheetJson(formatSettings, callback)
 {
   //Settings
@@ -1417,10 +1615,10 @@ function exportSpreadsheetJson(formatSettings, callback)
     {
       if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
     
-      var rowArray = [];
-      var rowObject = {};
-      var rowIndexNames = []; //Used to keep associations with row indexes correct
-      var rowIndexValues = [];
+      let rowArray = [];
+      let rowObject = {};
+      let rowIndexNames = []; //Used to keep associations with row indexes correct
+      let rowIndexValues = [];
       
       if(!sheetIsValueArray)
       {
@@ -1490,6 +1688,8 @@ function exportSpreadsheetJson(formatSettings, callback)
               content = tryParseJsonArrayString(content);
             }
           }
+          
+          //TODO: Should strip double quotes from content around here... ie ["test, test"] should become [test, test] but only when exporting arrays?
           //We want to export cell arrays, or this column should be exported as an array, so convert the target cell's value to an array of values.
           if(exportArray && (getCellContentArray(content, separatorChar).length > 1) || keyHasPrefix(key, arrayPrefix))
           {
@@ -1532,6 +1732,8 @@ function exportSpreadsheetJson(formatSettings, callback)
               content = content.toString().trim();
             }
           }
+          
+          Logger.log(`12: ${content}`);
           
           //Convert the key to a string and strip unneeded prefixes
           if(arrayPrefix != "") key = stripPrefix(key.toString(), arrayPrefix);
@@ -1731,7 +1933,7 @@ function exportSpreadsheetJson(formatSettings, callback)
                 }
               }
               
-              if(isUndefined(element))
+              if(element === undefined)//isUndefined(element))
               {
                 if(!nestedFormattingError)
                 {
@@ -1874,6 +2076,9 @@ function exportSpreadsheetJson(formatSettings, callback)
           
             rowObject[key] = content;
             
+            Logger.log(JSON.stringify(content));
+            Logger.log(`${key}: ${rowObject[key]}`);
+            
             if(nestedElements) element[key] = content;
           }
         }
@@ -1945,6 +2150,7 @@ function exportSpreadsheetJson(formatSettings, callback)
             }
             else
             {
+              Logger.log(JSON.stringify(rowObject));
               sheetJsonObject[values[j][0]] = rowObject;
             }
           }
@@ -2032,8 +2238,10 @@ function exportSpreadsheetJson(formatSettings, callback)
   callback(exportSettings);
 }
 
-//Exports a file using the last settings used.
-//This should be called when attempting automation.
+/**
+ * Exports a file using the last settings used.
+ * This should be called when attempting automation.
+ **/
 function reexportFile()
 {
   var props = getPrevExportProperties();
@@ -2049,7 +2257,11 @@ function reexportFile()
   }
 }
 
-// Escape HTML special characters for showing text in a textarea
+/**
+ * Escape HTML special characters for showing text in a textarea
+ * @param {string} content
+ * @return {string}
+ **/
 function escapeHtml(content)
 {
   return content
@@ -2058,7 +2270,10 @@ function escapeHtml(content)
     .replace(/>/g, '&gt;'); //>
 }
 
-//Export the given content as a file with the given properties.
+/**
+ * Export the given content as a file with the given properties.
+ * @param {object} blob
+ **/
 function exportDocument(blob)
 {
   exportTime = (Date.now() - exportTime) / 1000; //Date.now() returns miliseconds, so divide by 1000
@@ -2076,7 +2291,8 @@ function exportDocument(blob)
       { id : '{4297f144-6a18-49df-b298-29fdfcf1a092}', value : (exportMessage === "" ? '' : exportMessage) } //Custom message
     ];
     
-    openFormattedModal('Modal_Visualize', formatting, `Visualize: ${filename} (${exportTime} sec)`, 600, 530 + exportMessageHeight, false);
+    //530
+    openFormattedModal('Modal_Visualize', formatting, `Visualize: ${filename} (${exportTime} sec)`, 600, 430 + exportMessageHeight, false);
   }
   else
   {
@@ -2198,7 +2414,10 @@ function exportDocument(blob)
   }
 }
 
-//Show a modal with a compiling spinner.
+/**
+ * Show a modal with a compiling spinner.
+ * @param {string} message Title for the modal.
+ **/
 function showCompilingMessage(message)
 {
   var html = HtmlService.createTemplateFromFile('Spinner').evaluate()
@@ -2208,7 +2427,9 @@ function showCompilingMessage(message)
   SpreadsheetApp.getUi().showModelessDialog(html, message);
 }
 
-  
+/**
+ * Open ESD's sidebar.
+ **/
 function openSidebar()
 {
   var html = HtmlService.createTemplateFromFile('Sidebar').evaluate()
@@ -2255,7 +2476,14 @@ function openErrorModal(title, message, error)
   openFormattedModal('Modal_Error', formatting, title, 360, 270, true);
 }
 
-//Open a generic modal.
+/**
+ * Open a generic modal.
+ * @param {string} modal File name for the desired modal.
+ * @param {string} title Title for the displayed modal.
+ * @param {number} width Width of the modal.
+ * @param {number} height Height of the modal.
+ * @param {boolean} blockInput If true, the modal will prevent interactions with anything besides the modal.
+ **/
 function openGenericModal(modal, title, width, height, blockInput)
 {
   var html = HtmlService.createTemplateFromFile(modal).evaluate()
@@ -2266,7 +2494,15 @@ function openGenericModal(modal, title, width, height, blockInput)
   else SpreadsheetApp.getUi().showModelessDialog(html, title);
 }
 
-//Open a modal after formatting its raw HTML.
+/**
+ * Open a modal after formatting its raw HTML.
+ * @param {string} modal File name for the desired modal.
+ * @param {Array<object>} formatting Formatting values for the modal.
+ * @param {string} title Title for the displayed modal.
+ * @param {number} width Width of the modal.
+ * @param {number} height Height of the modal.
+ * @param {boolean} blockInput If true, the modal will prevent interactions with anything besides the modal.
+ **/
 function openFormattedModal(modal, formatting, title, width, height, blockInput)
 {
   var htmlString = HtmlService.createTemplateFromFile(modal).getRawContent();
@@ -2307,14 +2543,18 @@ function getOAuthToken()
   return ScriptApp.getOAuthToken();
 }
 
-//https://developers.google.com/apps-script/guides/html/best-practices#code.gs
-//Server side function to insert html snippets in other html files when generating html templates.
+/**
+ * Server side function to insert html snippets in other html files when generating html templates.
+ * https://developers.google.com/apps-script/guides/html/best-practices#code.gs
+ **/
 function include(filename)
 {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
-//Check that the user has opened the newest version of ESD. If not, show the what's new modal.
+/**
+ * Check that the user has opened the newest version of ESD. If not, show the what's new modal.
+ **/
 function checkVersionNumber()
 {
   var temp = PropertiesService.getUserProperties();

@@ -1,4 +1,4 @@
-<script type="application/javascript">
+<script>
   //Consts
   const EXP_SHEET_CUSTOM = "custom";
   const EXP_SHEET_SINGLE = "currentSheet";
@@ -19,6 +19,70 @@
   const JSON_JA_DEFAULT = "JA_";
   //Nesting Elements
   const NEST_NA_DEFAULT = "NA_";
+  //Keys
+  const Keys = {
+    Export : {
+      Format : "exportType",
+      Folder : "exportFolder",
+      FolderType : "exportFolderType",
+      Sheets : "exportSheets",
+      TargetSheets : "targetSheets"
+    },
+    General : {
+      ReplaceFiles : "replaceExistingFiles",
+      UnwrapSingle : "unwrapSingleRows",
+      CollapseSingle : "collapseSingleRows",
+      IgnoreEmpty : "ignoreEmptyCells",
+      Advanced : {
+        NestedElements : "nestedElements",
+        Minify : "minifyData",
+        IncludeFirstColumn : "includeFirstColumn",
+        IgnoreWithPrefix : "ignoreColumnsWithPrefix",
+        IgnorePrefix : "ignorePrefix",
+        UnwrapWithPrefix : "unwrapSheetsWithPrefix",
+        UnwrapPrefix : "unwrapPrefix",
+        CollapseWithPrefix : "collapseSheetsWithPrefix",
+        CollapsePrefix : "collapsePrefix"
+      }
+    },
+    JSON : {
+      CellArray : "exportCellArray",
+      SheetArray : "exportSheetArray",
+      ValueArray : "exportValueArray",
+      ForceString : "forceString",
+      Advanced : {
+        ContentsAsArray : "exportContentsAsArray",
+        CellObject : "exportCellObject",
+        EmptyValueFormat : "emptyValueFormat",
+        NullValueFormat : "nullValueFormat",
+        SeparatorChar : "separatorChar",
+        ForceArray : "forceArray",
+        ForceArrayPrefix : "forceArrayPrefix",
+        ForceNestedArray : "forceArrayNest",
+        ForceNestedArrayPrefix : "forceArrayNestPrefix"
+      }
+    },
+    XML : {
+      ChildElements : "exportChildElements",
+      BoolsAsInts : "exportBoolsAsInts",
+      RootElement : "rootElement",
+      Advanced : {
+        NameReplacementChar : "nameReplacementChar",
+        IncludeDeclaration : "includeDeclaration",
+        DeclarationVersion : "declarationVersion",
+        DeclarationEncoding : "declarationEncoding",
+        DeclarationStandalone : "declarationStandalone",
+        ForceAttributes : "forceAttributes",
+        ForceAttributesPrefix : "attributePrefix",
+        FroceChildElements : "forceChildElements",
+        ForceChildElementsPrefix : "childElementsPrefix",
+        FroceInnerText : "forceInnerText",
+        ForceInnerTextPrefix : "innerTextPrefix",
+        RootNamespace : "rootNamespace",
+        Namespaces : "namespaces"
+      }
+    }
+  };
   
   //Visualization
   var visualizeData = false;
@@ -125,30 +189,41 @@
   var forceArrayNest = false;
   var forceArrayPrefixNest = "NAR_";
   
-  //Get the properties for the sheet to automatically set values based on the user's last export for this document.
+  /**
+   * Get the properties for the sheet to automatically set values based on the user's last export for this document.
+   **/
   function getProperties(onSuccess, onFailure)
   {
     return google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).getExportProperties();
   }
   
-  //Saves the properties for the user's last export for this document so they are automatically set the next time the document opens..
+  /**
+   * Saves the properties for the user's last export for this document so they are automatically set the next time the document opens..
+   **/
   function setProperties()
   {
     return google.script.run.withFailureHandler(onSetPropertiesFailure).setExportProperties(generateProperties());
   }
   
-  //Safety check in case getting properties throws an error. This can occur due to a bug on Google's side of Apps Script execution that involves multiple accounts being signed in.
+  /**
+   * Safety check in case getting properties throws an error. This can occur due to a bug on Google's side of Apps Script execution that involves multiple accounts being signed in.
+   * @param {Error} error
+   **/
   function onGetPropertiesFailure(error)
   {
+    //alert("There was an error retrieving user settings. This is most often due to multiple accounts being signed in. Please sign out of all but one account and reload the document.");
     google.script.run.openErrorModal("Settings Error", 
       "There was an error retrieving user settings, so default settings have been loaded. This is most often due to multiple accounts being signed in.", 
       error.stack);
-      
+    
     //Open the sidebar with default values.
     updateProperties(null);
   }
   
-  //Safety check in case setting properties throws an error. This could occur due to a bug on Google's side of Apps Script execution that involves multiple accounts being signed in.
+  /**
+   * Safety check in case setting properties throws an error. This could occur due to a bug on Google's side of Apps Script execution that involves multiple accounts being signed in.
+   * @param {Error} error
+   **/
   function onSetPropertiesFailure(error)
   {
     //Log an error to the console.
@@ -158,7 +233,10 @@
       error.message + "\n" + error.stack);*/
   }
   
-  //Actually sets the local properties based on stored settings.
+  /** 
+   * Actually sets the local properties based on stored settings.
+   * @param {?string} properties - Stringified JSON representing settings
+   **/
   function updateProperties(properties)
   {
     var settings = {};
@@ -193,12 +271,13 @@
     collapseSheetsPrefix = settings["collapsePrefix"] != null ? (settings["collapsePrefix"] === "" ? COLLAPSE_SHEET_DEFAULT : settings["collapsePrefix"]) : COLLAPSE_SHEET_DEFAULT;
     
     //JSON
-    exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
-    exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === true : exportCellObjectJson;
     exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === true : exportCellArrayJson;
     exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === true : exportSheetArrayJson;
     exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
     forceStringJson = settings["forceString"] != null ? settings["forceString"] === true : forceStringJson;
+    //Advanced JSON
+    exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
+    exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === true : exportCellObjectJson;
     emptyValueFormatJson = settings["emptyValueFormat"] != null ? (settings["emptyValueFormat"] === "" ? emptyValueFormatJson : settings["emptyValueFormat"]) : emptyValueFormatJson;
     nullValueFormatJson = settings["nullValueFormat"] != null ? (settings["nullValueFormat"] === "" ? nullValueFormatJson : settings["nullValueFormat"]) : nullValueFormatJson;
     arraySeparatorCharJson = settings["separatorChar"] != null ? (settings["separatorChar"] === "" ? "," : settings["separatorChar"]) : JSON_SEPARATOR_DEFAULT;
@@ -226,10 +305,17 @@
     rootNamespace = settings["rootNamespace"] != null ? (settings["rootNamespace"] === "" ? rootNamespace : settings["rootNamespace"]) : rootNamespace;
     namespaces = settings["namespaces"] != null ? settings["namespaces"] : namespaces;
     
+    //Enable export and visualize buttons
+    document.getElementById("exportButton").disabled = false;
+    document.getElementById("visualizeButton").disabled = false;
+
     refreshSideBar();
   }
   
-  //Generate the JSON blob representing the document's settings.
+  /**
+   * Generate the JSON blob representing the document's settings.
+   * @return {string}
+   **/
   function generateProperties()
   {
     var properties = {
@@ -293,7 +379,10 @@
     return JSON.stringify(properties);
   }
   
-  //Creates a JSON blob representing the current XML settings
+  /**
+   * Creates a JSON blob representing the current XML settings
+   * @return {string}
+   **/
   function generateXmlSettings(singleSheet, exportSheets)
   {
     var settings = {
@@ -335,7 +424,10 @@
     return JSON.stringify(settings);
   }
   
-  //Creates a JSON blob representing the current JSON settings
+  /**
+   * Creates a JSON blob representing the current JSON settings
+   * @return {string}
+   **/
   function generateJsonSettings(singleSheet, exportSheets)
   {
     var settings = {
@@ -375,31 +467,46 @@
     return JSON.stringify(settings);
   }
   
-  //Get the names of all sheets in the current document
+  /**
+   * Get the names of all sheets in the current document
+   * @param {function} onSuccess - Callback invoked if the get sheet names operation is successful. This will pass an array of strings
+   **/
   function getNames(onSuccess)
   {
     return google.script.run.withSuccessHandler(onSuccess).getSheetNames();
   }
   
-  //Get the name of the active sheet in the current document
+  /**
+   * Get the name of the active sheet in the current document
+   * @param {function} onSuccess - Callback invoked if the get sheet name operation is successful. This will pass a string
+   **/
   function getActiveName(onSuccess)
   {
     return google.script.run.withSuccessHandler(onSuccess).getActiveSheetName();
   }
   
-  //Get the name of the target export folder, based on its ID
+  /**
+   * Get the name of the target export folder, based on its ID
+   * @param {function} onSuccess - Callback invoked if the get folder name operation is successful. This will pass a string
+   **/
   function getExportFolderName(onSuccess)
   {
     return google.script.run.withSuccessHandler(onSuccess).getFolderNameFromId(exportFolder);
   }
   
-  //Sets the value of the export folder name text input to the returned folder name
+  /**
+   * Sets the value of the export folder name text input to the returned folder name
+   * @param {string} name - Name for the export folder
+   **/
   function onGetExportFolderName(name)
   {
     document.getElementById("exportFolderName").value = name;
   }
   
-  //Generate a unique UUID. Based on the solution found here: https://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid
+  /**
+   * Generate a unique UUID. Based on the solution found here: https://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid
+   * @return {string}
+   **/
   function getUUID()
   {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c)
@@ -409,7 +516,11 @@
     });
   }
   
-  
+  /**
+   * Converts a string into a hash.
+   * @param {string} string - String to convert
+   * @return {number}
+   **/
   function stringToHash(string)
   {
     var hash = 0;
@@ -426,7 +537,11 @@
     return hash;
   } 
   
-  //Returns true if the given UUID is not already contained in the existing namespace values.
+  /**
+   * Returns true if the given UUID is not already contained in the existing namespace values
+   * @param {string} uuid - UUID to check
+   * @return {boolean}
+   **/
   function isNamespaceUUIDUnique(uuid)
   {
     for(let i=0; i < namespaces.length; i++)
@@ -437,7 +552,11 @@
     return true;
   }
   
-  //Returns the index for the XML namespace with the given ID, or -1 if it is not found.
+  /**
+   * Returns the index for the XML namespace with the given ID, or -1 if it is not found
+   * @param {string} uuid - UUID to get the index of
+   * @return {number}
+   **/
   function getNamespaceIndex(uuid)
   {
     for(let i=0; i < namespaces.length; i++)
@@ -448,60 +567,90 @@
     return -1;
   }
   
-  //Checks if all the sheets are selected for export
+  /**
+   * Checks if all the sheets are selected for export
+   * @return {boolean}
+   **/
   function checkAllTogglesTrue()
   {
     for(var i=0; i < sheets.length; i++)
     {
       if(targetSheets[sheets[i]] === 'false') return false;
     }
-    
+
     return true;
   }
   
-  //Open a file explorer to select a custom export folder.
+  /**
+   * Open a file explorer to select a custom export folder.
+   **/
   function openFolderPicker()
   {
     return google.script.run.openFolderPicker();
   }
   
   //General Options
+  /**
+   * Toggle the replaceExistingFiles boolean's value.
+   **/
   function toggleReplace()
   {
     replaceExistingFiles = !replaceExistingFiles;
   }
   
+  /**
+   * Toggle the unwrapSingleRows boolean's value.
+   **/
   function toggleUnwrapSingleRows()
   {
     unwrapSingleRows = !unwrapSingleRows;
   }
   
+  /**
+   * Toggle the collapseSingleRows boolean's value.
+   **/
   function toggleCollapseSingleRows()
   {
     collapseSingleRows = !collapseSingleRows;
   }
   
+  /**
+   * Toggle the ignoreEmptyCells boolean's value.
+   **/
   function toggleIgnoreEmptyCells()
   {
     ignoreEmptyCells = !ignoreEmptyCells;
   }
   
   //Advanced
+  /**
+   * Toggle the nestedElements boolean's value.
+   **/
   function toggleNestedElements()
   {
     nestedElements = !nestedElements;
   }
   
+  /**
+   * Toggle the minifyData boolean's value.
+   **/
   function toggleMinifyData()
   {
       minifyData = !minifyData;
   }
   
+  /**
+   * Toggle the includeFirstColumn boolean's value.
+   **/
   function toggleIncludeFirstColumn()
   {
     includeFirstColumn = !includeFirstColumn;
   }
   
+  /**
+   * Get the ignoreColumnsPrefix value. This will return an empty string if ignoreColumnsWithPrefix is false
+   * @return {string}
+   **/
   function getIgnorePrefix()
   {
     if(ignoreColumnsWithPrefix === false) return "";
@@ -509,11 +658,17 @@
     return ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
   }
   
+  /**
+   * Update the ignoreColumnsPrefix value to the current value set in its field
+   **/
   function updateIgnorePrefix()
   {
     ignoreColumnsPrefix = document.getElementById("ignoreColumnsPrefixTextField").value;
   }
   
+  /**
+   * Toggle the ignoreColumnsWithPrefix boolean's value.
+   **/
   function toggleIgnoreColumnsWithPrefix()
   {
     ignoreColumnsWithPrefix = !ignoreColumnsWithPrefix;
@@ -524,6 +679,10 @@
     }
   }
   
+  /**
+   * Get the unwrapSheetsPrefix value. This will return an empty string if unwrapSheetsWithPrefix is false
+   * @return {string}
+   **/
   function getUnwrapPrefix()
   {
     if(unwrapSheetsWithPrefix === false) return "";
@@ -531,11 +690,17 @@
     return unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
   }
   
+  /**
+   * Update the unwrapSheetsPrefix value to the current value set in its field
+   **/
   function updateUnwrapPrefix()
   {
     unwrapSheetsPrefix = document.getElementById("unwrapSheetsPrefixTextField").value;
   }
   
+  /**
+   * Toggle the unwrapSheetsWithPrefix boolean's value.
+   **/
   function toggleUnwrapSheetsWithPrefix()
   {
     unwrapSheetsWithPrefix = !unwrapSheetsWithPrefix;
@@ -546,6 +711,10 @@
     }
   }
   
+  /**
+   * Get the collapseSheetsPrefix value. This will return an empty string if collapseSheetsWithPrefix is false
+   * @return {string}
+   **/
   function getCollapsePrefix()
   {
     if(collapseSheetsWithPrefix === false) return "";
@@ -553,11 +722,17 @@
     return collapseSheetsPrefix === "" ? COLLAPSE_SHEET_DEFAULT : collapseSheetsPrefix;
   }
   
+  /**
+   * Update the collapseSheetsPrefix value to the current value set in its field
+   **/
   function updateCollapsePrefix()
   {
     collapseSheetsPrefix = document.getElementById("collapseSheetsPrefixTextField").value;
   }
   
+  /**
+   * Toggle the collapseSheetsWithPrefix boolean's value.
+   **/
   function toggleCollapseSheetsWithPrefix()
   {
     collapseSheetsWithPrefix = !collapseSheetsWithPrefix;
@@ -569,23 +744,36 @@
   }
   
   //XML Options
+  /**
+   * Toggle the exportChildElementXml boolean's value.
+   **/
   function toggleElement()
   {
     exportChildElementXml = !exportChildElementXml;
   }
   
+  /**
+   * Toggle the exportBoolsAsIntsXml boolean's value.
+   **/
   function toggleExportBoolsAsInts()
   {
     exportBoolsAsIntsXml = !exportBoolsAsIntsXml;
   }
   
+  /**
+   * get the rootElementXml value. Returns a default value if rootElementXml is empty
+   * @return {string}
+   **/ 
   function getRootElement()
   {
     return rootElementXml === "" ? XML_ROOT_DEFAULT : rootElementXml;
   }
   
-  
   //Advanced XML
+  /**
+   * Get the declarationVersionXml value. This will return an empty string if includeDeclarationXml is false
+   * @return {string}
+   **/
   function getDeclarationVersion()
   {
     if(includeDeclarationXml === false) return "";
@@ -593,6 +781,10 @@
     return declarationVersionXml;
   }
   
+  /**
+   * Get the declarationEncodingXml value. This will return an empty string if includeDeclarationXml is false or if declarationEncodingXml is set to "none"
+   * @return {string}
+   **/
   function getDeclarationEncoding()
   {
     if(includeDeclarationXml === false) return "";
@@ -600,6 +792,10 @@
     return declarationEncodingXml === "none" ? "" : declarationEncodingXml;
   }
   
+  /**
+   * Get the declarationStandaloneXml value. This will return an empty string if includeDeclarationXml is false or if declarationStandaloneXml is set to "none"
+   * @return {string}
+   **/
   function getDeclarationStandalone()
   {
     if(includeDeclarationXml === false) return "";
@@ -607,6 +803,10 @@
     return declarationStandaloneXml === "none" ? "" : declarationStandaloneXml;
   }
   
+  /**
+   * Get the forceAttributesPrefixXml value. This will return an empty string if forceAttributesXml is false or a default value if forceAttributesPrefixXml is empty
+   * @return {string}
+   **/
   function getAttributePrefix()
   {
     if(forceAttributesXml === false) return "";
@@ -614,6 +814,10 @@
     return forceAttributesPrefixXml === "" ? XML_ATT_DEFAULT : forceAttributesPrefixXml;
   }
   
+  /**
+   * Get the forceChildElementsPrefixXml value. This will return an empty string if forceChildElementsXml is false or a default value if forceChildElementsPrefixXml is empty
+   * @return {string}
+   **/
   function getChildElementPrefix()
   {
     if(forceChildElementsXml === false) return "";
@@ -621,6 +825,10 @@
     return forceChildElementsPrefixXml === "" ? XML_CE_DEFAULT : forceChildElementsPrefixXml;
   }
   
+  /**
+   * Get the forceInnerTextPrefixXml value. This will return an empty string if forceInnerTextXml is false or a default value if forceInnerTextPrefixXml is empty
+   * @return {string}
+   **/
   function getInnerTextPrefix()
   {
     if(forceInnerTextXml === false) return "";
@@ -628,32 +836,49 @@
     return forceInnerTextPrefixXml === "" ? XML_IT_DEFAULT : forceInnerTextPrefixXml;
   }
   
+  /**
+   * Update the rootElementXml value to the current value set in its field
+   **/
   function updateRootElementXml()
   {
     rootElementXml = document.getElementById("xmlRootField").value;
   }
   
+  /**
+   * Update the forceAttributesPrefixXml value to the current value set in its field
+   **/
   function updateAttributePrefixXml()
   {
     forceAttributesPrefixXml = document.getElementById("xmlForceAttributesTextField").value;
   }
   
+  /**
+   * Update the forceChildElementsPrefixXml value to the current value set in its field
+   **/
   function updateChildElementPrefixXml()
   {
     forceChildElementsPrefixXml = document.getElementById("xmlForceChildElementsTextField").value;
   }
   
+  /**
+   * Update the forceInnerTextPrefixXml value to the current value set in its field
+   **/
   function updateInnerTextPrefixXml()
   {
     forceInnerTextPrefixXml = document.getElementById("xmlForceInnerTextTextField").value;
   }
   
-  //Changes replacement char used in XML elements with illegal characters
+  /**
+   * Callback method that changes replacement char used in XML elements with illegal characters
+   **/
   function changeNameReplacementCharXml()
   {
     nameReplacementCharXml = document.getElementById("xmlNameReplaceCharDropdown").value;
   }
   
+  /**
+   * Toggle the includeDeclarationXml boolean's value.
+   **/
   function toggleIncludeDeclarationXml()
   {
     includeDeclarationXml = !includeDeclarationXml;
@@ -666,21 +891,33 @@
     }
   }
   
+  /**
+   * Callback method that changes the declarationVersionXml value
+   **/ 
   function changeDeclarationVersionXml()
   {
     declarationVersionXml = document.getElementById("xmlDeclarationVersionDropdown").value;
   }
   
+  /**
+   * Callback method that changes the declarationEncodingXml value
+   **/ 
   function changeDeclarationEncodingXml()
   {
     declarationEncodingXml = document.getElementById("xmlDeclarationEncodingDropdown").value;
   }
   
+  /**
+   * Callback method that changes the declarationStandaloneXml value
+   **/ 
   function changeDeclarationStandaloneXml()
   {
     declarationStandaloneXml = document.getElementById("xmlDeclarationStandaloneDropdown").value;
   }
   
+  /**
+   * Toggle the forceAttributesXml boolean's value.
+   **/
   function toggleAttributePrefixXml()
   {
     forceAttributesXml = !forceAttributesXml;
@@ -691,6 +928,9 @@
     }
   }
   
+  /**
+   * Toggle the forceChildElementsXml boolean's value.
+   **/
   function toggleChildElementPrefixXml()
   {
     forceChildElementsXml = !forceChildElementsXml;
@@ -701,6 +941,9 @@
     }
   }
   
+  /**
+   * Toggle the forceInnerTextXml boolean's value.
+   **/
   function toggleInnerTextPrefixXml()
   {
     forceInnerTextXml = !forceInnerTextXml;
@@ -712,13 +955,17 @@
   }
   
   //XML Namespaces
-  //Update the current root xmlns URI
+  /**
+   * Update the current root xmlns URI value to the current value set in its field
+   **/
   function updateRootNamespaceXml()
   {
     rootNamespace = document.getElementById("xmlRootNamespaceField").value;
   }
   
-  //Add a new namespace to the list of namespaces and create HTML for it in the sidebar
+  /**
+   * Add a new namespace to the list of namespaces and create HTML for it in the sidebar
+   **/
   function addNamespaceXml()
   {
     var newNamespace = { "prefix": "", "uri": "" };
@@ -746,7 +993,10 @@
     refreshNamespaceAccordionListeners();
   }
   
-  //Update the prefix for the namespace with the given UUID
+  /**
+   * Update the prefix for the namespace with the given UUID
+   * @param {string} uuid - UUID for the target namespace
+   **/
   function updateNamespacePrefix(uuid)
   {
     var index = getNamespaceIndex(uuid);
@@ -758,7 +1008,10 @@
     document.getElementById("namespaceAccordion" + uuid).innerHTML = "xmlns:" + namespaces[index]["prefix"];
   }
   
-  //Update the URI for the namespace with the given UUID
+  /**
+   * Update the URI for the namespace with the given UUID
+   * @param {string} uuid - UUID for the target namespace
+   **/
   function updateNamespaceUri(uuid)
   {
     var index = getNamespaceIndex(uuid);
@@ -766,7 +1019,10 @@
     namespaces[index]["uri"] = document.getElementById("namespaceUri" + uuid).value;
   }
   
-  //Delete the namespace with the given UUID and remove its HTML in the sidebar
+  /**
+   * Delete the namespace with the given UUID and remove its HTML in the sidebar
+   * @param {string} uuid - UUID for the target namespace
+   **/
   function deleteNamespaceXml(uuid)
   {
     var index = getNamespaceIndex(uuid);
@@ -788,7 +1044,12 @@
     }
   }
   
-  //Get HTML text for the namespace at the given index. If hidden is true, the namespace accordion will be hidden
+  /**
+   * Get HTML text for the namespace at the given index. If hidden is true, the namespace accordion will be hidden
+   * @param {number} index - Index for the target namespace
+   * @param {boolean} hidden - If the namespace section should be expanded (false) or collapsed (true)
+   * @return {string}
+   **/
   function getNamespaceTextXml(index, hidden)
   {
     //TODO: Apply tinting to empty fields...
@@ -803,7 +1064,9 @@
     return newNamespaceText;
   }
   
-  //Refresh onclick event listeners for XML namespace accordions
+  /**
+   * Refresh onclick event listeners for XML namespace accordions
+   **/
   function refreshNamespaceAccordionListeners()
   {
     var parent = document.getElementById("xmlNamespaceParent");
@@ -825,41 +1088,67 @@
   }
   
   //JSON Options
+  /**
+   * Toggle the exportContentsAsArrayJson boolean's value.
+   **/
   function toggleContentArrayJson()
   {
     exportContentsAsArrayJson = !exportContentsAsArrayJson;
   }
   
+  /**
+   * Toggle the exportCellObjectJson boolean's value.
+   **/
   function toggleCellObjectJson()
   {
     exportCellObjectJson = !exportCellObjectJson;
   }
   
+  /**
+   * Toggle the exportCellArrayJson boolean's value.
+   **/
   function toggleArrayJson()
   {
     exportCellArrayJson = !exportCellArrayJson;
   }
   
+  /**
+   * Toggle the exportSheetArrayJson boolean's value.
+   **/
   function toggleSheetArrayJson()
   {
     exportSheetArrayJson = !exportSheetArrayJson;
   }
   
+  /**
+   * Toggle the exportValueArrayJson boolean's value.
+   **/
   function toggleValueArrayJson()
   {
     exportValueArrayJson = !exportValueArrayJson;
   }
   
+  /**
+   * Toggle the forceStringJson boolean's value.
+   **/
   function toggleForceStringJson()
   {
     forceStringJson = !forceStringJson;
   }
   
+  /**
+   * Get the arraySeparatorCharJson value. This will return a default value if arraySeparatorCharJson is empty, a single quote ( ' ) or a double quote ( " )
+   * @return {string}
+   **/
   function getSeparatorCharJson()
   {
     return (arraySeparatorCharJson === "" || arraySeparatorCharJson === "'" || arraySeparatorCharJson === '"') ? JSON_SEPARATOR_DEFAULT : arraySeparatorCharJson;
   }
   
+  /**
+   * Get the forceArrayPrefixJson value. This will return an empty string if forceArrayJson is false or a default value if forceArrayPrefixJson is empty
+   * @return {string}
+   **/
   function getForceArrayPrefixJson()
   {
     if(forceArrayJson === false) return "";
@@ -867,23 +1156,33 @@
     return forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson;
   }
   
-  //Change the exported value for empty cells
+  /**
+   * Callback method that changes the exported value for empty cells
+   **/
   function changeEmptyValueFormatJson()
   {
     emptyValueFormatJson = document.getElementById("jsonEmptyValueFormatDropdown").value;
   }
   
-  //Change the exported value for cells containing a string value of "null"
+  /**
+   * Callback method that changes the exported value for cells containing a string value of "null"
+   **/
   function changeNullValueFormatJson()
   {
     nullValueFormatJson = document.getElementById("jsonNullValueFormatDropdown").value;
   }
   
+  /**
+   * Update the arraySeparatorCharJson value to the current value set in its field
+   **/
   function updateSeparatorCharJson()
   {
     arraySeparatorCharJson = document.getElementById("jsonArraySeparatorCharTextField").value;
   }
   
+  /**
+   * Toggle the forceArrayJson boolean's value.
+   **/
   function toggleArrayPrefixJson()
   {
     forceArrayJson = !forceArrayJson;
@@ -894,12 +1193,18 @@
     }
   }
   
+  /**
+   * Update the forceArrayPrefixJson value to the current value set in its field
+   **/
   function updateArrayPrefixJson()
   {
     forceArrayPrefixJson = document.getElementById("jsonForceArrayTextField").value;
   }
   
   //Nested Elements options
+  /**
+   * Toggle the forceArrayNest boolean's value.
+   **/
   function toggleArrayPrefixNest()
   {
     forceArrayNest = !forceArrayNest;
@@ -910,11 +1215,18 @@
     }
   }
   
+  /**
+   * Update the forceArrayPrefixNest value to the current value set in its field
+   **/
   function updateArrayPrefixNest()
   {
     forceArrayPrefixNest = document.getElementById("nestForceArrayTextField").value;
   }
   
+  /**
+   * Get the forceArrayPrefixNest value. This will return an empty string if forceArrayNest is false or a default value if forceArrayPrefixNest is empty
+   * @return {string}
+   **/
   function getForceArrayPrefixNest()
   {
     if(forceArrayNest === false) return "";
@@ -922,7 +1234,9 @@
     return forceArrayPrefixNest === "" ? NEST_NA_DEFAULT : forceArrayPrefixNest;
   }
   
-  //Toggles value for exporting all sheets
+  /**
+   * Toggles value for exporting all sheets
+   **/
   function toggleAllSheets()
   {
     var value = document.getElementById('allSheetsToggle').value;
@@ -931,7 +1245,9 @@
     else generateSheetToggles(sheets, false);
   }
   
-  //Updates the toggle for all sheets so that it is only checked when all sheets are set for export
+  /**
+   * Updates the toggle for all sheets so that it is only checked when all sheets are set for export
+   **/
   function updateAllSheetsToggle()
   {
     var value = checkAllTogglesTrue();
@@ -946,19 +1262,26 @@
     }
   }
   
-  //Sets all sheets to be exported
+  /**
+   * Sets all sheets to be exported
+   **/
   function selectAllSheets()
   {
     generateSheetToggles(sheets, true);
   }
   
-  //Sets no sheets to be exported
+  /**
+   * Sets no sheets to be exported
+   **/
   function selectNoneSheets()
   {
     generateSheetToggles(sheets, false);
   }
   
-  //Toggles a sheet for export
+  /**
+   * Toggles a sheet for export
+   * @param {string} sheetName - Name for the target sheet
+   **/
   function toggleSheet(sheetName)
   {
     var value = document.getElementById(formatSheetName(sheetName) + 'Toggle').value;
@@ -973,7 +1296,9 @@
     updateAllSheetsToggle();
   }
   
-  //Function to rebuild the sidebar after loading export parameters
+  /**
+   * Rebuild the sidebar. This should be called after loading export parameters
+   **/
   function refreshSideBar()
   {
     removeGeneralListeners();
@@ -1336,7 +1661,9 @@
     addAccordionListeners();
   }
   
-  //Changes export format between XML and JSON
+  /**
+   * Callback method that changes export format between XML and JSON
+   **/
   function changeExportFormat()
   {
     exportType = document.getElementById("formatSelect").value;
@@ -1344,7 +1671,9 @@
     refreshSideBar();
   }
   
-  //Changes export folder target between default and custom.
+  /**
+   * Callback method that changes export folder target between default and custom.
+   **/
   function changeExportFolderFormat()
   {
     exportFolderType = document.getElementById("folderSelect").value;
@@ -1352,7 +1681,9 @@
     refreshSideBar();
   }
   
-  //Updates the method for selecting sheets for export
+  /**
+   * Callback method that updates the method for selecting sheets for export
+   **/
   function changeExportSheets()
   {
     exportSheets = document.getElementById("sheetSelect").value;
@@ -1374,13 +1705,20 @@
     generateAutoSheetToggles(sheetNames); //TODO: Sheet names are getting culled on load sometimes... (seems to be after all are toggled on then one is toggled off as the off sheet is the only name returned...)
   }
   
-  //Formats sheet names so special characters don't break event listeners
+  /**
+   * Formats a sheet name so special characters don't break event listeners
+   * @param {string} sheetName - Name to format
+   * @return {string}
+   **/
   function formatSheetName(sheetName)
   {
     return sheetName.replace(/[^a-zA-Z0-9\-\_]/gm, "_");
   }
   
-  //Generates toggle elements determining which sheets should be exported
+  /**
+   * Generates toggle elements determining which sheets should be exported
+   * @param {Array<string>} sheetNames - Names for sheets to generate toggles for
+   **/
   function generateAutoSheetToggles(sheetNames)
   {
     var cachedToggles = targetSheets;
@@ -1433,7 +1771,11 @@
     createSheetToggleListeners()
   }
   
-  //Generates toggle elements determining which sheets should be exported and sets their export value to be the given default value
+  /**
+   * Generates toggle elements determining which sheets should be exported and sets their export value to be the given default value
+   * @param {Array<string>} sheetNames - Names for sheets to generate toggles for
+   * @param {boolean} defaultValue - Default value for toggles
+   **/
   function generateSheetToggles(sheetNames, defaultValue)
   {
     clearSheetToggles();
@@ -1469,7 +1811,9 @@
     createSheetToggleListeners()
   }
   
-  //Creates event listeners for sheet export toggles
+  /**
+   * Creates event listeners for sheet export toggles
+   **/
   function createSheetToggleListeners()
   {
     for(let i=0; i < sheets.length; i++)
@@ -1482,7 +1826,9 @@
     }
   }
   
-  //Removes event listeners for sheet export toggles
+  /**
+   * Removes event listeners for sheet export toggles
+   **/
   function clearSheetToggles()
   {
     targetSheets = { };
@@ -1502,7 +1848,9 @@
     document.getElementById("customSheetSelect").innerHTML = "";
   }
   
-  //Adds event listeners for general options.
+  /**
+   * Adds event listeners for general options.
+   **/
   function addGeneralListeners()
   {
     //Format Settings
@@ -1526,7 +1874,9 @@
     document.getElementById('collapseSheetsPrefixTextField').addEventListener("change", updateCollapsePrefix);
   }
   
-  //Set up section accordion click interactions.
+  /**
+   * Set up section accordion click interactions.
+   **/
   function addAccordionListeners()
   {
     var accordions = document.getElementsByClassName("accordion");
@@ -1546,7 +1896,9 @@
     }
   }
   
-  //Adds event listeners for XML options.
+  /**
+   * Adds event listeners for XML options.
+   **/
   function addXmlListeners()
   {
     //XML Options
@@ -1570,7 +1922,9 @@
     document.getElementById('newNamespaceButton').addEventListener("click", addNamespaceXml);
   }
   
-  //Adds event listeners for JSON options.
+  /**
+   * Adds event listeners for JSON options.
+   **/
   function addJsonListeners()
   {
     //JSON Options
@@ -1590,7 +1944,9 @@
     document.getElementById('nestForceArrayTextField').addEventListener("change", updateArrayPrefixNest);
   }
   
-  //Removes event listeners for general options.
+  /**
+   * Removes event listeners for general options.
+   **/
   function removeGeneralListeners()
   {
     //Basic
@@ -1653,7 +2009,9 @@
     }
   }
   
-  //Removes event listeners for XML option toggles
+  /**
+   * Removes event listeners for XML option toggles
+   **/
   function removeXmlListeners()
   {
     //Basic
@@ -1708,7 +2066,9 @@
     }
   }
   
-  //Removes event listeners for JSON option toggles
+  /**
+   * Removes event listeners for JSON option toggles
+   **/
   function removeJsonListeners()
   {
     //Basic
@@ -1760,7 +2120,9 @@
     }
   }
   
-  //Set selected sheets to be visualized with the current options
+  /**
+   * Set selected sheets to be visualized with the current options
+   **/
   function visualizeFile()
   {
     visualizeData = true;
@@ -1771,7 +2133,9 @@
     setProperties();
   }
   
-  //Set selected sheets to be exported with the current options
+  /**
+   * Set selected sheets to be exported with the current options
+   **/
   function exportFile()
   {
     visualizeData = false;
@@ -1782,6 +2146,9 @@
     setProperties();
   }
   
+  /**
+   * Export XML.
+   **/
   function exportXml()
   {
     if(exportSheets === EXP_SHEET_SINGLE)
@@ -1790,22 +2157,28 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportXml(generateXmlSettings(false, targetSheets));
+      google.script.run.withFailureHandler(onCatastrophicError).exportXml(generateXmlSettings(false, targetSheets));
     }
     else
     {
-      google.script.run.exportXml(generateXmlSettings(false, null));
+      google.script.run.withFailureHandler(onCatastrophicError).exportXml(generateXmlSettings(false, null));
     }
   }
   
+  /**
+   * Export only the given sheet to XML.
+   **/
   function exportXmlSingle(sheet)
   {
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportXml(generateXmlSettings(true, newSheets));
+    google.script.run.withFailureHandler(onCatastrophicError).exportXml(generateXmlSettings(true, newSheets));
   }
   
+  /**
+   * Export JSON.
+   **/
   function exportJson()
   {
     if(exportSheets === EXP_SHEET_SINGLE)
@@ -1814,20 +2187,29 @@
     }
     else if(exportSheets === EXP_SHEET_CUSTOM)
     {
-      google.script.run.exportJson(generateJsonSettings(false, targetSheets));
+      google.script.run.withFailureHandler(onCatastrophicError).exportJson(generateJsonSettings(false, targetSheets));
     }
     else
     {
-      google.script.run.exportJson(generateJsonSettings(false, null));
+      google.script.run.withFailureHandler(onCatastrophicError).exportJson(generateJsonSettings(false, null));
     }
   }
   
+  /**
+   * Export only the given sheet to JSON.
+   **/
   function exportJsonSingle(sheet)
   {
     var newSheets = { };
     newSheets[sheet] = 'true';
     
-    google.script.run.exportJson(generateJsonSettings(true, newSheets));
+    google.script.run.withFailureHandler(onCatastrophicError).exportJson(generateJsonSettings(true, newSheets));
+  }
+
+
+  function onCatastrophicError(error)
+  {
+    alert(`There was a catastrophic error! This is probably because multiple accounts are signed in. See the troubleshooting section of documentation for more details. (Add-ons/Export Sheet Data/About/Documentation)\n\nError:\n${error.stack}`);
   }
   
   getProperties(updateProperties, onGetPropertiesFailure);
