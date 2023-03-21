@@ -28,7 +28,8 @@ const SubpathTypes = {
   Key: 1, //JSON field or XML element key
   Array: 2, //JSON Array or XML element with child elements
   Object: 3, //JSON Object
-  Attribute: 4 //XML element attribute
+  Attribute: 4, //XML element attribute
+  Dict: 5 //JSON Object used with nested elements
 };
 
 /**
@@ -817,12 +818,22 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
   
     for(let i=0; i < key.length; i++)
     {
-      if(pathType === "") pathType = key[i];
+      // Check for a 2 character identifier
+      if (pathType === "") {
+        pathType = key[i];
+        if (i + 1 < key.length && key[i] + key[i + 1] === "[{") pathType = "[{";
+      }
       
       subPath += key[i];
       
-      if((pathType === '[' && key[i] === ']') || (pathType === '{' && key[i] === '}'))
+      if((pathType === '[' && key[i] === ']') || (pathType === '{' && key[i] === '}') || (pathType === "[{" && i + 1 < key.length && key[i] + key[i + 1] === "}]"))
       {
+        //With a 2character identifier, need to increment i
+        if (pathType === "[{") {
+          subPath += "]";
+          i++;
+        }
+
         path.push(subPath);
         
         //Inject implied values when needed and able
@@ -843,8 +854,9 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
     
     if(subPath.length > 0) path.push(subPath);
     
-    //Check that the last element in the path is a key path type. If not, make one from the last existing element.
-    if(getSubpathTypeJson(path[path.length-1]) !== SubpathTypes.Key)
+    //Check that the last element in the path is a key or dict path type. If not, make one from the last existing element.
+    var subpathType = getSubpathTypeJson(path[path.length - 1]);
+    if(subpathType !== SubpathTypes.Key && subpathType !== SubpathTypes.Dict)
     {
       let keyPath = trimKeySubpath(path[path.length-1]);
       
@@ -861,13 +873,14 @@ function getKeyPath(key, implicitNames, implicitValues, nestedElements)
 }
 
 /**
- * Trims leading and trailing reserved chars such as '{' and '['
+ * Trims leading and trailing reserved chars such as '{' and '[' but also '[{'
  * @param {string} key
  * @return {string}
  **/
 function trimKeySubpath(key)
 {
-  return key.substring(1, key.length-1);
+  var newKey = key.substring(1, key.length-1);
+  return newKey[0] === "{" ? trimKeySubpath(newKey) : newKey;
 }
 
 /**
@@ -910,7 +923,7 @@ function getSubpathTypeJson(subpath)
     switch(subpath[0])
     {
       case '[':
-      type = SubpathTypes.Array;
+      type = subpath[1] === '{' ? SubpathTypes.Dict : SubpathTypes.Array;
       break;
       
       case '{':
@@ -1757,8 +1770,22 @@ function exportSpreadsheetJson(formatSettings, callback)
               var subpath = trimKeySubpath(keyPath[l]);
               var foundMatch = false;
               
+              if (element === null)
+                break;
+
+              if (subpathType === SubpathTypes.Dict) {
+                //find the object key matching the subpath
+                for (objectField in element) {
+                  if (objectField === rowObject[`[{${subpath}}]`]) {
+                    element = element[objectField];
+
+                    foundMatch = true;
+                    break;
+                  }
+                }
+              }
               //Check if the subpath points to an object and is meant to be searched for somehow (either by key or index)
-              if(subpathType == SubpathTypes.Object && isSearchSubpath(subpath))
+              else if(subpathType == SubpathTypes.Object && isSearchSubpath(subpath))
               {
                 subpath = subpath.substring(1); //Get the substring of the key so we know what type of search to perform
                 var searchType = getSubpathSearchType(subpath); //Get the type of search specified by nesting formatting in the column key
@@ -2052,10 +2079,16 @@ function exportSpreadsheetJson(formatSettings, callback)
                     element = element[subpath];
                   }
                   break;
+
+                  case SubpathTypes.Dict:
+                    element = null;
+                    break
                 }
               }
             }
             
+            //If a dict is missing, creates an empty object
+            if (element !== null) {
             //If the key is a number and the element is an array, subtract one from the key to use 0 based indexing (1 becomes 0, 2 becomes 1, etc)
             if(!isNaN(key) && isArray(element))
             {
@@ -2066,7 +2099,13 @@ function exportSpreadsheetJson(formatSettings, callback)
             if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
             else if(content === "null") content = getNullCellValueJson(nullValueFormat);
             
-            element[key] = content;
+              //If we are dealing with a dictionary, either create it or if it already exists do nothing
+              if (
+                getSubpathTypeJson(keyPath[keyPath.length - 1]) === SubpathTypes.Dict
+              ) {
+                if (content !== null && !element.hasOwnProperty(content)) element[content] = {};
+              } else element[key] = content;
+            }
           }
           else
           {
@@ -2079,7 +2118,15 @@ function exportSpreadsheetJson(formatSettings, callback)
             Logger.log(JSON.stringify(content));
             Logger.log(`${key}: ${rowObject[key]}`);
             
-            if(nestedElements) element[key] = content;
+            if (nestedElements) {
+              //If we are dealing with a dictionary, either create it or if it already exists do nothing
+              if (
+                getSubpathTypeJson(keyPath[keyPath.length - 1]) ===
+                SubpathTypes.Dict
+              ) {
+                if (!element.hasOwnProperty(content)) element[content] = {};
+              } else element[key] = content;
+            }
           }
         }
       }
