@@ -19,6 +19,70 @@
   const JSON_JA_DEFAULT = "JA_";
   //Nesting Elements
   const NEST_NA_DEFAULT = "NA_";
+  //Keys
+  const Keys = {
+    Export : {
+      Format : "exportType",
+      Folder : "exportFolder",
+      FolderType : "exportFolderType",
+      Sheets : "exportSheets",
+      TargetSheets : "targetSheets"
+    },
+    General : {
+      ReplaceFiles : "replaceExistingFiles",
+      UnwrapSingle : "unwrapSingleRows",
+      CollapseSingle : "collapseSingleRows",
+      IgnoreEmpty : "ignoreEmptyCells",
+      Advanced : {
+        NestedElements : "nestedElements",
+        Minify : "minifyData",
+        IncludeFirstColumn : "includeFirstColumn",
+        IgnoreWithPrefix : "ignoreColumnsWithPrefix",
+        IgnorePrefix : "ignorePrefix",
+        UnwrapWithPrefix : "unwrapSheetsWithPrefix",
+        UnwrapPrefix : "unwrapPrefix",
+        CollapseWithPrefix : "collapseSheetsWithPrefix",
+        CollapsePrefix : "collapsePrefix"
+      }
+    },
+    JSON : {
+      CellArray : "exportCellArray",
+      SheetArray : "exportSheetArray",
+      ValueArray : "exportValueArray",
+      ForceString : "forceString",
+      Advanced : {
+        ContentsAsArray : "exportContentsAsArray",
+        CellObject : "exportCellObject",
+        EmptyValueFormat : "emptyValueFormat",
+        NullValueFormat : "nullValueFormat",
+        SeparatorChar : "separatorChar",
+        ForceArray : "forceArray",
+        ForceArrayPrefix : "forceArrayPrefix",
+        ForceNestedArray : "forceArrayNest",
+        ForceNestedArrayPrefix : "forceArrayNestPrefix"
+      }
+    },
+    XML : {
+      ChildElements : "exportChildElements",
+      BoolsAsInts : "exportBoolsAsInts",
+      RootElement : "rootElement",
+      Advanced : {
+        NameReplacementChar : "nameReplacementChar",
+        IncludeDeclaration : "includeDeclaration",
+        DeclarationVersion : "declarationVersion",
+        DeclarationEncoding : "declarationEncoding",
+        DeclarationStandalone : "declarationStandalone",
+        ForceAttributes : "forceAttributes",
+        ForceAttributesPrefix : "attributePrefix",
+        FroceChildElements : "forceChildElements",
+        ForceChildElementsPrefix : "childElementsPrefix",
+        FroceInnerText : "forceInnerText",
+        ForceInnerTextPrefix : "innerTextPrefix",
+        RootNamespace : "rootNamespace",
+        Namespaces : "namespaces"
+      }
+    }
+  };
   
   //Visualization
   var visualizeData = false;
@@ -147,6 +211,7 @@
    **/
   function onGetPropertiesFailure(error)
   {
+    //alert("There was an error retrieving user settings. This is most often due to multiple accounts being signed in. Please sign out of all but one account and reload the document.");
     google.script.run.openErrorModal("Settings Error", 
       "There was an error retrieving user settings, so default settings have been loaded. This is most often due to multiple accounts being signed in.", 
       error.stack);
@@ -206,12 +271,13 @@
     collapseSheetsPrefix = settings["collapsePrefix"] != null ? (settings["collapsePrefix"] === "" ? COLLAPSE_SHEET_DEFAULT : settings["collapsePrefix"]) : COLLAPSE_SHEET_DEFAULT;
     
     //JSON
-    exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
-    exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === true : exportCellObjectJson;
     exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === true : exportCellArrayJson;
     exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === true : exportSheetArrayJson;
     exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
     forceStringJson = settings["forceString"] != null ? settings["forceString"] === true : forceStringJson;
+    //Advanced JSON
+    exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
+    exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === true : exportCellObjectJson;
     emptyValueFormatJson = settings["emptyValueFormat"] != null ? (settings["emptyValueFormat"] === "" ? emptyValueFormatJson : settings["emptyValueFormat"]) : emptyValueFormatJson;
     nullValueFormatJson = settings["nullValueFormat"] != null ? (settings["nullValueFormat"] === "" ? nullValueFormatJson : settings["nullValueFormat"]) : nullValueFormatJson;
     arraySeparatorCharJson = settings["separatorChar"] != null ? (settings["separatorChar"] === "" ? "," : settings["separatorChar"]) : JSON_SEPARATOR_DEFAULT;

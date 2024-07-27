@@ -368,7 +368,7 @@ function getFileParentFolderId(file)
  **/
 function getCellContentArray(cell, separatorChar)
 {
-  var cellArray = [];
+  let cellArray = [];
   
   //If the cell isn't a string, it's value can't be split into an array.
   if(typeof(cell) !== "string")
@@ -377,10 +377,10 @@ function getCellContentArray(cell, separatorChar)
     return cellArray;
   }
   
-  var content = cell;
-  var commaIndicies = [];
-  var openQuoteIndicies = [];
-  var closeQuoteIndicies = [];
+  let content = cell;
+  let commaIndicies = [];
+  let openQuoteIndicies = [];
+  let closeQuoteIndicies = [];
   
   //Set the indicies for quotes and commas
   for(let i=0; i < content.length; i++)
@@ -416,7 +416,7 @@ function getCellContentArray(cell, separatorChar)
   }
         
   //Populate the array
-  var startIndex = 0;
+  let startIndex = 0;
   for(let i=0; i < commaIndicies.length; i++)
   {
     let arrayString = content.slice(startIndex, commaIndicies[i]);
@@ -445,9 +445,9 @@ function getCellContentArray(cell, separatorChar)
   {
     if(!isNaN(parseFloat(cellArray[i])))
     {
-      var isNumber = true;
-      var minusCount = 0;
-      var decimalCount = 0;
+      let isNumber = true;
+      let minusCount = 0;
+      let decimalCount = 0;
       
       //Parse float is unreliable, so loop through to make sure the string is actually a float
       for(let j=0; j < cellArray[i].length; j++)
@@ -490,6 +490,16 @@ function getCellContentArray(cell, separatorChar)
     }
     else if(cellArray[i] === 'true') cellArray[i] = true;
     else if(cellArray[i] === 'false') cellArray[i] = false;
+    else if(cellArray[i].length > 1)
+    {
+      Logger.log(`${cellArray[i]}: ${cellArray[i][0] === '"'} | ${cellArray[i][cellArray[i].length - 1] === '"'}`);
+      //Strip wrapping quotes...
+      if(cellArray[i][0] === '"' && cellArray[i][cellArray[i].length - 1] === '"')
+      {
+        cellArray[i] = cellArray[i].substring(1, cellArray[i].length - 1);
+        Logger.log(cellArray[i]);
+      }
+    }
   }
   
   return cellArray;
@@ -614,7 +624,7 @@ function formatJsonString(value, asObject)
   if(value.length > 1)
   {
     //Get rid of wrapping quotes (")
-    if(value[0] == '"' && value[value.length-1] == '"')
+    if(value[0] === '"' && value[value.length-1] === '"')
     {
       let endValue = value.length - 1;
       
@@ -623,7 +633,7 @@ function formatJsonString(value, asObject)
       value = value.substring(1, endValue);
     }
     //Don't format object values (wrapped with {})
-    if(asObject && value[0] == '{' && value[value.length-1] == '}')
+    if(asObject && value[0] === '{' && value[value.length-1] === '}')
     {
       //Need to format to match the rest of the file
       return value;
@@ -1605,10 +1615,10 @@ function exportSpreadsheetJson(formatSettings, callback)
     {
       if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
     
-      var rowArray = [];
-      var rowObject = {};
-      var rowIndexNames = []; //Used to keep associations with row indexes correct
-      var rowIndexValues = [];
+      let rowArray = [];
+      let rowObject = {};
+      let rowIndexNames = []; //Used to keep associations with row indexes correct
+      let rowIndexValues = [];
       
       if(!sheetIsValueArray)
       {
@@ -1678,6 +1688,8 @@ function exportSpreadsheetJson(formatSettings, callback)
               content = tryParseJsonArrayString(content);
             }
           }
+          
+          //TODO: Should strip double quotes from content around here... ie ["test, test"] should become [test, test] but only when exporting arrays?
           //We want to export cell arrays, or this column should be exported as an array, so convert the target cell's value to an array of values.
           if(exportArray && (getCellContentArray(content, separatorChar).length > 1) || keyHasPrefix(key, arrayPrefix))
           {
@@ -1720,6 +1732,8 @@ function exportSpreadsheetJson(formatSettings, callback)
               content = content.toString().trim();
             }
           }
+          
+          Logger.log(`12: ${content}`);
           
           //Convert the key to a string and strip unneeded prefixes
           if(arrayPrefix != "") key = stripPrefix(key.toString(), arrayPrefix);
@@ -2062,6 +2076,9 @@ function exportSpreadsheetJson(formatSettings, callback)
           
             rowObject[key] = content;
             
+            Logger.log(JSON.stringify(content));
+            Logger.log(`${key}: ${rowObject[key]}`);
+            
             if(nestedElements) element[key] = content;
           }
         }
@@ -2133,6 +2150,7 @@ function exportSpreadsheetJson(formatSettings, callback)
             }
             else
             {
+              Logger.log(JSON.stringify(rowObject));
               sheetJsonObject[values[j][0]] = rowObject;
             }
           }
