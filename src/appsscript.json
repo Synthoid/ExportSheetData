@@ -1,7 +1,25 @@
 {
   "timeZone": "America/New_York",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
   "dependencies": {
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "Drive",
+        "serviceId": "drive",
+        "version": "v3"
+      }
+    ]
   },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/spreadsheets.currentonly",
+    "https://www.googleapis.com/auth/script.container.ui",
+    "https://www.googleapis.com/auth/userinfo.email"
+  ],
+  "urlFetchWhitelist": [
+    "https://www.github.com/"
+  ],
   "addOns": {
     "common": {
       "name": "Export Sheet Data",
@@ -10,19 +28,6 @@
         "https://www.github.com/"
       ]
     },
-    "sheets": {
-
-    }
-  },
-  "oauthScopes": [
-    "https://www.googleapis.com/auth/drive",
-    "https://www.googleapis.com/auth/spreadsheets.currentonly",
-    "https://www.googleapis.com/auth/script.container.ui",
-    "https://www.googleapis.com/auth/userinfo.email"
-  ],
-  "urlFetchWhitelist": [
-    "https://www.github.com/"
-  ],
-  "exceptionLogging": "STACKDRIVER",
-  "runtimeVersion": "V8"
+    "sheets": {}
+  }
 }

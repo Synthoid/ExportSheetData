@@ -1,0 +1,158 @@
+<!--Based on code originally found at https://ctrlq.org/code/20039-google-picker-with-apps-script-->
+<!--Documentation: https://developers.google.com/drive/picker/reference-->
+<!--Note that the picker API throws harmless 400 errors due to internal google issues. Doesn't seem like something we can resolve...-->
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+  <script type="text/javascript">
+    const SecretKeys = {7a45b807-892a-41bc-8878-251f15d23742};
+    const TIMEOUT_DURATION = 360;
+    const DIALOG_DIMENSIONS = { //These values should be slightly smaller than the size set in ExportSheetData.openPicker()
+        width: 650,
+        height: 450
+    };
+    /**
+     * Status values for select file operations using the file picker.
+     * @enum {number}
+     **/
+    const SelectFileStatus = {
+      Inactive: 0,
+      Active: 1,
+      Completed: 2,
+      Cancelled: 3,
+      Timeout: 4,
+      Error: 5
+    };
+    let pickerApiLoaded = false;
+    let settings = {};
+
+    function onApiLoad()
+    {
+      gapi.load('picker', {
+        'callback': function() {
+            pickerApiLoaded = true;
+          }
+      });
+        
+      google.script.run.withSuccessHandler(createPicker).withFailureHandler(showError).getOAuthToken();
+      google.script.run.withSuccessHandler(onSettingsLoaded).getExportProperties();
+    }
+
+    /**
+     * Create the actual picker object.
+     * @param {string} token OAuth token for the user.
+     **/
+    function createPicker(token)
+    {
+        if(pickerApiLoaded && token)
+        {
+          let secrets = SecretKeys;
+
+          const API_KEY = secrets["apiKey"];
+          const APP_ID = secrets["appId"];
+
+          let docsView = new google.picker.DocsView()
+            .setIncludeFolders(true) //Show folders in selection view.
+            .setSelectFolderEnabled({92448e1e-6921-4988-b669-722446bde3c6}) //Allow the user to select folders.
+            //.setMode(google.picker.DocsViewMode.GRID) //Display folders as a grid
+            .setMimeTypes('{9a53e586-c360-412c-86ab-e30cfdb2d26d}');
+
+          let picker = new google.picker.PickerBuilder()
+            .addView(docsView)
+            .enableFeature(google.picker.Feature.NAV_HIDDEN)
+            .hideTitleBar()
+            .setSize(DIALOG_DIMENSIONS.width - 2, DIALOG_DIMENSIONS.height - 2) // -2 to create padding and prevent scroll bars
+            .setDeveloperKey(API_KEY)
+            .setAppId(APP_ID)
+            .setOAuthToken(token)
+            .setCallback(pickerCallback)
+            .setOrigin(google.script.host.origin)
+            .build();
+
+          picker.setVisible(true);
+
+          document.getElementById('result').innerHTML = '';
+        }
+        else
+        {
+          showError('Unable to load the file picker. Please close the modal and try again.');
+        }
+    }
+    
+
+    function onSettingsLoaded(documentSettings)
+    {
+      if(documentSettings == null || documentSettings === "")
+      {
+        settings = {};
+      }
+      else
+      {
+        settings = JSON.parse(documentSettings);
+      }
+    }
+    
+
+    function onSettingsLoadFail(documentSettings)
+    {
+      document.getElementById('result').innerHTML = "Could not load document properties. Please close the modal and open it again.";
+    }
+
+    /**
+     * A callback function that extracts the chosen document's metadata from the
+     * response object. For details on the response object, see
+     * https://developers.google.com/picker/docs/results
+     *
+     * @param {object} data The response object.
+     */
+    function pickerCallback(data)
+    {
+      let action = data[google.picker.Response.ACTION];
+
+      if(action != google.picker.Action.PICKED &&
+        action != google.picker.Action.CANCEL)
+      {
+        //If not picking a file or cancelling, do nothing...
+        return;
+      }
+
+      let fileSettings = {};
+      let status = SelectFileStatus.Cancelled;
+        
+      if (action == google.picker.Action.PICKED)
+      {
+        let doc = data[google.picker.Response.DOCUMENTS][0];
+        let id = doc[google.picker.Document.ID];
+        let name = doc[google.picker.Document.NAME];
+
+        status = SelectFileStatus.Completed;
+        
+        fileSettings = {
+          "id": id,
+          "name": name
+        };
+
+        //google.script.run.openToast("Loading File Data...");
+      }
+      
+      //Pass data for the selection process before closing the modal...
+      google.script.run.{568234c9-e57f-49bf-ba26-0f2d886b0d08}(JSON.stringify(fileSettings), status);
+      google.script.host.close();
+    }
+
+
+    function showError(message)
+    {
+      document.getElementById('result').innerHTML = 'Error: ' + message;
+    }
+  </script>
+</head>
+
+<body>
+  <div>
+    <p id='result'>Loading folder picker...</p>
+  </div>
+  <script type="text/javascript" src="https://apis.google.com/js/api.js?onload=onApiLoad"></script>
+</body>
+</html>

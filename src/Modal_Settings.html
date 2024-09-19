@@ -83,7 +83,7 @@
     <script type="application/javascript">
       function copyContent()
       {
-        var copyText = document.getElementById("current-clipboard");
+        let copyText = document.getElementById("current-clipboard");
 
         copyText.select();
         copyText.setSelectionRange(0, 99999); /*For mobile devices*/
@@ -94,8 +94,8 @@
       
       function validateLoadButton()
       {
-        var newSettingsString = document.getElementById("load-clipboard").value;
-        var button = document.getElementById("load-button");
+        let newSettingsString = document.getElementById("load-clipboard").value;
+        let button = document.getElementById("load-button");
         
         button.disabled = (newSettingsString === "");
       }
@@ -103,8 +103,8 @@
       
       function loadSettings()
       {
-        var newSettingsString = document.getElementById("load-clipboard").value;
-        var settings = {};
+        let newSettingsString = document.getElementById("load-clipboard").value;
+        let settings = {};
         
         try
         {
@@ -135,8 +135,8 @@
       
       function onCurrentSettingsSuccess(settings)
       {
-        var allSettings = JSON.parse(settings);
-        var currentSettings = allSettings.hasOwnProperty("settings") ? JSON.stringify(JSON.parse(allSettings["settings"]), null, 2) : "No settings created yet! Please export or visualize data to create settings values.";
+        let allSettings = JSON.parse(settings);
+        let currentSettings = allSettings.hasOwnProperty("settings") ? JSON.stringify(JSON.parse(allSettings["settings"]), null, 2) : "No settings created yet! Please export or visualize data to create settings values.";
       
         document.getElementById("current-clipboard").value = currentSettings;
       }

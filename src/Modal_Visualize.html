@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
     <style>
       .displayWrapper {
-        height: 400px;
+        height: 300px;
       }
       
       .display {
@@ -23,14 +23,14 @@
         cursor: pointer;
       }
       
-      button .action {
-        position: fixed;
-        bottom: 0px;
+      button.action {
       }
       
-      button .close {
-        position: fixed;
-        bottom: 0px;
+      button.export {
+        margin-left: 12px;
+      }
+      
+      button.close {
       }
     </style>
   </head>
@@ -54,13 +54,14 @@
       </p>
     <div>
     <div>
-      <button class="action" onclick="google.script.run.reexportFile()">Export</button>
+      <a href="data:{9e027f4e-99ff-4378-9c83-447e983eac2d};charset=utf-8,{bfb95863-4406-42cf-921e-df4aa4eb9ea4}" download="{0808e0a8-de63-4422-8148-3e52c3e28179}"><button class="action">Download</button></a>
+      <button class="export" onclick="google.script.run.reexportFile()">Export</button>
       <button class="close" onclick="google.script.host.close()">Close</button>
     </div>
     <script type="application/javascript">
       function copyContent()
       {
-        var copyText = document.getElementById("clipboard");
+        let copyText = document.getElementById("clipboard");
 
         copyText.select();
         copyText.setSelectionRange(0, 99999); /*For mobile devices*/

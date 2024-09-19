@@ -1,17 +1,64 @@
 <script>
   //Consts
-  const EXP_SHEET_CUSTOM = "custom";
-  const EXP_SHEET_SINGLE = "currentSheet";
-  const EXP_TYPE_XML = "xmlFormat";
+  const ExportSheetTypes = {
+    All: "allSheets",
+    CurrentOnly: "currentSheet",
+    Custom: "custom"
+  };
+  const ExportFormats = {
+    JSON: "jsonFormat",
+    XML: "xmlFormat"
+  };
+  /**
+   * MIME types for exported data files and picker operations.
+   * @enum {string}
+   **/
+  const MimeTypes = {
+    Folder: "application/vnd.google-apps.folder",
+    JSON: "application/json",
+    XML: "application/xml",
+    Text: "text/plain"
+  };
   //General
   const IGNORE_COLUMN_DEFAULT = "NOEX_";
   const UNWRAP_SHEETS_DEFAULT = "US_";
-  const COLLAPSE_SHEET_DEFAULT = "CS_";
+  const COLLAPSE_SHEETS_DEFAULT = "CS_";
+  const EXPORT_FOLDER_LOCATIONS = {
+    MyDrive: "MyDrive",
+    Custom: "Custom"
+  };
+  const REPLACE_FILE_OPTIONS = {
+    Enabled: "Enabled",
+    Disabled: "Disabled"
+  };
+  const SELECT_FILE_KEYS = {
+    File: "file",
+    Valid: "valid"
+  };
   //XML
   const XML_ROOT_DEFAULT = "data";
   const XML_ATT_DEFAULT = "ATT_";
   const XML_CE_DEFAULT = "CE_";
   const XML_IT_DEFAULT = "IT_";
+  const XML_DECLARATION_ENCODINGS = [
+    "None",
+    "UTF-8",
+    "UTF-16",
+    "ISO-10646-UCS-2",
+    "ISO-10646-UCS-4",
+    "ISO-8859-1",
+    "ISO-8859-2",
+    "ISO-8859-3",
+    "ISO-8859-4",
+    "ISO-8859-5",
+    "ISO-8859-6",
+    "ISO-8859-7",
+    "ISO-8859-8",
+    "ISO-8859-9",
+    "ISO-2022-JP",
+    "Shift_JIS",
+    "EUC-JP"
+  ];
   //Namespaces
   const XML_NAMESPACE_PLACEHOLDER = "No XML namespaces set. Click the [+] button to add a namespace.";
   //JSON
@@ -19,175 +66,219 @@
   const JSON_JA_DEFAULT = "JA_";
   //Nesting Elements
   const NEST_NA_DEFAULT = "NA_";
+
   //Keys
   const Keys = {
-    Export : {
-      Format : "exportType",
-      Folder : "exportFolder",
-      FolderType : "exportFolderType",
-      Sheets : "exportSheets",
-      TargetSheets : "targetSheets"
+    Content: {
+      Format: "exportType",
+      //Folder: "exportFolder", //TODO: Archive...
+      //FolderType: "exportFolderType", //TODO: Archive...
+      Visualize: "visualize",
+      SingleSheet: "singleSheet",
+      Sheets: "exportSheets",
+      TargetSheets: "targetSheets"
     },
-    General : {
-      ReplaceFiles : "replaceExistingFiles",
-      UnwrapSingle : "unwrapSingleRows",
-      CollapseSingle : "collapseSingleRows",
-      IgnoreEmpty : "ignoreEmptyCells",
-      Advanced : {
-        NestedElements : "nestedElements",
-        Minify : "minifyData",
-        IncludeFirstColumn : "includeFirstColumn",
-        IgnoreWithPrefix : "ignoreColumnsWithPrefix",
-        IgnorePrefix : "ignorePrefix",
-        UnwrapWithPrefix : "unwrapSheetsWithPrefix",
-        UnwrapPrefix : "unwrapPrefix",
-        CollapseWithPrefix : "collapseSheetsWithPrefix",
-        CollapsePrefix : "collapsePrefix"
+    Export: {
+      Folder: "exportFolderId",
+      FolderType: "exportFolderType",
+      JSON: {
+        ReplaceFile: "replaceFileId",
+        ReplaceFileType: "replaceFileType"
+      },
+      XML: {
+        ReplaceFile: "replaceFileId",
+        ReplaceFileType: "replaceFileType"
       }
     },
-    JSON : {
-      CellArray : "exportCellArray",
-      SheetArray : "exportSheetArray",
-      ValueArray : "exportValueArray",
-      ForceString : "forceString",
-      Advanced : {
-        ContentsAsArray : "exportContentsAsArray",
-        CellObject : "exportCellObject",
-        EmptyValueFormat : "emptyValueFormat",
-        NullValueFormat : "nullValueFormat",
-        SeparatorChar : "separatorChar",
-        ForceArray : "forceArray",
-        ForceArrayPrefix : "forceArrayPrefix",
-        ForceNestedArray : "forceArrayNest",
-        ForceNestedArrayPrefix : "forceArrayNestPrefix"
+    General: {
+      Minify: "minifyData",
+      BoolsAsInts: "exportBoolsAsInts",
+      IgnoreEmpty: "ignoreEmptyCells",
+      IncludeFirstColumn: "includeFirstColumn",
+      Advanced: {
+        UnwrapSingle: "unwrapSingleRows",
+        CollapseSingle: "collapseSingleRows",
+        NestedElements: "nestedElements",
+        IgnoreWithPrefix: "ignoreColumnsWithPrefix",
+        IgnorePrefix: "ignorePrefix",
+        UnwrapWithPrefix: "unwrapSheetsWithPrefix",
+        UnwrapPrefix: "unwrapPrefix",
+        CollapseWithPrefix: "collapseSheetsWithPrefix",
+        CollapsePrefix: "collapsePrefix"
       }
     },
-    XML : {
-      ChildElements : "exportChildElements",
-      BoolsAsInts : "exportBoolsAsInts",
-      RootElement : "rootElement",
-      Advanced : {
-        NameReplacementChar : "nameReplacementChar",
-        IncludeDeclaration : "includeDeclaration",
-        DeclarationVersion : "declarationVersion",
-        DeclarationEncoding : "declarationEncoding",
-        DeclarationStandalone : "declarationStandalone",
-        ForceAttributes : "forceAttributes",
-        ForceAttributesPrefix : "attributePrefix",
-        FroceChildElements : "forceChildElements",
-        ForceChildElementsPrefix : "childElementsPrefix",
-        FroceInnerText : "forceInnerText",
-        ForceInnerTextPrefix : "innerTextPrefix",
-        RootNamespace : "rootNamespace",
-        Namespaces : "namespaces"
+    JSON: {
+      CellArray: "exportCellArray",
+      SheetArray: "exportSheetArray",
+      ValueArray: "exportValueArray",
+      ForceString: "forceString",
+      Advanced: {
+        ContentsAsArray: "exportContentsAsArray",
+        CellObject: "exportCellObject",
+        EmptyValueFormat: "emptyValueFormat",
+        NullValueFormat: "nullValueFormat",
+        SeparatorChar: "separatorChar",
+        ForceArray: "forceArray",
+        ForceArrayPrefix: "forceArrayPrefix",
+        ForceNestedArray: "forceArrayNest",
+        ForceNestedArrayPrefix: "forceArrayNestPrefix"
       }
+    },
+    XML: {
+      ChildElements: "exportChildElements",
+      RootElement: "rootElement",
+      Advanced: {
+        NameReplacementChar: "nameReplacementChar",
+        IncludeDeclaration: "includeDeclaration",
+        DeclarationVersion: "declarationVersion",
+        DeclarationEncoding: "declarationEncoding",
+        DeclarationStandalone: "declarationStandalone",
+        ForceAttributes: "forceAttributes",
+        ForceAttributesPrefix: "attributePrefix",
+        ForceChildElements: "forceChildElements",
+        ForceChildElementsPrefix: "childElementPrefix",
+        ForceInnerText: "forceInnerText",
+        ForceInnerTextPrefix: "innerTextPrefix",
+        RootNamespace: "rootNamespace",
+        Namespaces: "namespaces"
+      }
+    },
+    Objects: {
+      Export: "export",
+      JSON: "json",
+      XML: "xml",
+      Advanced: "advanced"
     }
   };
   
   //Visualization
-  var visualizeData = false;
+  let visualizeData = false;
   
   //Format options
   //The format to export data as
-  var exportType = "jsonFormat";
+  let exportFormatType = ExportFormats.JSON;
   //Determines what sheets to export data from
-  var exportSheets = "allSheets";
+  let exportSheetsType = "allSheets";
   //Specific sheets to export data from
-  var targetSheets = {};
-  var sheets = [];
+  /*
+  {
+    "0": true
+  }
+  */
+  let targetSheets = {};
+  //Array of sheets in the current spreadsheet
+  /*
+  [
+    {
+      name: "sheetName",
+      id: 0,
+      toggleName: "sheetName",
+      toggleId: "0"
+    }
+  ]
+  */
+  let currentSheets = [];
   //Determines the export location
-  var exportFolderType = "default";
+  let exportFolderType = EXPORT_FOLDER_LOCATIONS.MyDrive;
   //The folder to export files to
-  var exportFolder = "";
+  let exportFolderId = "";
   
   //General Options
-  //Replaces any export files that have the same name
-  var replaceExistingFiles = false;
-  //Don't wrap the contents of a sheet in a JSON object / XML element if the sheet only has one row
-  var unwrapSingleRows = false;
-  //Collapse the contents of a sheet in a JSON object / XML element if the sheet only has one row
-  var collapseSingleRows = false;
+  //Export data without spaces or newlines
+  let minifyData = false;
+  //Export boolean values as "1" or "0" instead of "true" or "false" respectively.
+  let exportBoolsAsInts = false;
   //Don't export cells that are empty (helps reduce file size)
-  var ignoreEmptyCells = false;
+  let ignoreEmptyCells = false;
   //Include the first column in the export in addition to using it as the name for the row element.
-  var includeFirstColumn = false;
+  let includeFirstColumn = false;
+  //Don't wrap the contents of a sheet in a JSON object / XML element if the sheet only has one row
+  let unwrapSingleRows = false;
+  //Collapse the contents of a sheet in a JSON object / XML element if the sheet only has one row
+  let collapseSingleRows = false;
   
   //Advanced Options
   //Support complex nested elements by using special key formatting
-  var nestedElements = false;
-  //Export data without spaces or newlines
-  var minifyData = false;
+  let nestedElements = false;
   //Don't export columns with the ignore prefix
-  var ignoreColumnsWithPrefix = false;
-  var ignoreColumnsPrefix = "NOEX_";
+  let ignoreColumnsWithPrefix = false;
+  let ignoreColumnsPrefix = "NOEX_";
   //Unwrap sheets with this prefix
-  var unwrapSheetsWithPrefix = false;
-  var unwrapSheetsPrefix = "US_";
+  let unwrapSheetsWithPrefix = false;
+  let unwrapSheetsPrefix = "US_";
   //Collapse sheets with one row and this prefix
-  var collapseSheetsWithPrefix = false;
-  var collapseSheetsPrefix = "CS_";
+  let collapseSheetsWithPrefix = false;
+  let collapseSheetsPrefix = "CS_";
   
   //XML Options
+  //Determines file update behaviour
+  let replaceFileXmlType = REPLACE_FILE_OPTIONS.Disabled;
+  //Replace contents of file specified
+  let replaceFileXmlId = "";
+  let replaceFileXmlName = "";
   //Export values as child elements instead of attributes
-  var exportChildElementXml = false;
-  //Export boolean values as "1" or "0" instead of "true" or "false" respectively.
-  var exportBoolsAsIntsXml = false;
+  let exportChildElementXml = false;
   //Root element of the XML document
-  var rootElementXml = "data";
+  let rootElementXml = "data";
   
   //XML Advanced Options
   //XML element name invalid char replacement
-  var nameReplacementCharXml = "_";
+  let nameReplacementCharXml = "_";
   //XML declaration inclusion
-  var includeDeclarationXml = false;
+  let includeDeclarationXml = false;
   //XML declaration version
-  var declarationVersionXml = "1.0";
+  let declarationVersionXml = "1.0";
   //XML declaration encoding
-  var declarationEncodingXml = "none";
+  let declarationEncodingXml = "none";
   //XML declaration standalone
-  var declarationStandaloneXml = "none";
+  let declarationStandaloneXml = "none";
   //Columns using keys starting with a specified string will always be exported as attributes
-  var forceAttributesXml = false;
-  var forceAttributesPrefixXml = "ATT_";
+  let forceAttributesXml = false;
+  let forceAttributesPrefixXml = "ATT_";
   //Columns using keys starting with a specified string will always be exported as child elements
-  var forceChildElementsXml = false;
-  var forceChildElementsPrefixXml = "CE_";
+  let forceChildElementsXml = false;
+  let forceChildElementsPrefixXml = "CE_";
   //Columns using keys starting with a specified string will always be exported as inner text
-  var forceInnerTextXml = false;
-  var forceInnerTextPrefixXml = "IT_";
+  let forceInnerTextXml = false;
+  let forceInnerTextPrefixXml = "IT_";
   //Namespaces
-  var rootNamespace = "";
-  var namespaces = []; //Array of JSON objects with prefix and uri fields.
+  let rootNamespace = "";
+  let namespaces = []; //Array of JSON objects with prefix and uri fields.
   
   //JSON Options
+  //Determines file update behaviour
+  let replaceFileJsonType = REPLACE_FILE_OPTIONS.Disabled;
+  //Replace contents of file specified
+  let replaceFileJsonId = "";
+  let replaceFileJsonName = "";
   //Export cell contents as a JSON array if the cell contains commas
-  var exportCellArrayJson = false;
+  let exportCellArrayJson = false;
   //Export a sheet's contents as an array, with each row being one JSON object element in the array
-  var exportSheetArrayJson = false;
+  let exportSheetArrayJson = false;
   //Export a sheet's contents as an array of values if the sheet contains only one column
-  var exportValueArrayJson = false;
+  let exportValueArrayJson = false;
   //Force every value to be a string instead of the default bool/int/float/etc.
-  var forceStringJson = false;
+  let forceStringJson = false;
   
   //JSON Advanced Options
   //Export the spreadsheet's contents as a JSON array, instead of a regular JSON object
-  var exportContentsAsArrayJson = false;
+  let exportContentsAsArrayJson = false;
   //Export cell contents as a JSON object if the cell is wrapped with {}
-  var exportCellObjectJson = false;
+  let exportCellObjectJson = false;
   //Export sheets as 2D JSON arrays
-  var export2dArrayJson = false;
+  let export2dArrayJson = false;
   //Value to export empty cells as, null (null) or empty string ("")
-  var emptyValueFormatJson = "null";
+  let emptyValueFormatJson = "null";
   //Value to export null strings as, null (null) or string ("null")
-  var nullValueFormatJson = "null";
+  let nullValueFormatJson = "null";
   //Separator char for JSON arrays
-  var arraySeparatorCharJson = ",";
+  let arraySeparatorCharJson = ",";
   //Sheets or columns using keys starting with a specified string will always be exported as JSON arrays
-  var forceArrayJson = false;
-  var forceArrayPrefixJson = "JA_";
+  let forceArrayJson = false;
+  let forceArrayPrefixJson = "JA_";
   //Sheets using the specified prefix will always be exported as nested arrays
-  var forceArrayNest = false;
-  var forceArrayPrefixNest = "NAR_";
+  let forceArrayNest = false;
+  let forceArrayPrefixNest = "NAR_";
   
   /**
    * Get the properties for the sheet to automatically set values based on the user's last export for this document.
@@ -239,17 +330,140 @@
    **/
   function updateProperties(properties)
   {
-    var settings = {};
+    let settings = {};
     
     if(properties != null && properties !== "")
     {
-      settings = JSON.parse(properties);
+      try
+      {
+        settings = JSON.parse(properties);
+      }
+      catch(e)
+      {
+        settings = {};
+
+        google.script.run.openErrorModal("Settings Error", 
+          "There was an error retrieving user settings, so default settings have been loaded. This is most often due to multiple accounts being signed in or malformed settings.", 
+          e.stack);
+      }
     }
     
+    //Content
+    tryValidateValue(settings, Keys.Content.Format, (newValue) => exportFormatType = newValue);
+    tryValidateValue(settings, Keys.Content.Sheets, (newValue) => {
+      if(newValue !== "") exportSheetsType = newValue;
+    });
+    tryValidateValue(settings, Keys.Content.TargetSheets, (newValue) => { 
+      if(newValue != null)
+      {
+        try
+        {
+          let sheetIds = newValue;//JSON.parse(newValue);
+          targetSheets = {};
+
+          for(let i=0; i < sheetIds.length; i++)
+          {
+            targetSheets[sheetIds[i].toString()] = true;
+          }
+        }
+        catch(e)
+        {
+          targetSheets = {};
+        }
+      }
+    });
+    //if(settings.hasOwnProperty(Keys.Content.Format)) exportFormatType = settings[Keys.Content.Format];
+    //if(settings.hasOwnProperty(Keys.Content.Sheets)) exportSheets = settings[Keys.Content.Sheets] === "" ? exportSheets : settings[Keys.Content.Sheets];
+    //if(settings.hasOwnProperty(Keys.Content.TargetSheets)) targetSheets = settings[Keys.Content.TargetSheets] === "" ? targetSheets : JSON.parse(settings[Keys.Content.TargetSheets]);
+    
+    //General
+    //replaceExistingFiles = settings.hasOwnProperty(Keys.General.ReplaceFiles) ? settings[Keys.General.ReplaceFiles] === true : false;
+    //if(settings.hasOwnProperty(Keys.General.UnwrapSingle)) unwrapSingleRows = settings[Keys.General.UnwrapSingle] === true;
+    //if(settings.hasOwnProperty(Keys.General.CollapseSingle)) collapseSingleRows = settings[Keys.General.CollapseSingle] === true;
+    //if(settings.hasOwnProperty(Keys.General.IgnoreEmpty)) ignoreEmptyCells = settings[Keys.General.IgnoreEmpty] === true;
+
+    tryValidateValue(settings, Keys.General.Minify, (newValue) => minifyData = newValue === true);
+    tryValidateValue(settings, Keys.General.BoolsAsInts, (newValue) => exportBoolsAsInts = newValue === true);
+    tryValidateValue(settings, Keys.General.IgnoreEmpty, (newValue) => ignoreEmptyCells = newValue === true);
+    tryValidateValue(settings, Keys.General.IncludeFirstColumn, (newValue) => includeFirstColumn = newValue === true);
+
+    //Advanced
+    tryValidateValue(settings, Keys.General.Advanced.NestedElements, (newValue) => nestedElements = newValue === true);
+    tryValidateValue(settings, Keys.General.Advanced.UnwrapSingle, (newValue) => unwrapSingleRows = newValue === true);
+    tryValidateValue(settings, Keys.General.Advanced.CollapseSingle, (newValue) => collapseSingleRows = newValue === true);
+    tryValidateValue(settings, Keys.General.Advanced.IgnoreWithPrefix, (newValue) => ignoreColumnsWithPrefix = newValue === true);
+    tryValidateValue(settings, Keys.General.Advanced.IgnorePrefix, (newValue) => ignoreColumnsPrefix = newValue === "" ? IGNORE_COLUMN_DEFAULT : newValue);
+    tryValidateValue(settings, Keys.General.Advanced.UnwrapWithPrefix, (newValue) => unwrapSheetsWithPrefix = newValue === true);
+    tryValidateValue(settings, Keys.General.Advanced.UnwrapPrefix, (newValue) => unwrapSheetsPrefix = newValue === "" ? UNWRAP_SHEETS_DEFAULT : newValue);
+    tryValidateValue(settings, Keys.General.Advanced.CollapseWithPrefix, (newValue) => collapseSheetsWithPrefix = newValue === true);
+    tryValidateValue(settings, Keys.General.Advanced.CollapsePrefix, (newValue) => collapseSheetsPrefix = newValue === "" ? COLLAPSE_SHEETS_DEFAULT : newValue);
+    
+    //JSON
+    let jsonSettings = settings.hasOwnProperty(Keys.Objects.JSON) ? settings[Keys.Objects.JSON] : settings;
+
+    tryValidateValue(jsonSettings, Keys.JSON.CellArray, (newValue) => exportCellArrayJson = newValue === true);
+    tryValidateValue(jsonSettings, Keys.JSON.SheetArray, (newValue) => exportSheetArrayJson = newValue === true);
+    tryValidateValue(jsonSettings, Keys.JSON.ValueArray, (newValue) => exportValueArrayJson = newValue === true);
+    tryValidateValue(jsonSettings, Keys.JSON.ForceString, (newValue) => forceStringJson = newValue === true);
+
+    //Advanced JSON
+    let jsonAdvancedSettings = jsonSettings.hasOwnProperty(Keys.Objects.Advanced) ? jsonSettings[Keys.Objects.Advanced] : jsonSettings;
+
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ContentsAsArray, (newValue) => exportContentsAsArrayJson = newValue === true);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.CellObject, (newValue) => exportCellObjectJson = newValue === true);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.EmptyValueFormat, (newValue) => emptyValueFormatJson = newValue === "" ? emptyValueFormatJson : newValue);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.NullValueFormat, (newValue) => nullValueFormatJson = newValue === "" ? nullValueFormatJson : newValue);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.SeparatorChar, (newValue) => arraySeparatorCharJson = newValue === "" ? JSON_SEPARATOR_DEFAULT : newValue);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceArray, (newValue) => forceArrayJson = newValue === true);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceArrayPrefix, (newValue) => forceArrayPrefixJson = newValue === "" ? JSON_JA_DEFAULT : newValue);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceNestedArray, (newValue) => forceArrayNest = newValue === true);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceNestedArrayPrefix, (newValue) => forceArrayPrefixNest = newValue === "" ? NEST_NA_DEFAULT : newValue);
+    
+    //XML
+    let xmlSettings = settings.hasOwnProperty(Keys.Objects.XML) ? settings[Keys.Objects.XML] : settings;
+
+    tryValidateValue(xmlSettings, Keys.XML.ChildElements, (newValue) => exportChildElementXml = newValue === true);
+    tryValidateValue(xmlSettings, Keys.XML.RootElement, (newValue) => rootElementXml = newValue === "" ? rootElementXml : newValue);
+
+    //Advanced XML
+    let xmlAdvancedSettings = xmlSettings.hasOwnProperty(Keys.Objects.Advanced) ? xmlSettings[Keys.Objects.Advanced] : xmlSettings;
+
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.NameReplacementChar, (newValue) => nameReplacementCharXml = newValue === "" ? nameReplacementCharXml : newValue);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.IncludeDeclaration, (newValue) => includeDeclarationXml = newValue === true);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationVersion, (newValue) => declarationVersionXml = newValue === "" ? declarationVersionXml : newValue);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationEncoding, (newValue) => declarationEncodingXml = newValue === "" ? declarationEncodingXml : newValue);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationStandalone, (newValue) => declarationStandaloneXml = newValue === "" ? declarationStandaloneXml : newValue);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceAttributes, (newValue) => forceAttributesXml = newValue === true);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceAttributesPrefix, (newValue) => forceAttributesPrefixXml = newValue === "" ? forceAttributesPrefixXml : newValue);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceChildElements, (newValue) => forceChildElementsXml = newValue === true);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceChildElementsPrefix, (newValue) => forceChildElementsPrefixXml = newValue === "" ? forceChildElementsPrefixXml : newValue);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceInnerText, (newValue) => forceInnerTextXml = newValue === true);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceInnerTextPrefix, (newValue) => forceInnerTextPrefixXml = newValue === "" ? forceInnerTextPrefixXml : newValue);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.RootNamespace, (newValue) => rootNamespace = newValue === "" ? rootNamespace : newValue);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.Namespaces, (newValue) => namespaces = newValue);
+
+    //Export
+    let exportSettings = settings.hasOwnProperty(Keys.Objects.Export) ? settings[Keys.Objects.Export] : settings;
+
+    tryValidateValue(exportSettings, Keys.Export.Folder, (newValue) => exportFolderId = newValue);
+    tryValidateValue(exportSettings, Keys.Export.FolderType, (newValue) => exportFolderType = newValue);
+
+    //JSON
+    let exportJsonSettings = exportSettings.hasOwnProperty(Keys.Objects.JSON) ? exportSettings[Keys.Objects.JSON] : exportSettings;
+
+    tryValidateValue(exportJsonSettings, Keys.Export.JSON.ReplaceFile, (newValue) => replaceFileJsonId = newValue);
+    tryValidateValue(exportJsonSettings, Keys.Export.JSON.ReplaceFileType, (newValue) => replaceFileJsonType = newValue);
+
+    //XML
+    let exportXmlSettings = exportSettings.hasOwnProperty(Keys.Objects.XML) ? exportSettings[Keys.Objects.XML] : exportSettings;
+
+    tryValidateValue(exportXmlSettings, Keys.Export.XML.ReplaceFile, (newValue) => replaceFileXmlId = newValue);
+    tryValidateValue(exportXmlSettings, Keys.Export.XML.ReplaceFileType, (newValue) => replaceFileXmlType = newValue);
+    
     //Format
-    exportType = settings["exportType"] != null ? settings["exportType"] : exportType;
+    /*exportFormatType = settings["exportType"] != null ? settings["exportType"] : exportFormatType;
     exportFolderType = settings["exportFolderType"] != null ? settings["exportFolderType"] : exportFolderType;
-    exportFolder = settings["exportFolder"] != null ? settings["exportFolder"] : exportFolder;
+    exportFolderId = settings["exportFolder"] != null ? settings["exportFolder"] : exportFolderId;
     exportSheets = settings["exportSheets"] != null ? (settings["exportSheets"] === "" ? exportSheets : settings["exportSheets"]) : exportSheets;
     targetSheets = settings["targetSheets"] != null ? (settings["targetSheets"] === "" ? targetSheets : JSON.parse(settings["targetSheets"])) : targetSheets;
     
@@ -268,7 +482,7 @@
     unwrapSheetsWithPrefix = settings["unwrapSheetsWithPrefix"] != null ? settings["unwrapSheetsWithPrefix"] === true : false;
     unwrapSheetsPrefix = settings["unwrapPrefix"] != null ? (settings["unwrapPrefix"] === "" ? UNWRAP_SHEETS_DEFAULT : settings["unwrapPrefix"]) : UNWRAP_SHEETS_DEFAULT;
     collapseSheetsWithPrefix = settings["collapseSheetsWithPrefix"] != null ? settings["collapseSheetsWithPrefix"] === true : false;
-    collapseSheetsPrefix = settings["collapsePrefix"] != null ? (settings["collapsePrefix"] === "" ? COLLAPSE_SHEET_DEFAULT : settings["collapsePrefix"]) : COLLAPSE_SHEET_DEFAULT;
+    collapseSheetsPrefix = settings["collapsePrefix"] != null ? (settings["collapsePrefix"] === "" ? COLLAPSE_SHEETS_DEFAULT : settings["collapsePrefix"]) : COLLAPSE_SHEETS_DEFAULT;
     
     //JSON
     exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === true : exportCellArrayJson;
@@ -303,7 +517,7 @@
     forceInnerTextXml = settings["forceInnerText"] != null ? settings["forceInnerText"] === true : forceInnerTextXml;
     forceInnerTextPrefixXml = settings["innerTextPrefix"] != null ? (settings["innerTextPrefix"] === "" ? forceInnerTextPrefixXml : settings["innerTextPrefix"]) : forceInnerTextPrefixXml;
     rootNamespace = settings["rootNamespace"] != null ? (settings["rootNamespace"] === "" ? rootNamespace : settings["rootNamespace"]) : rootNamespace;
-    namespaces = settings["namespaces"] != null ? settings["namespaces"] : namespaces;
+    namespaces = settings["namespaces"] != null ? settings["namespaces"] : namespaces;*/
     
     //Enable export and visualize buttons
     document.getElementById("exportButton").disabled = false;
@@ -318,11 +532,12 @@
    **/
   function generateProperties()
   {
-    var properties = {
+    //TODO: Create nested sections for JSON/XML
+    /*let properties = {
       //Format settings
-      "exportType" : exportType,
+      "exportType" : exportFormatType,
       "exportFolderType" : exportFolderType,
-      "exportFolder" : exportFolder,
+      "exportFolder" : exportFolderId,
       "exportSheets" : exportSheets,
       "targetSheets" : JSON.stringify(targetSheets),
       //General settings
@@ -338,7 +553,7 @@
       "unwrapSheetsWithPrefix" : unwrapSheetsWithPrefix,
       "unwrapPrefix" : (unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix),
       "collapseSheetsWithPrefix" : collapseSheetsWithPrefix,
-      "collapsePrefix" : (collapseSheetsPrefix === "" ? COLLAPSE_SHEET_DEFAULT : collapseSheetsPrefix),
+      "collapsePrefix" : (collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix),
       //Nested Elements
       "nestedElements" : nestedElements,
       "forceArrayNest" : forceArrayNest,
@@ -374,7 +589,90 @@
       "innerTextPrefix" : (forceInnerTextPrefixXml === "" ? XML_IT_DEFAULT : forceInnerTextPrefixXml),
       "rootNamespace" : rootNamespace,
       "namespaces" : namespaces
-    };
+    };*/
+
+    let properties = {};
+    let exportProperties = {};
+    let exportJsonProperties = {};
+    let exportXmlProperties = {};
+    let jsonProperties = {};
+    let jsonAdvancedProperties = {};
+    let xmlProperties = {};
+    let xmlAdvancedProperties = {};
+
+    //Export
+    exportProperties[Keys.Export.Folder] = exportFolderId;
+    exportProperties[Keys.Export.FolderType] = exportFolderType;
+
+    exportJsonProperties[Keys.Export.JSON.ReplaceFile] = replaceFileJsonId;
+    exportJsonProperties[Keys.Export.JSON.ReplaceFileType] = replaceFileJsonType;
+
+    exportXmlProperties[Keys.Export.XML.ReplaceFile] = replaceFileXmlId;
+    exportXmlProperties[Keys.Export.XML.ReplaceFileType] = replaceFileXmlType;
+
+    exportProperties[Keys.Objects.JSON] = exportJsonProperties;
+    exportProperties[Keys.Objects.XML] = exportXmlProperties;
+    properties[Keys.Objects.Export] = exportProperties;
+
+    //Format
+    properties[Keys.Content.Format] = exportFormatType;
+    properties[Keys.Content.Visualize] = visualizeData;
+    //properties[Keys.Content.SingleSheet] = singleSheet;
+    properties[Keys.Content.Sheets] = exportSheetsType;
+    properties[Keys.Content.TargetSheets] = exportSheetsType === ExportSheetTypes.All ? null : getTargetSheetsArray(targetSheets);//JSON.stringify(targetSheets);
+
+    //General
+    properties[Keys.General.Minify] = minifyData;
+    properties[Keys.General.BoolsAsInts] = exportBoolsAsInts;
+    properties[Keys.General.IncludeFirstColumn] = includeFirstColumn;
+    properties[Keys.General.IgnoreEmpty] = ignoreEmptyCells;
+
+    //General Advanced
+    properties[Keys.General.Advanced.NestedElements] = nestedElements;
+    properties[Keys.General.Advanced.UnwrapSingle] = unwrapSingleRows;
+    properties[Keys.General.Advanced.CollapseSingle] = collapseSingleRows;
+    properties[Keys.General.Advanced.IgnorePrefix] = ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
+    properties[Keys.General.Advanced.UnwrapPrefix] = unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
+    properties[Keys.General.Advanced.CollapsePrefix] = collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
+
+    //JSON
+    jsonProperties[Keys.JSON.ForceString] = forceStringJson;
+    jsonProperties[Keys.JSON.CellArray] = exportCellArrayJson;
+    jsonProperties[Keys.JSON.SheetArray] = exportSheetArrayJson;
+    jsonProperties[Keys.JSON.ValueArray] = exportValueArrayJson;
+
+    //JSON Advanced
+    jsonAdvancedProperties[Keys.JSON.Advanced.ContentsAsArray] = exportContentsAsArrayJson;
+    jsonAdvancedProperties[Keys.JSON.Advanced.CellObject] = exportCellObjectJson;
+    jsonAdvancedProperties[Keys.JSON.Advanced.EmptyValueFormat] = emptyValueFormatJson;
+    jsonAdvancedProperties[Keys.JSON.Advanced.NullValueFormat] = nullValueFormatJson;
+    jsonAdvancedProperties[Keys.JSON.Advanced.SeparatorChar] = getSeparatorCharJson();
+    jsonAdvancedProperties[Keys.JSON.Advanced.ForceArray] = forceArrayJson;
+    jsonAdvancedProperties[Keys.JSON.Advanced.ForceArrayPrefix] = forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson;
+    jsonAdvancedProperties[Keys.JSON.Advanced.ForceNestedArray] = forceArrayNest;
+    jsonAdvancedProperties[Keys.JSON.Advanced.ForceNestedArrayPrefix] = forceArrayPrefixNest === "" ? NEST_NA_DEFAULT : forceArrayPrefixNest;
+
+    //XML
+    xmlProperties[Keys.XML.ChildElements] = exportChildElementXml;
+    xmlProperties[Keys.XML.RootElement] = getRootElement();
+
+    //XML Advanced
+    xmlAdvancedProperties[Keys.XML.Advanced.NameReplacementChar] = nameReplacementCharXml;
+    xmlAdvancedProperties[Keys.XML.Advanced.IncludeDeclaration] = includeDeclarationXml;
+    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationVersion] = getDeclarationVersion();
+    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationEncoding] = getDeclarationEncoding();
+    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationStandalone] = getDeclarationStandalone();
+    xmlAdvancedProperties[Keys.XML.Advanced.ForceAttributesPrefix] = getAttributePrefix();
+    xmlAdvancedProperties[Keys.XML.Advanced.ForceChildElementsPrefix] = getChildElementPrefix();
+    xmlAdvancedProperties[Keys.XML.Advanced.ForceInnerTextPrefix] = getInnerTextPrefix();
+    xmlAdvancedProperties[Keys.XML.Advanced.RootNamespace] = rootNamespace;
+    xmlAdvancedProperties[Keys.XML.Advanced.Namespaces] = namespaces;
+
+    jsonProperties[Keys.Objects.Advanced] = jsonAdvancedProperties;
+    properties[Keys.Objects.JSON] = jsonProperties;
+
+    xmlProperties[Keys.Objects.Advanced] = xmlAdvancedProperties;
+    properties[Keys.Objects.XML] = xmlProperties;
     
     return JSON.stringify(properties);
   }
@@ -383,13 +681,14 @@
    * Creates a JSON blob representing the current XML settings
    * @return {string}
    **/
-  function generateXmlSettings(singleSheet, exportSheets)
+  function generateXmlSettings(singleSheet, sheetsToExport)
   {
-    var settings = {
+    //TODO: Create nested sections for JSON/XML
+    /*let settings = {
       //Format
-      "exportType" : exportType,
+      "exportType" : exportFormatType,
       "exportFolderType" : exportFolderType,
-      "exportFolder" : exportFolder,
+      "exportFolder" : exportFolderId,
       "visualize" : visualizeData,
       "singleSheet" : singleSheet,
       //General
@@ -419,7 +718,63 @@
       "innerTextPrefix" : getInnerTextPrefix(),
       "rootNamespace" : rootNamespace,
       "namespaces" : namespaces
-    };
+    };*/
+
+    let settings = {};
+    let exportSettings = {};
+    let exportXmlSettings = {};
+    let xmlSettings = {};
+    let advancedXmlSettings = {};
+
+    //Export
+    exportSettings[Keys.Export.Folder] = exportFolderId;
+    exportSettings[Keys.Export.FolderType] = exportFolderType;
+
+    exportXmlSettings[Keys.Export.XML.ReplaceFile] = replaceFileXmlId;
+    exportXmlSettings[Keys.Export.XML.ReplaceFileType] = replaceFileXmlType;
+
+    exportSettings[Keys.Objects.XML] = exportXmlSettings;
+    settings[Keys.Objects.Export] = exportSettings;
+
+    //Format
+    settings[Keys.Content.Format] = exportFormatType;
+    settings[Keys.Content.Visualize] = visualizeData;
+    settings[Keys.Content.SingleSheet] = singleSheet;
+    settings[Keys.Content.Sheets] = exportSheetsType;
+    settings[Keys.Content.TargetSheets] = exportSheetsType === ExportSheetTypes.All ? null : getTargetSheetsArray(sheetsToExport);
+
+    //General
+    settings[Keys.General.Minify] = minifyData;
+    settings[Keys.General.BoolsAsInts] = exportBoolsAsInts;
+    settings[Keys.General.IgnoreEmpty] = ignoreEmptyCells;
+    settings[Keys.General.IncludeFirstColumn] = includeFirstColumn;
+
+    //General Advanced
+    settings[Keys.General.Advanced.NestedElements] = nestedElements;
+    settings[Keys.General.Advanced.UnwrapSingle] = unwrapSingleRows;
+    settings[Keys.General.Advanced.CollapseSingle] = collapseSingleRows;
+    settings[Keys.General.Advanced.IgnorePrefix] = getIgnorePrefix();
+    settings[Keys.General.Advanced.UnwrapPrefix] = getUnwrapPrefix();
+    settings[Keys.General.Advanced.CollapsePrefix] = getCollapsePrefix();
+
+    //XML
+    xmlSettings[Keys.XML.ChildElements] = exportChildElementXml;
+    xmlSettings[Keys.XML.RootElement] = getRootElement();
+
+    //XML Advanced
+    advancedXmlSettings[Keys.XML.Advanced.NameReplacementChar] = nameReplacementCharXml;
+    advancedXmlSettings[Keys.XML.Advanced.IncludeDeclaration] = includeDeclarationXml;
+    advancedXmlSettings[Keys.XML.Advanced.DeclarationVersion] = getDeclarationVersion();
+    advancedXmlSettings[Keys.XML.Advanced.DeclarationEncoding] = getDeclarationEncoding();
+    advancedXmlSettings[Keys.XML.Advanced.DeclarationStandalone] = getDeclarationStandalone();
+    advancedXmlSettings[Keys.XML.Advanced.ForceAttributesPrefix] = getAttributePrefix();
+    advancedXmlSettings[Keys.XML.Advanced.ForceChildElementsPrefix] = getChildElementPrefix();
+    advancedXmlSettings[Keys.XML.Advanced.ForceInnerTextPrefix] = getInnerTextPrefix();
+    advancedXmlSettings[Keys.XML.Advanced.RootNamespace] = rootNamespace;
+    advancedXmlSettings[Keys.XML.Advanced.Namespaces] = namespaces;
+
+    xmlSettings[Keys.Objects.Advanced] = advancedXmlSettings;
+    settings[Keys.Objects.XML] = xmlSettings;
     
     return JSON.stringify(settings);
   }
@@ -428,13 +783,14 @@
    * Creates a JSON blob representing the current JSON settings
    * @return {string}
    **/
-  function generateJsonSettings(singleSheet, exportSheets)
+  function generateJsonSettings(singleSheet, sheetsToExport)
   {
-    var settings = {
+    //TODO: Create nested sections for JSON/XML
+    /*let settings = {
       //Format
-      "exportType" : exportType,
+      "exportType" : exportFormatType,
       "exportFolderType" : exportFolderType,
-      "exportFolder" : exportFolder,
+      "exportFolder" : exportFolderId,
       "visualize" : visualizeData,
       "singleSheet" : singleSheet,
       //General
@@ -462,9 +818,82 @@
       "separatorChar" : getSeparatorCharJson(),
       "forceArrayPrefix" : getForceArrayPrefixJson(),
       "forceArrayPrefixNest" : getForceArrayPrefixNest()
-    };
+    };*/
+
+    let settings = {};
+    let exportSettings = {};
+    let exportJsonSettings = {};
+    let jsonSettings = {};
+    let jsonAdvancedSettings = {};
+
+    //Export
+    exportSettings[Keys.Export.Folder] = exportFolderId;
+    exportSettings[Keys.Export.FolderType] = exportFolderType;
+
+    exportJsonSettings[Keys.Export.JSON.ReplaceFile] = replaceFileJsonId;
+    exportJsonSettings[Keys.Export.JSON.ReplaceFileType] = replaceFileJsonType;
+
+    exportSettings[Keys.Objects.JSON] = exportJsonSettings;
+    settings[Keys.Objects.Export] = exportSettings;
+
+    //Format
+    settings[Keys.Content.Format] = exportFormatType;
+    settings[Keys.Content.Visualize] = visualizeData;
+    settings[Keys.Content.SingleSheet] = singleSheet;
+    settings[Keys.Content.Sheets] = exportSheetsType;
+    settings[Keys.Content.TargetSheets] = exportSheetsType === ExportSheetTypes.All ? null : getTargetSheetsArray(sheetsToExport);
+
+    //General
+    settings[Keys.General.Minify] = minifyData;
+    settings[Keys.General.BoolsAsInts] = exportBoolsAsInts;
+    settings[Keys.General.IgnoreEmpty] = ignoreEmptyCells;
+    settings[Keys.General.IncludeFirstColumn] = includeFirstColumn;
+
+    //General Advanced
+    settings[Keys.General.Advanced.NestedElements] = nestedElements;
+    settings[Keys.General.Advanced.UnwrapSingle] = unwrapSingleRows;
+    settings[Keys.General.Advanced.CollapseSingle] = collapseSingleRows;
+    settings[Keys.General.Advanced.IgnorePrefix] = getIgnorePrefix();
+    settings[Keys.General.Advanced.UnwrapPrefix] = getUnwrapPrefix();
+    settings[Keys.General.Advanced.CollapsePrefix] = getCollapsePrefix();
+
+    //JSON
+    jsonSettings[Keys.JSON.ForceString] = forceStringJson;
+    jsonSettings[Keys.JSON.CellArray] = exportCellArrayJson;
+    jsonSettings[Keys.JSON.SheetArray] = exportSheetArrayJson;
+    jsonSettings[Keys.JSON.ValueArray] = exportValueArrayJson;
+
+    //JSON Advanced
+    jsonAdvancedSettings[Keys.JSON.Advanced.ContentsAsArray] = exportContentsAsArrayJson;
+    jsonAdvancedSettings[Keys.JSON.Advanced.CellObject] = exportCellObjectJson;
+    jsonAdvancedSettings[Keys.JSON.Advanced.EmptyValueFormat] = emptyValueFormatJson;
+    jsonAdvancedSettings[Keys.JSON.Advanced.NullValueFormat] = nullValueFormatJson;
+    jsonAdvancedSettings[Keys.JSON.Advanced.SeparatorChar] = getSeparatorCharJson();
+    //jsonAdvancedSettings[Keys.JSON.Advanced.ForceArray] = forceArrayJson;
+    jsonAdvancedSettings[Keys.JSON.Advanced.ForceArrayPrefix] = getForceArrayPrefixJson();
+    //jsonAdvancedSettings[Keys.JSON.Advanced.ForceNestedArray] = forceArrayNest;
+    jsonAdvancedSettings[Keys.JSON.Advanced.ForceNestedArrayPrefix] = getForceArrayPrefixNest();
+
+    jsonSettings[Keys.Objects.Advanced] = jsonAdvancedSettings;
+    settings[Keys.Objects.JSON] = jsonSettings;
     
     return JSON.stringify(settings);
+  }
+
+  /**
+   * Check if the given object contains the specified key, and invoke a callback passing the target value if so.
+   * @param {object} obj Object to check properties on.
+   * @param {string} key Key to check for.
+   * @param {function} callback Callback invoked to pass the target property value.
+   * @return {bool} True if the object contained the given key, false otherwise.
+   **/
+  function tryValidateValue(obj, key, callback)
+  {
+    if(!obj.hasOwnProperty(key)) return false;
+
+    callback(obj[key]);
+
+    return true;
   }
   
   /**
@@ -475,23 +904,41 @@
   {
     return google.script.run.withSuccessHandler(onSuccess).getSheetNames();
   }
+
+  /**
+   * Get the names and IDs of all sheets in the current document.
+   * @param {function} onSuccess - Callback invoked if the get sheet names and ids operation is successful. This will pass an array of objects. Each object will contain the name and ID of a sheet.
+   **/
+  function getSheetNamesAndIds(onSuccess)
+  {
+    return google.script.run.withSuccessHandler(onSuccess).getSheetNamesAndIds();
+  }
   
   /**
    * Get the name of the active sheet in the current document
    * @param {function} onSuccess - Callback invoked if the get sheet name operation is successful. This will pass a string
    **/
-  function getActiveName(onSuccess)
+  function getActiveSheetName(onSuccess)
   {
     return google.script.run.withSuccessHandler(onSuccess).getActiveSheetName();
   }
+
+  /**
+   * Get the name and ID of the active sheet in the current document.
+   * @param {function} onSuccess - Callback invoked if the get sheet name and ID operation is successful. This will pass an object.
+   **/
+  function getActiveSheetNameAndId(onSuccess)
+  {
+    return google.script.run.withSuccessHandler(onSuccess).getActiveSheetNameAndId();
+  }
   
   /**
-   * Get the name of the target export folder, based on its ID
-   * @param {function} onSuccess - Callback invoked if the get folder name operation is successful. This will pass a string
+   * Get the name of the target file, based on its ID
+   * @param {function} onSuccess - Callback invoked if the get file name operation is successful. This will pass a string
    **/
-  function getExportFolderName(onSuccess)
+  function getFileName(id, onSuccess)
   {
-    return google.script.run.withSuccessHandler(onSuccess).getFolderNameFromId(exportFolder);
+    return google.script.run.withSuccessHandler(onSuccess).getFileNameFromId(id);
   }
   
   /**
@@ -500,7 +947,67 @@
    **/
   function onGetExportFolderName(name)
   {
-    document.getElementById("exportFolderName").value = name;
+    //If the name returned is empty, then there was an error obtaining the folder, so clear the cached ID value since it can't be used.
+    if(name === "") exportFolderId = "";
+
+    refreshFileInputValues(exportFolderId, name, "exportFolderName", "openExportFolderButton");
+  }
+  
+  /**
+   * Sets the value of the replace XML file name text input to the returned file name
+   * @param {string} name - Name for the target file
+   **/
+  function onGetReplaceFileXmlName(name)
+  {
+    //If the name returned is empty, then there was an error obtaining the file, so clear the cached ID value since it can't be used.
+    if(name === "") replaceFileXmlId = "";
+
+    refreshFileInputValues(replaceFileXmlId, name, "replaceFileXmlName", "openReplaceFileXmlButton");
+  }
+  
+  /**
+   * Sets the value of the replace JSON file name text input to the returned file name
+   * @param {string} name - Name for the target file
+   **/
+  function onGetReplaceFileJsonName(name)
+  {
+    //If the name returned is empty, then there was an error obtaining the file, so clear the cached ID value since it can't be used.
+    if(name === "") replaceFileJsonId = "";
+
+    refreshFileInputValues(replaceFileJsonId, name, "replaceFileJsonName", "openReplaceFileJsonButton");
+    /*let inputElement = document.getElementById("replaceFileJsonName");
+
+    if(inputElement != null) inputElement.value = name;
+
+    let openFileButton = document.getElementById("openReplaceFileJsonButton");
+
+    if(openFileButton != null)
+    {
+      openFileButton.disabled = replaceFileJsonId === "";
+    }*/
+  }
+
+  /**
+   * Refresh file reference field values and states.
+   * @param {string} fileId ID for the target file.
+   * @param {string} fileName Name for the target file.
+   * @param {string} inputFieldId ID for the input field displaying the file's name.
+   * @param {string} buttonId ID for the button clicked to open the target file.
+   **/
+  function refreshFileInputValues(fileId, fileName, inputFieldId, buttonId)
+  {
+    tryGetElementById(inputFieldId, (element) => element.value = fileName);
+    tryGetElementById(buttonId, (element) => element.disabled = fileId === "");
+    /*let inputElement = document.getElementById(inputFieldId);
+
+    if(inputElement != null) inputElement.value = fileName;
+
+    let openFileButton = document.getElementById(buttonId);
+
+    if(openFileButton != null)
+    {
+      openFileButton.disabled = fileId === "";
+    }*/
   }
   
   /**
@@ -511,7 +1018,7 @@
   {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c)
     {
-      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
   }
@@ -523,11 +1030,11 @@
    **/
   function stringToHash(string)
   {
-    var hash = 0;
+    let hash = 0;
     
-    if (string.length == 0) return hash;
+    if(string.length == 0) return hash;
     
-    for (let i = 0; i < string.length; i++)
+    for(let i = 0; i < string.length; i++)
     {
       let char = string.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
@@ -566,17 +1073,23 @@
     
     return -1;
   }
-  
+
   /**
-   * Checks if all the sheets are selected for export
-   * @return {boolean}
+   * Callback invoked when a file is selected via the file picker.
+   * @param {string} fileSelectData Stringified JSON for the file selection result.
+   * @param {function} callback Callback invoked to pass selected file id and name, if the file selection was valid.
    **/
-  function checkAllTogglesTrue()
+  function tryParseFileSelect(fileSelectData, callback)
   {
-    for(var i=0; i < sheets.length; i++)
-    {
-      if(targetSheets[sheets[i]] === 'false') return false;
-    }
+    let json = JSON.parse(fileSelectData);
+
+    if(json[SELECT_FILE_KEYS.Valid] !== true) return false;
+
+    let fileJson = json[SELECT_FILE_KEYS.File];
+    let fileId = fileJson.hasOwnProperty("id") ? fileJson["id"] : "";
+    let fileName = fileJson.hasOwnProperty("name") ? fileJson["name"] : "";
+
+    callback(fileId, fileName);
 
     return true;
   }
@@ -586,24 +1099,121 @@
    **/
   function openFolderPicker()
   {
-    return google.script.run.openFolderPicker();
+    return google.script.run.withSuccessHandler(selectExportFolder).openFilePicker(MimeTypes.Folder, "Select Export Folder");
+  }
+  
+  /**
+   * Open a file explorer to select a JSON file to replace contents on.
+   **/
+  function openJsonFilePicker()
+  {
+    return google.script.run.withSuccessHandler(selectReplaceFileJson).openFilePicker(MimeTypes.JSON, "Select JSON File");
+  }
+  
+  /**
+   * Open a file explorer to select a XML file to replace contents on.
+   **/
+  function openXmlFilePicker()
+  {
+    return google.script.run.withSuccessHandler(selectReplaceFileXml).openFilePicker(MimeTypes.XML, "Select XML File");
+  }
+
+  /**
+   * Callback invoked when the user selects a custom export location via the file picker.
+   **/
+  function selectExportFolder(fileSelectData)
+  {
+    tryParseFileSelect(fileSelectData, (fileId, fileName) => {
+      exportFolderId = fileId;
+      exportFolderName = fileName;
+
+      onGetExportFolderName(exportFolderName);
+    });
+  }
+
+  /**
+   * Callback invoked when the user selects a JSON file to replace via the file picker.
+   **/
+  function selectReplaceFileJson(fileSelectData)
+  {
+    tryParseFileSelect(fileSelectData, (fileId, fileName) => {
+      replaceFileJsonId = fileId;
+      replaceFileJsonName = fileName;
+
+      onGetReplaceFileJsonName(replaceFileJsonName);
+    });
+    //TODO: Consolidate into one method since export location, JSON, and XML use mostly the same code here...
+    /*let json = JSON.parse(fileSelectData);
+
+    if(json[SELECT_FILE_KEYS.Valid] !== true) return;
+
+    let fileJson = json[SELECT_FILE_KEYS.File];
+
+    replaceFileJsonId = fileJson.hasOwnProperty("id") ? fileJson["id"] : "";
+    replaceFileJsonName = fileJson.hasOwnProperty("name") ? fileJson["name"] : "NO_NAME_FOUND";
+
+    onGetReplaceFileJsonName(replaceFileJsonName);*/
+  }
+
+  /**
+   * Callback invoked when the user selects a XML file to replace via the file picker.
+   **/
+  function selectReplaceFileXml(fileSelectData)
+  {
+    tryParseFileSelect(fileSelectData, (fileId, fileName) => {
+      replaceFileXmlId = fileId;
+      replaceFileXmlName = fileName;
+
+      onGetReplaceFileXmlName(replaceFileXmlName);
+    });
+  }
+
+  /**
+   * Open the target export folder in a new tab.
+   **/
+  function openExportFolder()
+  {
+    google.script.run.withSuccessHandler(onOpenReplaceFileSuccess).getWebViewLinkFromId(exportFolderId);
+  }
+
+  /**
+   * Open the file that will update its contents when exporting JSON.
+   **/
+  function openReplaceFileJson()
+  {
+    google.script.run.withSuccessHandler(onOpenReplaceFileSuccess).getWebViewLinkFromId(replaceFileJsonId);
+  }
+
+  /**
+   * Open the file that will update its contents when exporting XML.
+   **/
+  function openReplaceFileXml()
+  {
+    google.script.run.withSuccessHandler(onOpenReplaceFileSuccess).getWebViewLinkFromId(replaceFileXmlId);
+  }
+
+  /**
+   * Callback invoked to open a target file location.
+   **/
+  function onOpenReplaceFileSuccess(webViewLink)
+  {
+    window.open(webViewLink);
   }
   
   //General Options
-  /**
-   * Toggle the replaceExistingFiles boolean's value.
-   **/
-  function toggleReplace()
-  {
-    replaceExistingFiles = !replaceExistingFiles;
-  }
-  
   /**
    * Toggle the unwrapSingleRows boolean's value.
    **/
   function toggleUnwrapSingleRows()
   {
     unwrapSingleRows = !unwrapSingleRows;
+
+    if(unwrapSingleRows && collapseSingleRows)
+    {
+      collapseSingleRows = false;
+
+      document.getElementById("collapseSingleRowToggle").checked = false;
+    }
   }
   
   /**
@@ -612,6 +1222,13 @@
   function toggleCollapseSingleRows()
   {
     collapseSingleRows = !collapseSingleRows;
+
+    if(unwrapSingleRows && collapseSingleRows)
+    {
+      unwrapSingleRows = false;
+
+      document.getElementById("unwrapSingleRowToggle").checked = false;
+    }
   }
   
   /**
@@ -719,7 +1336,7 @@
   {
     if(collapseSheetsWithPrefix === false) return "";
   
-    return collapseSheetsPrefix === "" ? COLLAPSE_SHEET_DEFAULT : collapseSheetsPrefix;
+    return collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
   }
   
   /**
@@ -745,6 +1362,34 @@
   
   //XML Options
   /**
+   * Callback method that changes XML replace file target between default and custom.
+   **/
+  function changeReplaceFileTypeXml()
+  {
+    replaceFileXmlType = document.getElementById("replaceFileXml").value;
+
+    refreshFileDataFields(replaceFileXmlId, replaceFileXmlType, REPLACE_FILE_OPTIONS.Disabled, "replaceFileXmlNameSection", "replaceFileXmlName", "openReplaceFileXmlButton", "Select file...", "openXmlFilePicker()", "openReplaceFileXml()", onGetReplaceFileXmlName);
+    /*const hasTargetFile = replaceFileXmlId != null && replaceFileXmlId !== "";
+    let sectionText = "";
+
+    if(replaceFileXmlType !== REPLACE_FILE_OPTIONS.Disabled)
+    {
+      sectionText = "<input id='replaceFileXmlName' type='text' size='12' value='' placeholder='Select file...' disabled /> ";
+      sectionText += "<button onclick='openXmlFilePicker()'>Browse</button>";
+      sectionText += "<button id='openReplaceFileXmlButton' onclick='openReplaceFileXml()'";
+      
+      //if(replaceFileXmlId == null || replaceFileXmlId === "") sectionText += " disabled";
+      if(!hasTargetFile) sectionText += " disabled";
+
+      sectionText += ">Open</button>";
+    }
+    
+    document.getElementById("replaceFileXmlNameSection").innerHTML = sectionText;
+
+    if(hasTargetFile) getFileName(replaceFileXmlId, onGetReplaceFileXmlName);*/
+  }
+
+  /**
    * Toggle the exportChildElementXml boolean's value.
    **/
   function toggleElement()
@@ -753,11 +1398,11 @@
   }
   
   /**
-   * Toggle the exportBoolsAsIntsXml boolean's value.
+   * Toggle the exportBoolsAsInts boolean's value.
    **/
   function toggleExportBoolsAsInts()
   {
-    exportBoolsAsIntsXml = !exportBoolsAsIntsXml;
+    exportBoolsAsInts = !exportBoolsAsInts;
   }
   
   /**
@@ -968,8 +1613,8 @@
    **/
   function addNamespaceXml()
   {
-    var newNamespace = { "prefix": "", "uri": "" };
-    var uuid = stringToHash(getUUID());
+    let newNamespace = { "prefix": "", "uri": "" };
+    let uuid = stringToHash(getUUID());
     
     while(!isNamespaceUUIDUnique(uuid))
     {
@@ -980,13 +1625,14 @@
     
     namespaces.push(newNamespace);
     
-    var newNamespaceText = getNamespaceTextXml(namespaces.length - 1, false);
-    var node = document.createElement("div");
+    let newNamespaceText = getNamespaceTextXml(namespaces.length - 1, false);
+    let node = document.createElement("div");
+
     node.innerHTML = newNamespaceText;
     
     document.getElementById("xmlNamespaceParent").appendChild(node);
     
-    var placeholder = document.getElementById("xmlNamespacePlaceholder");
+    let placeholder = document.getElementById("xmlNamespacePlaceholder");
     
     if(placeholder != null) placeholder.remove();
     
@@ -999,9 +1645,8 @@
    **/
   function updateNamespacePrefix(uuid)
   {
-    var index = getNamespaceIndex(uuid);
-    
-    var prefixElement = document.getElementById("namespacePrefix" + uuid);
+    let index = getNamespaceIndex(uuid);
+    let prefixElement = document.getElementById("namespacePrefix" + uuid);
     
     namespaces[index]["prefix"] = prefixElement.value;
     
@@ -1014,7 +1659,7 @@
    **/
   function updateNamespaceUri(uuid)
   {
-    var index = getNamespaceIndex(uuid);
+    let index = getNamespaceIndex(uuid);
     
     namespaces[index]["uri"] = document.getElementById("namespaceUri" + uuid).value;
   }
@@ -1025,7 +1670,7 @@
    **/
   function deleteNamespaceXml(uuid)
   {
-    var index = getNamespaceIndex(uuid);
+    let index = getNamespaceIndex(uuid);
     
     //Delete the namespace's DOM object
     document.getElementById("namespace" + uuid).remove();
@@ -1034,8 +1679,8 @@
     
     if(namespaces.length === 0)
     {
-      var namespaceParent = document.getElementById("xmlNamespaceParent");
-      var node = document.createElement("p");
+      let namespaceParent = document.getElementById("xmlNamespaceParent");
+      let node = document.createElement("p");
       
       node.id = "xmlNamespacePlaceholder";
       node.classList.add("namespacePlaceholder");
@@ -1053,7 +1698,7 @@
   function getNamespaceTextXml(index, hidden)
   {
     //TODO: Apply tinting to empty fields...
-    var newNamespaceText = "<div class='xmlNamespace' id='namespace" + namespaces[index]["uuid"] + "'>";
+    let newNamespaceText = "<div class='xmlNamespace' id='namespace" + namespaces[index]["uuid"] + "'>";
     
     newNamespaceText += "<div class='accordion xmlHeader" + (hidden ? "" : " active") + "' id='namespaceAccordion" + namespaces[index]["uuid"] + "'>xmlns:" + namespaces[index]["prefix"] + "</div><div class='accordionPanel" + (hidden ? " hidden" : "") + "'><div class='paddedPanel'>";
     newNamespaceText += "<div class='option'>Prefix</div><div class='listButtonParent'><button class='listButton' onclick='deleteNamespaceXml(" + namespaces[index]["uuid"] + ")'>-</button></div><p><input id='namespacePrefix" + namespaces[index]["uuid"] + "' type='text' value='" + namespaces[index]["prefix"] + "' onchange='updateNamespacePrefix(" + namespaces[index]["uuid"] + ")'></p>";
@@ -1069,8 +1714,8 @@
    **/
   function refreshNamespaceAccordionListeners()
   {
-    var parent = document.getElementById("xmlNamespaceParent");
-    var accordions = parent.getElementsByClassName("accordion");
+    let parent = document.getElementById("xmlNamespaceParent");
+    let accordions = parent.getElementsByClassName("accordion");
     
     for(let i=0; i < accordions.length; i++)
     {
@@ -1089,19 +1734,58 @@
   
   //JSON Options
   /**
-   * Toggle the exportContentsAsArrayJson boolean's value.
+   * Callback method that changes JSON replace file target between default and custom.
    **/
-  function toggleContentArrayJson()
+  function changeReplaceFileTypeJson()
   {
-    exportContentsAsArrayJson = !exportContentsAsArrayJson;
+    replaceFileJsonType = document.getElementById("replaceFileJson").value;
+    
+    refreshFileDataFields(replaceFileJsonId, replaceFileJsonType, REPLACE_FILE_OPTIONS.Disabled, "replaceFileJsonNameSection", "replaceFileJsonName", "openReplaceFileJsonButton", "Select file...", "openJsonFilePicker()", "openReplaceFileJson()", onGetReplaceFileJsonName);
+    //TODO: Move to a refresh method so we can invoke in refreshSideBar();
+    /*const hasTargetFile = replaceFileJsonId != null && replaceFileJsonId !== "";
+    let sectionText = "";
+
+    if(replaceFileJsonType !== REPLACE_FILE_OPTIONS.Disabled)
+    {
+      sectionText = "<input id='replaceFileJsonName' type='text' size='12' value='' placeholder='Select file...' disabled /> ";
+      sectionText += "<button onclick='openJsonFilePicker()'>Browse</button><button id='openReplaceFileJsonButton' onclick='openReplaceFileJson()'";
+      
+      if(!hasTargetFile) sectionText += " disabled";
+
+      sectionText += ">Open</button>";
+    }
+    
+    document.getElementById("replaceFileJsonNameSection").innerHTML = sectionText;
+
+    if(hasTargetFile) getFileName(replaceFileJsonId, onGetReplaceFileJsonName);*/
+  }
+  
+  function refreshFileDataFields(fileId, fileOperationType, defaultOperationType, sectionElementId, inputElementId, openButtonId, inputPlaceholder, fileSelectionCallback, openFileCallback, getFileNameCallback)
+  {
+    const hasTargetFile = fileId != null && fileId !== "";
+    let sectionText = "";
+
+    if(fileOperationType !== defaultOperationType)
+    {
+      sectionText = "<input id='" + inputElementId + "' type='text' size='12' value='' placeholder='" + inputPlaceholder + "' disabled /> ";
+      sectionText += "<button onclick='" + fileSelectionCallback + "'>Browse</button><button id='" + openButtonId + "' onclick='" + openFileCallback + "'";
+      
+      if(!hasTargetFile) sectionText += " disabled";
+
+      sectionText += ">Open</button>";
+    }
+    
+    document.getElementById(sectionElementId).innerHTML = sectionText;
+
+    if(hasTargetFile) getFileName(fileId, getFileNameCallback);
   }
   
   /**
-   * Toggle the exportCellObjectJson boolean's value.
+   * Toggle the forceStringJson boolean's value.
    **/
-  function toggleCellObjectJson()
+  function toggleForceStringJson()
   {
-    exportCellObjectJson = !exportCellObjectJson;
+    forceStringJson = !forceStringJson;
   }
   
   /**
@@ -1127,13 +1811,23 @@
   {
     exportValueArrayJson = !exportValueArrayJson;
   }
+
+  //Advanced JSON Options
+
+  /**
+   * Toggle the exportContentsAsArrayJson boolean's value.
+   **/
+  function toggleContentArrayJson()
+  {
+    exportContentsAsArrayJson = !exportContentsAsArrayJson;
+  }
   
   /**
-   * Toggle the forceStringJson boolean's value.
+   * Toggle the exportCellObjectJson boolean's value.
    **/
-  function toggleForceStringJson()
+  function toggleCellObjectJson()
   {
-    forceStringJson = !forceStringJson;
+    exportCellObjectJson = !exportCellObjectJson;
   }
   
   /**
@@ -1235,104 +1929,50 @@
   }
   
   /**
-   * Toggles value for exporting all sheets
-   **/
-  function toggleAllSheets()
-  {
-    var value = document.getElementById('allSheetsToggle').value;
-    
-    if(value === 'false') generateSheetToggles(sheets, true);
-    else generateSheetToggles(sheets, false);
-  }
-  
-  /**
-   * Updates the toggle for all sheets so that it is only checked when all sheets are set for export
-   **/
-  function updateAllSheetsToggle()
-  {
-    var value = checkAllTogglesTrue();
-    
-    if(value === true)
-    {
-      document.getElementById('allToggleContainer').innerHTML = "<input id='allSheetsToggle' type='checkbox' value='true' onChange='toggleAllSheets()' checked /> All";
-    }
-    else
-    {
-      document.getElementById('allToggleContainer').innerHTML = "<input id='allSheetsToggle' type='checkbox' value='false' onChange='toggleAllSheets()' /> All";
-    }
-  }
-  
-  /**
-   * Sets all sheets to be exported
-   **/
-  function selectAllSheets()
-  {
-    generateSheetToggles(sheets, true);
-  }
-  
-  /**
-   * Sets no sheets to be exported
-   **/
-  function selectNoneSheets()
-  {
-    generateSheetToggles(sheets, false);
-  }
-  
-  /**
-   * Toggles a sheet for export
-   * @param {string} sheetName - Name for the target sheet
-   **/
-  function toggleSheet(sheetName)
-  {
-    var value = document.getElementById(formatSheetName(sheetName) + 'Toggle').value;
-    
-    if(value === 'false') value = 'true';
-    else value = 'false';
-    
-    targetSheets[sheetName] = value;
-    
-    document.getElementById(formatSheetName(sheetName) + 'Toggle').value = value;
-    
-    updateAllSheetsToggle();
-  }
-  
-  /**
    * Rebuild the sidebar. This should be called after loading export parameters
    **/
   function refreshSideBar()
   {
     removeGeneralListeners();
     
-    var generalText = "<div class='accordion generalHeader active'><h1>Format</h1></div><div class='accordionPanel'>";
+    let generalText = "<div class='accordion generalHeader active'><h1>Format</h1></div><div class='accordionPanel'>";
     //Export Settings
     //Format
     generalText += "<div class='block form-group sectionWrapper'>";
-    generalText += "<p><div class='option'><label for='select'><b>Export Format</b></label></div><select id='formatSelect'><option value='jsonFormat'";
-    if(exportType === "jsonFormat") generalText += " selected";
-    generalText += ">JSON</option><option value='xmlFormat'";
-    if(exportType !== "jsonFormat") generalText += " selected";
+    generalText += "<p><div class='option'><label for='formatSelect'><b>Export Format</b></label><div class='tooltip note padded'>Data format to export to.</div></div><br><select id='formatSelect'><option value='" + ExportFormats.JSON + "'";
+    if(exportFormatType === ExportFormats.JSON) generalText += " selected";
+    generalText += ">JSON</option><option value='" + ExportFormats.XML + "'";
+    if(exportFormatType !== ExportFormats.JSON) generalText += " selected";
     generalText += ">XML</option></select></p>";
     //Export Folder
-    generalText += "<p><div class='option'><label for='select'><b>Export Folder</b></label></div><select id='folderSelect'><option value='default'";
-    if(exportFolderType === "default") generalText += " selected";
-    generalText += ">Default</option><option value='custom'";
-    if(exportFolderType !== "default") generalText += " selected";
+    generalText += "<p><div class='option'><label for='folderSelect'><b>Export Folder</b></label><div class='tooltip note padded'>Drive folder to export files to. If replacing a file, this is ignored.</div></div><br><select id='folderSelect'><option value='" + EXPORT_FOLDER_LOCATIONS.MyDrive + "'";
+    if(exportFolderType === EXPORT_FOLDER_LOCATIONS.MyDrive) generalText += " selected";
+    else if(exportFolderType === "default") generalText += " selected"; //Fallback for old data...
+    generalText += ">My Drive</option><option value='" + EXPORT_FOLDER_LOCATIONS.Custom + "'";
+    if(exportFolderType !== EXPORT_FOLDER_LOCATIONS.MyDrive && exportFolderType !== 'default') generalText += " selected";
     generalText += ">Custom</option></select></p>";
     //Target export folder
-    if(exportFolderType !== "default")
+    generalText += "<div id='exportFolderNameSection'>";
+
+    if(exportFolderType !== EXPORT_FOLDER_LOCATIONS.MyDrive)
     {
-      generalText += "<div>";
       generalText += "<input id='exportFolderName' type='text' size='12' value='' placeholder='Select folder...' disabled /> ";
-      generalText += "<button onclick='openFolderPicker()'>Browse</button>"
-      generalText += "</div>";
+      generalText += "<button onclick='openFolderPicker()'>Browse</button><button id='openExportFolderButton' onclick='openExportFolder()'";
+      
+      if(exportFolderId == null || exportFolderId === "") generalText += " disabled";
+
+      generalText += ">Open</button>";
     }
+
+    generalText += "</div>";
+
     //Sheets
-    generalText += "<p><div class='option'><label for='select'><b>Export Sheet(s)</b></label></div><select id='sheetSelect'><option value='allSheets'";
-    if(exportSheets === "allSheets") generalText += " selected";
-    generalText += ">All sheets</option><option value='currentSheet'";
-    if(exportSheets === "currentSheet") generalText += " selected";
-    generalText += ">Current sheet only</option><option value='custom'";
-    if(exportSheets === "custom") generalText += " selected";
+    generalText += "<p><div class='option'><label for='sheetSelect'><b>Export Sheet(s)</b></label><div class='tooltip note padded'>Sheets to export data from.</div></div><br><select id='sheetSelect'><option value='" + ExportSheetTypes.All + "'";
+    if(exportSheetsType === ExportSheetTypes.All) generalText += " selected";
+    generalText += ">All sheets</option><option value='" + ExportSheetTypes.CurrentOnly + "'";
+    if(exportSheetsType === ExportSheetTypes.CurrentOnly) generalText += " selected";
+    generalText += ">Current sheet only</option><option value='" + ExportSheetTypes.Custom + "'";
+    if(exportSheetsType === ExportSheetTypes.Custom) generalText += " selected";
     generalText += ">Custom</option></select></p>";
     //Custom Sheets
     generalText += "<div id='customSheetSelect'></div></div>"; //Sheet selection is filled automatically at end of refresh process.
@@ -1341,21 +1981,26 @@
     //General Options
     generalText += "<div class='accordion generalHeader active'><h1>General</h1></div><div class='accordionPanel'>";
     //Replace existing files
-    generalText += "<div class='sectionWrapper'><input id='replaceToggle' type='checkbox' value='Replace'";
+    /*generalText += "<div class='sectionWrapper'><input id='replaceToggle' type='checkbox' value='Replace'";
     if(replaceExistingFiles) generalText += " checked";
-    generalText += "/><div class='option'>Replace existing file(s)<div class='tooltip note'>Find files in the export folder with the same name as the exported file, replace the contents of the most recently modified one, and trash any remaining files with the same name.</div></div></div>";
-    //Unwrap Single Rows
-    generalText += "<div class='sectionWrapper'><input id='unwrapSingleRowToggle' type='checkbox' value='false'";
-    if(unwrapSingleRows) generalText += " checked";
-    generalText += "/><div class='option'>Unwrap single row sheets<div class='tooltip note'>Don't wrap a sheet's contents with a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
-    //Collapse Single Rows
-    generalText += "<div class='sectionWrapper'><input id='collapseSingleRowToggle' type='checkbox' value='false'";
-    if(collapseSingleRows) generalText += " checked";
-    generalText += "/><div class='option'>Collapse single row sheets<div class='tooltip note'>Collapse a sheet's contents into a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
+    generalText += "/><div class='option'>Replace existing file(s)<div class='tooltip note'>Find files in the export folder with the same name as the exported file, replace the contents of the most recently modified one, and trash any remaining files with the same name.</div></div></div>";*/
+    //Minify Data
+    generalText += "<div class='sectionWrapper'><input id='minifyDataToggle' type='checkbox' value='minifyData'";
+    if(minifyData) generalText += " checked";
+    generalText += "><div class='option'><label for='minifyDataToggle'>Minify data</label><div class='tooltip note'>Remove human readability formatting from the exported data to produce a smaller file.</div></div></div>";
+    //Export bools as ints
+    generalText += "<div class='sectionWrapper'><input id='exportBoolsAsIntsToggle' type='checkbox' value='false'";
+    if(exportBoolsAsInts) generalText += " checked";
+    generalText += "/><div class='option'><label for='exportBoolsAsIntsToggle'>Export bools as ints</label><div class='tooltip note'>Export [true] and [false] boolean values as [1] and [0] respectively..</div></div></div>";
     //Ignore empty cells
     generalText += "<div class='sectionWrapper'><input id='ignoreEmptyCellsToggle' type='checkbox' value='false'";
     if(ignoreEmptyCells) generalText += " checked";
-    generalText += "/><div class='option'>Ignore empty cells<div class='tooltip note'>Don't export cells that are empty.</div></div></div>";
+    generalText += "/><div class='option'><label for='ignoreEmptyCellsToggle'>Ignore empty cells</label><div class='tooltip note'>Don't export cells that are empty.</div></div></div>";
+    //Include first column in export
+    generalText += "<div class='sectionWrapper'><input id='firstColumnToggle' type='checkbox' value='false'";
+    if(includeFirstColumn) generalText += " checked";
+    generalText += "/><div class='option'><label for='firstColumnToggle'>Include first column</label><div class='tooltip note'>Export the first column as a distinct element in addition to using it as the name of each row element.</div></div></div>";
+    //Section end
     generalText += "</div>";
     
     //Advanced General Options
@@ -1363,45 +2008,46 @@
     //Nested Elements
     generalText += "<div class='sectionWrapper'><input id='nestedElementsToggle' type='checkbox' value='false'";
     if(nestedElements) generalText += " checked";
-    if(exportType != "jsonFormat") generalText += " disabled";
-    generalText += "/><div class='option'>Nested Elements<div class='tooltip note'>Export nested elements by using specific formatting in keys.";
-    if(exportType != "jsonFormat") generalText += " XML support in development!";
+    if(exportFormatType !== ExportFormats.JSON) generalText += " disabled";
+    generalText += "/><div class='option'><label for='nestedElementsToggle'>Nested Elements</label><div class='tooltip note'>Export nested elements by using specific formatting in keys.";
+    if(exportFormatType !== ExportFormats.JSON) generalText += " XML support in development!";
     generalText += "</div></div></div>";
-    //Minify Data
-    generalText += "<div class='sectionWrapper'><input id='minifyDataToggle' type='checkbox' value='minifyData'";
-    if(minifyData) generalText += " checked";
-    generalText += "><div class='option'>Minify data<div class='tooltip note'>Remove human readability formatting from the exported data to produce a smaller file.</div></div></div>";
-    //Include first column in export
-    generalText += "<div class='sectionWrapper'><input id='firstColumnToggle' type='checkbox' value='false'";
-    if(includeFirstColumn) generalText += " checked";
-    generalText += "/><div class='option'>Include first column<div class='tooltip note'>Export the first column as a distinct element in addition to using it as the name of each row element.</div></div></div>";
+    //Unwrap Single Rows
+    generalText += "<div class='sectionWrapper'><input id='unwrapSingleRowToggle' type='checkbox' value='false'";
+    if(unwrapSingleRows) generalText += " checked";
+    generalText += "/><div class='option'><label for='unwrapSingleRowToggle'>Unwrap single row sheets</label><div class='tooltip note'>Don't wrap a sheet's contents with a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
+    //Collapse Single Rows
+    generalText += "<div class='sectionWrapper'><input id='collapseSingleRowToggle' type='checkbox' value='false'";
+    if(collapseSingleRows) generalText += " checked";
+    generalText += "/><div class='option'><label for='collapseSingleRowToggle'>Collapse single row sheets</label><div class='tooltip note'>Collapse a sheet's contents into a JSON object / XML element if it contains only one row. (not counting keys)</div></div></div>";
     //Ignore columns prefix
     generalText += "<div class='sectionWrapper'><input id='ignoreColumnsToggle' type='checkbox' value='false'";
     if(ignoreColumnsWithPrefix) generalText += " checked";
-    generalText += "/><div class='option'>Ignore prefix<div class='tooltip note'>Don't export columns with keys using the specified prefix, or rows whose first value starts with the specified prefix.</div></div>";
+    generalText += "/><div class='option'><label for='ignoreColumnsToggle'>Ignore prefix</label><div class='tooltip note'>Don't export columns with keys using the specified prefix, or rows whose first value starts with the specified prefix.</div></div>";
     generalText += "<div class='subOption'><p id='ignoreColumnsText'><input id='ignoreColumnsPrefixTextField' type='text' value='";
     generalText += ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
-    generalText += "' placeholder='NOEX_'";
+    generalText += "' placeholder='" + IGNORE_COLUMN_DEFAULT + "'";
     if(ignoreColumnsWithPrefix === false) generalText += " disabled";
     generalText += "/></p><p class='note'></p></div></div>";
     //Unwrap sheets prefix
     generalText += "<div class='sectionWrapper'><input id='unwrapSheetsToggle' type='checkbox' value='false'";
     if(unwrapSheetsWithPrefix) generalText += " checked";
-    generalText += "/><div class='option'>Unwrap sheet prefix<div class='tooltip note'>Unwrap sheets that use the given prefix.</div></div>";
+    generalText += "/><div class='option'><label for='unwrapSheetsToggle'>Unwrap sheet prefix</label><div class='tooltip note'>Unwrap sheets that use the given prefix.</div></div>";
     generalText += "<div class='subOption'><p id='unwrapSheetsText'><input id='unwrapSheetsPrefixTextField' type='text' value='";
     generalText += unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
-    generalText += "' placeholder='US_'";
+    generalText += "' placeholder='" + UNWRAP_SHEETS_DEFAULT +"'";
     if(unwrapSheetsWithPrefix === false) generalText += " disabled";
     generalText += "/></p><p class='note'></p></div></div>";
     //Collapse sheets prefix
     generalText += "<div class='sectionWrapper'><input id='collapseSheetsToggle' type='checkbox' value='false'";
     if(collapseSheetsWithPrefix) generalText += " checked";
-    generalText += "/><div class='option'>Collapse sheet prefix<div class='tooltip note'>Collapse sheets with only one row that use the given prefix.</div></div>";
+    generalText += "/><div class='option'><label for='collapseSheetsToggle'>Collapse sheet prefix</label><div class='tooltip note'>Collapse sheets with only one row that use the given prefix.</div></div>";
     generalText += "<div class='subOption'><p id='collapseSheetsText'><input id='collapseSheetsPrefixTextField' type='text' value='";
     generalText += collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
-    generalText += "' placeholder='CS_'";
+    generalText += "' placeholder='" + COLLAPSE_SHEETS_DEFAULT + "'";
     if(collapseSheetsWithPrefix === false) generalText += " disabled";
     generalText += "/></p><p class='note'></p></div></div>";
+    //Section end
     generalText += "</div>";
     
     document.getElementById("generalOptions").innerHTML = generalText;
@@ -1409,11 +2055,11 @@
     //Listeners
     addGeneralListeners();
     
-    if(exportSheets === "custom") getNames(showSheets);
+    if(exportSheetsType === ExportSheetTypes.Custom) getSheetNamesAndIds(initializeSheetToggles);
     
-    exportType = document.getElementById("formatSelect").value;
+    exportFormatType = document.getElementById("formatSelect").value;
     
-    if(exportType != "jsonFormat") //Populate XML options
+    if(exportFormatType !== ExportFormats.JSON) //Populate XML options
     {
       removeJsonListeners();
       
@@ -1423,15 +2069,32 @@
       
       removeXmlListeners();
       
-      var xmlText = "<div class='accordion xmlHeader active'><h1>XML</h1></div><div class='accordionPanel'>";
+      let xmlText = "<div class='accordion xmlHeader active'><h1>XML</h1></div><div class='accordionPanel'>";
+      //Replace File
+      xmlText += "<p><div class='sectionWrapper'><div class='option'><label for='replaceFileXml'>Replace File</label><div class='tooltip note padded'>If set, will replace the contents of the target file instead of exporting a new file.</div></div><br><select id='replaceFileXml' onchange='changeReplaceFileTypeXml()'><option value='" + REPLACE_FILE_OPTIONS.Disabled + "'";
+      if(replaceFileXmlType === REPLACE_FILE_OPTIONS.Disabled) xmlText += " selected";
+      xmlText += ">Disabled</option><option value='" + REPLACE_FILE_OPTIONS.Enabled + "'";
+      if(replaceFileXmlType !== REPLACE_FILE_OPTIONS.Disabled) xmlText += " selected";
+      xmlText += ">Enabled</option></select></p>";
+      //Target file
+      xmlText += "<div id='replaceFileXmlNameSection'>";
+
+      if(replaceFileXmlType !== REPLACE_FILE_OPTIONS.Disabled)
+      {
+        xmlText += "<input id='replaceFileXmlName' type='text' size='12' value='' placeholder='Select file...' disabled /> ";
+        xmlText += "<button onclick='openXmlFilePicker()'>Browse</button><button id='openReplaceFileXmlButton' onclick='openReplaceFileXml()'";
+        
+        if(replaceFileXmlId == null || replaceFileXmlId === "") xmlText += " disabled";
+
+        xmlText += ">Open</button>";
+      }
+
+      xmlText += "</div></div>";
+
       //Export child elements
       xmlText += "<div class='sectionWrapper'><input id='elementToggle' type='checkbox' value='false'";
       if(exportChildElementXml) xmlText += " checked";
-      xmlText += "/><div class='option'>Export columns as child elements<div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
-      //Export bools as ints
-      xmlText += "<div class='sectionWrapper'><input id='exportBoolsAsIntsToggle' type='checkbox' value='false'";
-      if(exportBoolsAsIntsXml) xmlText += " checked";
-      xmlText += "/><div class='option'>Export bools as ints<div class='tooltip note'>Export [true] and [false] boolean values as [1] and [0] respectively..</div></div></div>";
+      xmlText += "/><div class='option'><label for='elementToggle'>Export columns as child elements</label><div class='tooltip note'>Export a sheet's columns as child elements instead of attributes for each row.</div></div></div>";
       //Root element value
       xmlText += "<div class='sectionWrapper'><div class='option'>Root element<div class='tooltip note padded'>Root element for the exported XML document.</div></div><input id='xmlRootField' type='text' value=";
       xmlText += "'" + rootElementXml + "'";
@@ -1439,9 +2102,9 @@
       xmlText += "</div>";
       
       //Advanced Options
-      var advancedXmlText = "<div class='accordion xmlHeader active'><h1>Advanced XML</h1></div><div class='accordionPanel'>";
+      let advancedXmlText = "<div class='accordion xmlHeader active'><h1>Advanced XML</h1></div><div class='accordionPanel'>";
       //Invalid element name char replacement
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Name replacement char</label><div class='tooltip note padded'>What character to use when replacing illegal characters in XML element names.</div></div><select id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='xmlNameReplaceCharDropdown'>Name replacement char</label><div class='tooltip note padded'>What character to use when replacing illegal characters in XML element names.</div></div><br><select id='xmlNameReplaceCharDropdown' onchange='changeNameReplacementCharXml()'><option value='_'";
       if(nameReplacementCharXml === "_") advancedXmlText += " selected";
       advancedXmlText += ">Underscore ( _ )</option><option value='-'";
       if(nameReplacementCharXml === "-") advancedXmlText += " selected";
@@ -1451,10 +2114,10 @@
       //Declaration
       advancedXmlText += "<div class='sectionWrapper'><input id='xmlIncludeDeclarationToggle' type='checkbox' value='false'";
       if(includeDeclarationXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/><div class='option'>Include XML declaration<div class='tooltip note'>Include a customized XML declaration at the top of exported XML files using the parameters set below.</div></div></div>";
+      advancedXmlText += "/><div class='option'><label for='xmlIncludeDeclarationToggle'>Include XML declaration</label><div class='tooltip note'>Include a customized XML declaration at the top of exported XML files using the parameters set below.</div></div></div>";
       //Declaration Version
       advancedXmlText += "<div id='xmlDeclarationSection'>";
-      advancedXmlText += "<div class='subOption'><div class='sectionWrapper'><div class='option'><label for='select'>XML version</label><div class='tooltip note padded'>Version of the XML standard that the XML document conforms to.</div></div><select id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
+      advancedXmlText += "<div class='subOption'><div class='sectionWrapper'><div class='option'><label for='xmlDeclarationVersionDropdown'>XML version</label><div class='tooltip note padded'>Version of the XML standard that the XML document conforms to.</div></div><br><select id='xmlDeclarationVersionDropdown' onchange='changeDeclarationVersionXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
       advancedXmlText += "><option value='1.0'";
       if(declarationVersionXml === "1.0") advancedXmlText += " selected";
@@ -1462,10 +2125,31 @@
       if(declarationVersionXml === "1.1") advancedXmlText += " selected";
       advancedXmlText += ">1.1</option></select></p></div>";
       //Declaration Encoding
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>XML encoding</label><div class='tooltip note padded'>Identifies which encoding is used to represent the characters in the document.</div></div><select id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='xmlDeclarationEncodingDropdown'>XML encoding</label><div class='tooltip note padded'>Identifies which encoding is used to represent the characters in the document.</div></div><br><select id='xmlDeclarationEncodingDropdown' onchange='changeDeclarationEncodingXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
-      advancedXmlText += "><option value='none'";
-      if(declarationEncodingXml === "none") advancedXmlText += " selected";
+      advancedXmlText += ">";
+
+      for(let i=0; i < XML_DECLARATION_ENCODINGS.length; i++)
+      {
+        if(XML_DECLARATION_ENCODINGS[i] === "None")
+        {
+          //Special none check for backwards compatibility...
+          advancedXmlText += "<option value='" + XML_DECLARATION_ENCODINGS[i] + "'";
+          if(declarationEncodingXml === XML_DECLARATION_ENCODINGS[i] || declarationEncodingXml === "none") advancedXmlText += " selected";
+          advancedXmlText += ">" + XML_DECLARATION_ENCODINGS[i] + "</option>";
+        }
+        else
+        {
+          advancedXmlText += "<option value='" + XML_DECLARATION_ENCODINGS[i] + "'";
+          if(declarationEncodingXml === XML_DECLARATION_ENCODINGS[i]) advancedXmlText += " selected";
+          advancedXmlText += ">" + XML_DECLARATION_ENCODINGS[i] + "</option>";
+        }
+      }
+
+      advancedXmlText += "</select></div>";
+
+      /*advancedXmlText += "><option value='none'";
+      if(declarationEncodingXml === "none") advancedXmlText += " selected"; //TODO: Can move these lines to an array and loop...
       advancedXmlText += ">None</option><option value='UTF-8'";
       if(declarationEncodingXml === "UTF-8") advancedXmlText += " selected";
       advancedXmlText += ">UTF-8</option><option value='UTF-16'";
@@ -1498,9 +2182,10 @@
       if(declarationEncodingXml === "Shift_JIS") advancedXmlText += " selected";
       advancedXmlText += ">Shift_JIS</option><option value='EUC-JP'";
       if(declarationEncodingXml === "EUC-JP") advancedXmlText += " selected";
-      advancedXmlText += ">EUC-JP</option></select></div>";
+      advancedXmlText += ">EUC-JP</option></select></div>";*/
+
       //Declaration Standalone
-      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='select'>Standalone</label><div class='tooltip note padded'>Indicates whether a document relies on information from an external source, such as external document type definition (DTD).</div></div><select id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
+      advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='xmlDeclarationStandaloneDropdown'>Standalone</label><div class='tooltip note padded'>Indicates whether a document relies on information from an external source, such as external document type definition (DTD).</div></div><br><select id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
       if(includeDeclarationXml === false) advancedXmlText += " disabled";
       advancedXmlText += "><option value='none'";
       if(declarationStandaloneXml === "none") advancedXmlText += " selected";
@@ -1513,7 +2198,7 @@
       //Force attribute column export
       advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceAttributeToggle' type='checkbox' value='false'";
       if(forceAttributesXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/><div class='option'>Attributes prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as attributes.</div></div>";
+      advancedXmlText += "/><div class='option'><label for='xmlForceAttributeToggle'>Attributes prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as attributes.</div></div>";
       advancedXmlText += "<div class='subOption'><p id='xmlForceAttributeText'><input id='xmlForceAttributesTextField' type='text' value=";
       advancedXmlText += "'" + forceAttributesPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_ATT_DEFAULT + "'";
@@ -1522,7 +2207,7 @@
       //Force child element column export
       advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceChildElementToggle' type='checkbox' value='false'";
       if(forceChildElementsXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/><div class='option'>Child elements prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as child elements.</div></div>";
+      advancedXmlText += "/><div class='option'><label for='xmlForceChildElementToggle'>Child elements prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as child elements.</div></div>";
       advancedXmlText += "<div class='subOption'><p id='xmlForceChildElementsText'><input id='xmlForceChildElementsTextField' type='text' value=";
       advancedXmlText += "'" + forceChildElementsPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_CE_DEFAULT + "'";
@@ -1531,7 +2216,7 @@
       //Force inner text column export
       advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceInnerTextToggle' type='checkbox' value='false'";
       if(forceInnerTextXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/><div class='option'>Inner text prefix<div class='tooltip note'>Force columns with keys using the specified prefix to export as inner text of the row element.</div></div>";
+      advancedXmlText += "/><div class='option'><label for='xmlForceInnerTextToggle'>Inner text prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as inner text of the row element.</div></div>";
       advancedXmlText += "<div class='subOption'><p id='xmlForceInnerTextText'><input id='xmlForceInnerTextTextField' type='text' value=";
       advancedXmlText += "'" + forceInnerTextPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_IT_DEFAULT + "'";
@@ -1539,7 +2224,7 @@
       advancedXmlText += "/></p></div></div></div>";
       
       //XML Namespaces
-      var xmlNamespaceText = "<div class='accordion xmlHeader active'><h1>XML Namespaces</h1></div><div class='accordionPanel'>";
+      let xmlNamespaceText = "<div class='accordion xmlHeader active'><h1>XML Namespaces</h1></div><div class='accordionPanel'>";
       //Root namespace value
       xmlNamespaceText += "<div class='sectionWrapper'><div class='option'>Root namespace URI<div class='tooltip note padded'>URI for the root <span class='tooltipHighlight'>xmlns</span> namespace used when creating elements in the exported XML document.</div></div><input id='xmlRootNamespaceField' type='text' value=";
       xmlNamespaceText += "'" + rootNamespace + "'/></div>";
@@ -1549,7 +2234,7 @@
       xmlNamespaceText += "<div class='namespaceGap'></div>"; //Padding to prevent the list button pushing the first namespace down and creating whitespace.
       xmlNamespaceText += "<div class='xmlNamespaces' id='xmlNamespaceParent'>";
       
-      var namespaceText = "";
+      let namespaceText = "";
       
       for(let i=0; i < namespaces.length; i++)
       {
@@ -1585,55 +2270,75 @@
       removeJsonListeners();
       
       //JSON Options
-      var jsonText = "<div class='accordion jsonHeader active'><h1>JSON</h1></div><div class='accordionPanel'>";
+      let jsonText = "<div class='accordion jsonHeader active'><h1>JSON</h1></div><div class='accordionPanel'>";
+      //Replace File
+      jsonText += "<p><div class='sectionWrapper'><div class='option'><label for='replaceFileJson'>Replace File</label><div class='tooltip note padded'>If set, will replace the contents of the target file instead of exporting a new file.</div></div><br><select id='replaceFileJson' onchange='changeReplaceFileTypeJson()'><option value='" + REPLACE_FILE_OPTIONS.Disabled + "'";
+      if(replaceFileJsonType === REPLACE_FILE_OPTIONS.Disabled) jsonText += " selected";
+      jsonText += ">Disabled</option><option value='" + REPLACE_FILE_OPTIONS.Enabled + "'";
+      if(replaceFileJsonType !== REPLACE_FILE_OPTIONS.Disabled) jsonText += " selected";
+      jsonText += ">Enabled</option></select></p>";
+      //Target file
+      jsonText += "<div id='replaceFileJsonNameSection'>";
+
+      if(replaceFileJsonType !== REPLACE_FILE_OPTIONS.Disabled)
+      {
+        jsonText += "<input id='replaceFileJsonName' type='text' size='12' value='' placeholder='Select file...' disabled /> ";
+        jsonText += "<button onclick='openJsonFilePicker()'>Browse</button><button id='openReplaceFileJsonButton' onclick='openReplaceFileJson()'";
+        
+        if(replaceFileJsonId == null || replaceFileJsonId === "") jsonText += " disabled";
+
+        jsonText += ">Open</button>";
+      }
+
+      jsonText += "</div></div>";
       //Force string JSON
       jsonText += "<div class='sectionWrapper'><input id='forceStringToggle' type='checkbox' value='Force'";
       if(forceStringJson) jsonText += " checked";
-      jsonText += "><div class='option'>Force string values<div class='tooltip note'>Force exported values to be strings.</div></div></div>";
+      jsonText += "><div class='option'><label for='forceStringToggle'>Force string values</label><div class='tooltip note'>Force exported values to be strings.</div></div></div>";
       //Commas to array JSON
       jsonText += "<div class='sectionWrapper'><input id='arrayToggle' type='checkbox' value='Array'";
       if(exportCellArrayJson) jsonText += " checked";
-      jsonText += "><div class='option'>Export cell arrays<div class='tooltip note'>Export a cell's contents as a JSON array if it contains commas. (Wrap content in quotation marks to prevent mid-content breaking)</div></div></div>";
+      jsonText += "><div class='option'><label for='arrayToggle'>Export cell arrays</label><div class='tooltip note'>Export a cell's contents as a JSON array if it contains commas (or whatever char is specified in advanced JSON settings). Wrap content in quotation marks to prevent mid-content breaking.</div></div></div>";
       //Sheet to JSON object array
       jsonText += "<div class='sectionWrapper'><input id='sheetArrayToggle' type='checkbox' value='SheetArray'";
       if(exportSheetArrayJson) jsonText += " checked";
-      jsonText += "><div class='option'>Export sheet arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON objects.</div></div></div>";
+      jsonText += "><div class='option'><label for='sheetArrayToggle'>Export sheet arrays</label><div class='tooltip note'>Export a sheet's contents as an array of JSON objects.</div></div></div>";
       //Sheet to JSON value array
       jsonText += "<div class='sectionWrapper'><input id='valueArrayToggle' type='checkbox' value='ValueArray'";
       if(exportValueArrayJson) jsonText += " checked";
-      jsonText += "><div class='option'>Export value arrays<div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div></div>";
+      jsonText += "><div class='option'><label for='valueArrayToggle'>Export value arrays</label><div class='tooltip note'>Export a sheet's contents as an array of JSON values if it has only one column.</div></div></div></div>";
       
       //Advanced Options
-      var advancedJsonText = "<div class='accordion jsonHeader active'><h1>Advanced JSON</h1></div><div class='accordionPanel'>";
+      let advancedJsonText = "<div class='accordion jsonHeader active'><h1>Advanced JSON</h1></div><div class='accordionPanel'>";
       //Content to array JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
       if(exportContentsAsArrayJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'>Export contents as array<div class='tooltip note'>Export total contents as a raw JSON array. (<span class='tooltipHighlight'>WARNING:</span> This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
+      advancedJsonText += "><div class='option'><label for='contentsArrayToggle'>Export contents as array</label><div class='tooltip note'>Export total contents as a raw JSON array. (<span class='tooltipHighlight'>WARNING:</span> This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
       //Braces to object JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'>Export cell objects<div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces, or a JSON array if wrapped in brackets. (<span class='tooltipHighlight'>WARNING:</span> This content will export an empty object/array if not properly formatted.)</div></div></div>";
+      advancedJsonText += "><div class='option'><label for='cellObjectToggle'>Export cell objects</label><div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces, or a JSON array if wrapped in brackets. (<span class='tooltipHighlight'>WARNING:</span> This content will export an empty object/array if not properly formatted.)</div></div></div>";
       //Empty Value Type
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='select'>Empty value format</label><div class='tooltip note padded'>What value to export for empty cells.</div></div><select id='jsonEmptyValueFormatDropdown' onchange='changeEmptyValueFormatJson()'><option value='null'";
+      advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='jsonEmptyValueFormatDropdown'>Empty value format</label><div class='tooltip note padded'>What value to export for empty cells.</div></div><br><select id='jsonEmptyValueFormatDropdown' onchange='changeEmptyValueFormatJson()'><option value='null'";
       if(emptyValueFormatJson === "null") advancedJsonText += " selected";
       advancedJsonText += ">Null ( null )</option><option value='string'";
       if(emptyValueFormatJson === "string") advancedJsonText += " selected";
       advancedJsonText += ">Empty String ( &quot;&quot; )</option></select></div>";
       //Null Value Type
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='select'>Null value format</label><div class='tooltip note padded'>What value to export for cells with a string value of &quot;null&quot;.</div></div><select id='jsonNullValueFormatDropdown' onchange='changeNullValueFormatJson()'><option value='null'";
+      advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='jsonNullValueFormatDropdown'>Null value format</label><div class='tooltip note padded'>What value to export for cells with a string value of &quot;null&quot;.</div></div><br><select id='jsonNullValueFormatDropdown' onchange='changeNullValueFormatJson()'><option value='null'";
       if(nullValueFormatJson === "null") advancedJsonText += " selected";
       advancedJsonText += ">Null ( null )</option><option value='string'";
       if(nullValueFormatJson === "string") advancedJsonText += " selected";
       advancedJsonText += ">String ( &quot;null&quot; )</option></select></div>";
       //Separator char value
-      advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting JSON arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
+      advancedJsonText += "<div class='sectionWrapper'><div class='option'>Array separator character<div class='tooltip note padded'>Character used to separate elements when exporting cell arrays.</div></div><input id='jsonArraySeparatorCharTextField' type='text' maxlength='1' value=";
       advancedJsonText += "'" + arraySeparatorCharJson + "'";
       advancedJsonText += " placeholder='" + JSON_SEPARATOR_DEFAULT + "'";
       advancedJsonText += "/></div>";
       //Force JSON array export
       advancedJsonText += "<div class='sectionWrapper'><input id='jsonForceArrayToggle' type='checkbox' value='false'";
       if(forceArrayJson === true) advancedJsonText += " checked";
-      advancedJsonText += "/><div class='option'>Array prefix<div class='tooltip note'>Force sheets or cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
+      advancedJsonText += "/><div class='option'><label for='jsonForceArrayToggle'>Array prefix</label><div class='tooltip note'>Force sheets or cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
       advancedJsonText += "<div class='subOption'><p id='jsonForceArrayText'><input id='jsonForceArrayTextField' type='text' value=";
       advancedJsonText += "'" + forceArrayPrefixJson + "'";
       advancedJsonText += " placeholder='" + JSON_JA_DEFAULT + "'";
@@ -1642,7 +2347,7 @@
       //Force nested array export
       advancedJsonText += "<div class='sectionWrapper'><input id='nestForceArrayToggle' type='checkbox' value='false'";
       if(forceArrayNest === true) advancedJsonText += " checked";
-      advancedJsonText += "/><div class='option'>Nested Array prefix<div class='tooltip note'>Force sheets with names using the specified prefix to export as Nested Element arrays.</div></div>";
+      advancedJsonText += "/><div class='option'><label for='nestForceArrayToggle'>Nested Array prefix</label><div class='tooltip note'>Force sheets with names using the specified prefix to export as Nested Element arrays.</div></div>";
       advancedJsonText += "<div class='subOption'><p id='nestForceArrayText'><input id='nestForceArrayTextField' type='text' value=";
       advancedJsonText += "'" + forceArrayPrefixNest + "'";
       advancedJsonText += " placeholder='" + NEST_NA_DEFAULT + "'";
@@ -1656,7 +2361,10 @@
       addJsonListeners();
     }
     
-    if(exportFolderType !== "default" && exportFolder !== "") getExportFolderName(onGetExportFolderName); //Populate the name of the target export folder
+    //Refresh target file names if valid...
+    if(exportFolderType !== EXPORT_FOLDER_LOCATIONS.MyDrive && exportFolderId !== "") getFileName(exportFolderId, onGetExportFolderName); //Populate the name of the target export folder
+    if(replaceFileXmlType !== REPLACE_FILE_OPTIONS.Disabled && replaceFileXmlId !== "") getFileName(replaceFileXmlId, onGetReplaceFileXmlName); //Populate the name of the target replace XML file
+    if(replaceFileJsonType !== REPLACE_FILE_OPTIONS.Disabled && replaceFileJsonId !== "") getFileName(replaceFileJsonId, onGetReplaceFileJsonName); //Populate the name of the target replace JSON file
     
     addAccordionListeners();
   }
@@ -1666,7 +2374,7 @@
    **/
   function changeExportFormat()
   {
-    exportType = document.getElementById("formatSelect").value;
+    exportFormatType = document.getElementById("formatSelect").value;
     
     refreshSideBar();
   }
@@ -1678,7 +2386,23 @@
   {
     exportFolderType = document.getElementById("folderSelect").value;
     
-    refreshSideBar();
+    refreshFileDataFields(exportFolderId, exportFolderType, EXPORT_FOLDER_LOCATIONS.MyDrive, "exportFolderNameSection", "exportFolderName", "openExportFolderButton", "Select folder...", "openFolderPicker()", "openExportFolder()", onGetExportFolderName);
+    /*const hasTargetFolder = exportFolderId != null && exportFolderId !== "";
+    let sectionText = "";
+
+    if(exportFolderType !== EXPORT_FOLDER_LOCATIONS.MyDrive)
+    {
+      sectionText = "<input id='exportFolderName' type='text' size='12' value='' placeholder='Select folder...' disabled /> ";
+      sectionText += "<button onclick='openFolderPicker()'>Browse</button><button id='openExportFolderButton' onclick='openExportFolder()'";
+      
+      if(!hasTargetFolder) sectionText += " disabled";
+
+      sectionText += ">Open</button>";
+    }
+    
+    document.getElementById("exportFolderNameSection").innerHTML = sectionText;
+
+    if(hasTargetFolder) getFileName(exportFolderId, onGetExportFolderName);*/
   }
   
   /**
@@ -1686,23 +2410,35 @@
    **/
   function changeExportSheets()
   {
-    exportSheets = document.getElementById("sheetSelect").value;
+    exportSheetsType = document.getElementById("sheetSelect").value;
     
-    if(exportSheets != "custom")
+    if(exportSheetsType !== ExportSheetTypes.Custom)
     {
       clearSheetToggles();
     }
     else
     {
-      getNames(showSheets);
+      getSheetNamesAndIds(initializeSheetToggles);
     }
   }
-  
-  function showSheets(sheetNames)
+
+  /**
+   * Get an array of target sheet IDs for export.
+   * @param {Array<object>} sheetData Data for sheets to export or ignore
+   **/
+  function getTargetSheetsArray(sheetData)
   {
-    sheets = sheetNames;
-    
-    generateAutoSheetToggles(sheetNames); //TODO: Sheet names are getting culled on load sometimes... (seems to be after all are toggled on then one is toggled off as the off sheet is the only name returned...)
+    let sheetArray = [];
+
+    for(key in sheetData)
+    {
+      if(sheetData[key] === true)
+      {
+        sheetArray.push(parseInt(key));
+      }
+    }
+
+    return sheetArray;
   }
   
   /**
@@ -1716,49 +2452,92 @@
   }
   
   /**
-   * Generates toggle elements determining which sheets should be exported
-   * @param {Array<string>} sheetNames - Names for sheets to generate toggles for
+   * Initialize data for custom sheet export.
+   * @param {Array<object>} sheetData Name and ID values for sheets currently contained in the active spreadsheet.
    **/
-  function generateAutoSheetToggles(sheetNames)
+  function initializeSheetToggles(sheetData)
   {
-    var cachedToggles = targetSheets;
+    for(let i=0; i < sheetData.length; i++)
+    {
+      sheetData[i]["toggleName"] = formatSheetName(sheetData[i]["name"]);
+      sheetData[i]["toggleId"] = sheetData[i]["id"].toString();
+    }
+
+    currentSheets = sheetData;
     
+    generateAutoSheetToggles(sheetData);
+  }
+  
+  /**
+   * Generates toggle elements determining which sheets should be exported
+   * @param {Array<string>} sheetsData - Names and IDs for sheets to generate toggles for
+   **/
+  function generateAutoSheetToggles(sheetsData)
+  {
+    let cachedToggles = targetSheets; //Cache existing settings to persist current target sheets
+
     clearSheetToggles();
     
     //Check if all sheets are being exported
-    var allActive = true;
+    let allActive = true;
     
-    for(let i=0; i < sheetNames.length; i++)
+    for(let i=0; i < sheetsData.length; i++)
     {
-      if(cachedToggles[sheetNames[i]] == null || cachedToggles[sheetNames[i]] === false || cachedToggles[sheetNames[i]] === 'false')
+      let toggleValue = cachedToggles[sheetsData[i]["toggleId"]];
+      //if(cachedToggles[sheetsData[i]] == null || cachedToggles[sheetsData[i]] === false || cachedToggles[sheetsData[i]] === 'false')
+      if(toggleValue == null || toggleValue === false || toggleValue === 'false')
       {
         allActive = false;
         break;
       }
     }
-    
-    var text = "<div id='allToggleContainer'><input id='allSheetsToggle' type='checkbox' value='" + allActive + "' onChange='toggleAllSheets()' ";
+
+    //Generate toggles...
+    let text = "<div id='allToggleContainer'><input id='allSheetsToggle' type='checkbox' value='" + allActive + "' onChange='toggleAllSheets()' ";
     
     if(allActive === true) text += "checked ";
     
-    text += "/> All</div><hr><div class='scrollWrapper'>";
+    text += "/><label for='allSheetsToggle'> All</label></div><hr><div class='scrollWrapper'>";
     
-    for(let i=0; i < sheetNames.length; i++)
+    /*for(let i=0; i < sheetsData.length; i++)
     {
       text += "<p>";
       
-      if(cachedToggles[sheetNames[i]] != null)
+      if(cachedToggles[sheetsData[i]] != null)
       {
-        text += "<input id='" + formatSheetName(sheetNames[i]) + "Toggle' type='checkbox' value='true'";
-        if(cachedToggles[sheetNames[i]] === 'true' || cachedToggles[sheetNames[i]] === true) text += " checked";
-        text += "/> " + sheetNames[i];
+        text += "<input id='" + formatSheetName(sheetsData[i]) + "Toggle' type='checkbox' value='true'";
+        if(cachedToggles[sheetsData[i]] === 'true' || cachedToggles[sheetsData[i]] === true) text += " checked";
+        text += "/> " + sheetsData[i];
         
-        targetSheets[sheetNames[i]] = (cachedToggles[sheetNames[i]] === 'true' ? 'true' : 'false');
+        targetSheets[sheetsData[i]] = (cachedToggles[sheetsData[i]] === 'true' ? 'true' : 'false');
       }
       else
       {
-        text += "<input id='" + formatSheetName(sheetNames[i]) + "Toggle' type='checkbox' value='false'/> " + sheetNames[i];
-        targetSheets[sheetNames[i]] = 'false';
+        text += "<input id='" + formatSheetName(sheetsData[i]) + "Toggle' type='checkbox' value='false'/> " + sheetsData[i];
+        targetSheets[sheetsData[i]] = 'false';
+      }
+      
+      text += "</p>";
+    }*/
+
+    for(let i=0; i < sheetsData.length; i++)
+    {
+      text += "<p>";
+      
+      if(cachedToggles[sheetsData[i]["toggleId"]] != null)
+      {
+        let toggleValue = cachedToggles[sheetsData[i]["toggleId"]];
+        text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='" + (toggleValue === true) + "'";
+        //if(toggleValue === 'true' || toggleValue === true) text += " checked";
+        if(toggleValue === true) text += " checked";
+        text += "/><label for='" + sheetsData[i]["toggleId"] + "Toggle'> " + sheetsData[i]["name"] + "</label>";
+        
+        targetSheets[sheetsData[i]["toggleId"]] = cachedToggles[sheetsData[i]["toggleId"]] === true;
+      }
+      else
+      {
+        text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='false'/><label for='" + sheetsData[i]["toggleId"] + "Toggle'> " + sheetsData[i]["name"] + "</label>";
+        targetSheets[sheetsData[i]["toggleId"]] = false;
       }
       
       text += "</p>";
@@ -1767,26 +2546,32 @@
     text += "</div><hr>";
     
     document.getElementById("customSheetSelect").innerHTML = text;
+
+    if(getSheetToggleSummaryStatus() === 2)
+    {
+      console.log("Indeterminate!");
+      document.getElementById('allSheetsToggle').indeterminate = true;
+    }
     
-    createSheetToggleListeners()
+    createSheetToggleListeners();
   }
   
   /**
    * Generates toggle elements determining which sheets should be exported and sets their export value to be the given default value
-   * @param {Array<string>} sheetNames - Names for sheets to generate toggles for
+   * @param {Array<string>} sheetsData - Names and IDs for sheets to generate toggles for
    * @param {boolean} defaultValue - Default value for toggles
    **/
-  function generateSheetToggles(sheetNames, defaultValue)
+  function generateSheetToggles(sheetsData, defaultValue)
   {
     clearSheetToggles();
     
-    var text = "<div id='allToggleContainer'><input id='allSheetsToggle' type='checkbox' value='" + defaultValue + "' onChange='toggleAllSheets()' ";
+    let text = "<div id='allToggleContainer'><input id='allSheetsToggle' type='checkbox' value='" + defaultValue + "' onChange='toggleAllSheets()' ";
     
     if(defaultValue === true) text += "checked ";
     
-    text += "/> All</div><hr><div class='scrollWrapper'>";
+    text += "/><label for='allSheetsToggle'> All</label></div><hr><div class='scrollWrapper'>";
     
-    for(let i=0; i < sheetNames.length; i++)
+    /*for(let i=0; i < sheetNames.length; i++)
     {
       text += "<p>";
       
@@ -1802,13 +2587,150 @@
       }
       
       text += "</p>";
+    }*/
+
+    for(let i=0; i < sheetsData.length; i++)
+    {
+      text += "<p>";
+      
+      if(defaultValue === true)
+      {
+        //text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='true' checked /> " + sheetsData[i]["name"];
+        text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='true' checked /><label for='" + sheetsData[i]["toggleId"] + "Toggle'> " + sheetsData[i]["name"] + "</label>";
+        targetSheets[sheetsData[i]["toggleId"]] = true;
+      }
+      else
+      {
+        //text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='false' /> " + sheetsData[i]["name"];
+        text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='false' /><label for='" + sheetsData[i]["toggleId"] + "Toggle'> " + sheetsData[i]["name"] + "</label>";
+        targetSheets[sheetsData[i]["toggleId"]] = false;
+      }
+      
+      text += "</p>";
     }
     
     text += "</div><hr>";
     
     document.getElementById("customSheetSelect").innerHTML = text;
+
+    if(getSheetToggleSummaryStatus() === 2)
+    {
+      console.log("Indeterminate2!");
+      document.getElementById('allSheetsToggle').indeterminate = true;
+    }
     
-    createSheetToggleListeners()
+    createSheetToggleListeners();
+  }
+  
+  /**
+   * Toggles value for exporting all sheets
+   **/
+  function toggleAllSheets()
+  {
+    let allToggle = document.getElementById('allSheetsToggle');
+    let value = allToggle.value;
+    
+    allToggle.indeterminate = false;
+    
+    if(value === 'false') generateSheetToggles(currentSheets, true);
+    else generateSheetToggles(currentSheets, false);
+  }
+  
+  /**
+   * Sets all sheets to be exported
+   **/
+  function selectAllSheets()
+  {
+    generateSheetToggles(currentSheets, true);
+  }
+  
+  /**
+   * Sets no sheets to be exported
+   **/
+  function deselectAllSheets()
+  {
+    generateSheetToggles(currentSheets, false);
+  }
+  
+  /**
+   * Checks if all the sheets are selected for export
+   * @return {boolean}
+   **/
+  /*function checkAllTogglesTrue()
+  {
+    for(let i=0; i < currentSheets.length; i++)
+    {
+      //if(targetSheets[currentSheets[i]] === 'false') return false;
+      if(targetSheets[currentSheets[i]["toggleId"]] !== true) return false;
+    }
+
+    return true;
+  }*/
+
+  /**
+   * Checks the status of all custom sheet export toggles and returns a value indicating the summary state. 0 for all false, 1 for all true, and 2 for indeterminate.
+   * @return {number}
+   **/
+  function getSheetToggleSummaryStatus()
+  {
+    let status = 0;
+    let count = 0;
+
+    for(let i=0; i < currentSheets.length; i++)
+    {
+      //if(targetSheets[currentSheets[i]] === 'false') return false;
+      if(targetSheets[currentSheets[i]["toggleId"]] === true) count++;
+    }
+
+    if(count === currentSheets.length) status = 1;
+    else if(count > 0) status = 2;
+
+    return status;
+  }
+  
+  /**
+   * Updates the toggle for all sheets so that it is only checked when all sheets are set for export
+   **/
+  function updateAllSheetsToggle()
+  {
+    let value = getSheetToggleSummaryStatus();
+    let html = "";
+    
+    switch(value)
+    {
+      case 0:
+      case 2:
+        html = "<input id='allSheetsToggle' type='checkbox' value='false' onChange='toggleAllSheets()' /><label for='allSheetsToggle'> All</label>";
+        break;
+      case 1:
+        html = "<input id='allSheetsToggle' type='checkbox' value='true' onChange='toggleAllSheets()' checked /><label for='allSheetsToggle'> All</label>";
+        break;
+    }
+
+    document.getElementById('allToggleContainer').innerHTML = html;
+
+    if(value === 2)
+    {
+      document.getElementById('allSheetsToggle').indeterminate = true;
+    }
+  }
+  
+  /**
+   * Toggles a sheet for export
+   * @param {string} sheetName - Name for the target sheet
+   **/
+  function toggleSheet(sheetData)
+  {
+    let value = document.getElementById(sheetData["toggleId"] + 'Toggle').value;
+    
+    if(value === 'false') value = 'true';
+    else value = 'false';
+    
+    targetSheets[sheetData["toggleId"]] = value === 'true';
+    
+    document.getElementById(sheetData["toggleId"] + 'Toggle').value = value;
+    
+    updateAllSheetsToggle();
   }
   
   /**
@@ -1816,12 +2738,13 @@
    **/
   function createSheetToggleListeners()
   {
-    for(let i=0; i < sheets.length; i++)
+    for(let i=0; i < currentSheets.length; i++)
     {
       (function()
       {
-        var targetSheet = sheets[i];
-        document.getElementById(formatSheetName(targetSheet) + 'Toggle').addEventListener("change", function() { toggleSheet(targetSheet); });
+        let targetSheet = currentSheets[i];
+        document.getElementById(targetSheet["toggleId"] + 'Toggle').addEventListener("change", function() { toggleSheet(targetSheet); });
+        //document.getElementById(formatSheetName(targetSheet) + 'Toggle').addEventListener("change", function() { toggleSheet(targetSheet); });
       }())
     }
   }
@@ -1833,17 +2756,21 @@
   {
     targetSheets = { };
     
-    for(let i=0; i < sheets.length; i++)
+    for(let i=0; i < currentSheets.length; i++)
     {
       (function()
       {
-        if(document.getElementById(formatSheetName(sheets[i]) + 'Toggle') != null)
+        //if(document.getElementById(formatSheetName(currentSheets[i]) + 'Toggle') != null)
+        if(document.getElementById(currentSheets[i]["toggleId"] + 'Toggle') != null)
         {
-          let targetSheet = sheets[i];
-          document.getElementById(formatSheetName(targetSheet) + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
+          let targetSheet = currentSheets[i];
+          document.getElementById(targetSheet["toggleId"] + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
+          //document.getElementById(formatSheetName(targetSheet) + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
         }
       }())
     }
+
+    //currentSheets = [];
     
     document.getElementById("customSheetSelect").innerHTML = "";
   }
@@ -1858,7 +2785,8 @@
     document.getElementById('folderSelect').addEventListener("change", changeExportFolderFormat);
     document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
     //General Options
-    document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
+    //document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
+    document.getElementById('exportBoolsAsIntsToggle').addEventListener("change", toggleExportBoolsAsInts);
     document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
     document.getElementById('collapseSingleRowToggle').addEventListener("change",toggleCollapseSingleRows);
     document.getElementById('ignoreEmptyCellsToggle').addEventListener("change",toggleIgnoreEmptyCells);
@@ -1879,7 +2807,7 @@
    **/
   function addAccordionListeners()
   {
-    var accordions = document.getElementsByClassName("accordion");
+    let accordions = document.getElementsByClassName("accordion");
     
     for(let i=0; i < accordions.length; i++)
     {
@@ -1895,6 +2823,22 @@
       });
     }
   }
+
+  /**
+   * Try to get a document element with the given ID.
+   * @param {string} elementId ID for the target document element.
+   * @param {function} callback Callback invoked to pass the target element if it is found. 
+   **/
+  function tryGetElementById(elementId, callback)
+  {
+    let element = document.getElementById(elementId);
+
+    if(element == null) return false;
+
+    callback(element);
+
+    return true;
+  }
   
   /**
    * Adds event listeners for XML options.
@@ -1902,8 +2846,8 @@
   function addXmlListeners()
   {
     //XML Options
+    //document.getElementById('fileSelectXml').addEventListener("change", changeReplaceFileTypeXml);
     document.getElementById('elementToggle').addEventListener("change", toggleElement);
-    document.getElementById('exportBoolsAsIntsToggle').addEventListener("change", toggleExportBoolsAsInts);
     //Advanced Options
     document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
     document.getElementById('xmlNameReplaceCharDropdown').addEventListener("change", changeNameReplacementCharXml);
@@ -1928,13 +2872,14 @@
   function addJsonListeners()
   {
     //JSON Options
-    document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
-    document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
+    //document.getElementById('replaceFileJson').addEventListener("change", changeReplaceFileTypeJson);
+    document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
     document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
     document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
     document.getElementById('valueArrayToggle').addEventListener("change", toggleValueArrayJson);
-    document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
     //Advanced Options
+    document.getElementById('contentsArrayToggle').addEventListener("change", toggleContentArrayJson);
+    document.getElementById('cellObjectToggle').addEventListener("change", toggleCellObjectJson);
     document.getElementById('jsonEmptyValueFormatDropdown').addEventListener("change", changeEmptyValueFormatJson);
     document.getElementById('jsonNullValueFormatDropdown').addEventListener("change", changeNullValueFormatJson);
     document.getElementById('jsonArraySeparatorCharTextField').addEventListener("change", updateSeparatorCharJson);
@@ -1950,9 +2895,9 @@
   function removeGeneralListeners()
   {
     //Basic
-    if(document.getElementById('formatSelect') != null)
+    /*if(document.getElementById('formatSelect') != null)
     {
-      document.getElementById('formatSelect').addEventListener("change", changeExportFormat);
+      document.getElementById('formatSelect').addEventListener("change", changeExportFormat); //TODO: Should these removeEventListener instead???
     }
     if(document.getElementById('folderSelect') != null)
     {
@@ -1961,12 +2906,16 @@
     if(document.getElementById('sheetSelect') != null)
     {
       document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
-    }
-    if(document.getElementById('replaceToggle') != null)
+    }*/
+    tryGetElementById('formatSelect', (element) => element.removeEventListener("change", changeExportFormat));
+    tryGetElementById('folderSelect', (element) => element.removeEventListener("change", changeExportFolderFormat));
+    tryGetElementById('sheetSelect', (element) => element.removeEventListener("change", changeExportSheets));
+    /*if(document.getElementById('replaceToggle') != null)
     {
       document.getElementById('replaceToggle').removeEventListener("change", toggleReplace);
-    }
-    if(document.getElementById('unwrapSingleRowToggle') != null)
+    }*/
+    //tryGetElementById('replaceToggle', (element) => element.removeEventListener("change", toggleReplace));
+    /*if(document.getElementById('unwrapSingleRowToggle') != null)
     {
       document.getElementById('unwrapSingleRowToggle').removeEventListener("change", toggleUnwrapSingleRows);
     }
@@ -1977,36 +2926,22 @@
     if(document.getElementById('ignoreEmptyCellsToggle') != null)
     {
       document.getElementById('ignoreEmptyCellsToggle').removeEventListener("change", toggleIgnoreEmptyCells);
-    }
+    }*/
+    tryGetElementById('exportBoolsAsIntsToggle', (element) => element.removeEventListener("change", toggleExportBoolsAsInts));
+    tryGetElementById('unwrapSingleRowToggle', (element) => element.removeEventListener("change", toggleUnwrapSingleRows));
+    tryGetElementById('collapseSingleRowToggle', (element) => element.removeEventListener("change", toggleCollapseSingleRows));
+    tryGetElementById('ignoreEmptyCellsToggle', (element) => element.removeEventListener("change", toggleIgnoreEmptyCells));
     
     //Advanced
-    if(document.getElementById('nestedElementsToggle') != null)
-    {
-      document.getElementById('nestedElementsToggle').removeEventListener("change", toggleNestedElements);
-    }
-    if(document.getElementById('minifyDataToggle') != null)
-    {
-      document.getElementById('minifyDataToggle').removeEventListener("change", toggleMinifyData);
-    }
-    if(document.getElementById('firstColumnToggle') != null)
-    {
-      document.getElementById('firstColumnToggle').removeEventListener("change", toggleIncludeFirstColumn);
-    }
-    if(document.getElementById('ignoreColumnsToggle') != null)
-    {
-      document.getElementById('ignoreColumnsToggle').removeEventListener("change", toggleIgnoreColumnsWithPrefix);
-      document.getElementById('ignoreColumnsPrefixTextField').removeEventListener("change", updateIgnorePrefix);
-    }
-    if(document.getElementById('unwrapSheetsToggle') != null)
-    {
-      document.getElementById('unwrapSheetsToggle').removeEventListener("change", toggleUnwrapSheetsWithPrefix);
-      document.getElementById('unwrapSheetsPrefixTextField').removeEventListener("change", updateUnwrapPrefix);
-    }
-    if(document.getElementById('collapseSheetsToggle') != null)
-    {
-      document.getElementById('collapseSheetsToggle').removeEventListener("change", toggleCollapseSheetsWithPrefix);
-      document.getElementById('collapseSheetsPrefixTextField').removeEventListener("change", updateCollapsePrefix);
-    }
+    tryGetElementById('nestedElementsToggle', (element) => element.removeEventListener("change", toggleNestedElements));
+    tryGetElementById('minifyDataToggle', (element) => element.removeEventListener("change", toggleMinifyData));
+    tryGetElementById('firstColumnToggle', (element) => element.removeEventListener("change", toggleIncludeFirstColumn));
+    tryGetElementById('ignoreColumnsToggle', (element) => element.removeEventListener("change", toggleIgnoreColumnsWithPrefix));
+    tryGetElementById('ignoreColumnsPrefixTextField', (element) => element.removeEventListener("change", updateIgnorePrefix));
+    tryGetElementById('unwrapSheetsToggle', (element) => element.removeEventListener("change", toggleUnwrapSheetsWithPrefix));
+    tryGetElementById('unwrapSheetsPrefixTextField', (element) => element.removeEventListener("change", updateUnwrapPrefix));
+    tryGetElementById('collapseSheetsToggle', (element) => element.removeEventListener("change", toggleCollapseSheetsWithPrefix));
+    tryGetElementById('collapseSheetsPrefixTextField', (element) => element.removeEventListener("change", updateCollapsePrefix));
   }
   
   /**
@@ -2015,55 +2950,27 @@
   function removeXmlListeners()
   {
     //Basic
-    if(document.getElementById('elementToggle') != null)
-    {
-      document.getElementById('elementToggle').removeEventListener("change", toggleElement);
-    }
-    if(document.getElementById('exportBoolsAsIntsToggle') != null)
-    {
-      document.getElementById('exportBoolsAsIntsToggle').removeEventListener("change", toggleExportBoolsAsInts);
-    }
-    if(document.getElementById('xmlRootField') != null)
-    {
-      document.getElementById('xmlRootField').removeEventListener("change", updateRootElementXml);
-    }
+    tryGetElementById('elementToggle', (element) => element.removeEventListener("change", toggleElement));
+    tryGetElementById('xmlRootField', (element) => element.removeEventListener("change", updateRootElementXml));
     
     //Advanced
-    if(document.getElementById('xmlNameReplaceCharDropdown') != null)
-    {
-      document.getElementById('xmlNameReplaceCharDropdown').removeEventListener("change", changeNameReplacementCharXml);
-    }
+    tryGetElementById('xmlNameReplaceCharDropdown', (element) => element.removeEventListener("change", changeNameReplacementCharXml));
     
-    if(document.getElementById('xmlIncludeDeclarationToggle') != null)
-    {
-      document.getElementById('xmlIncludeDeclarationToggle').removeEventListener("change", toggleIncludeDeclarationXml);
-      document.getElementById('xmlDeclarationVersionDropdown').removeEventListener("change", changeDeclarationVersionXml);
-      document.getElementById('xmlDeclarationEncodingDropdown').removeEventListener("change", changeDeclarationEncodingXml);
-      document.getElementById('xmlDeclarationStandaloneDropdown').removeEventListener("change", changeDeclarationStandaloneXml);
-    }
+    tryGetElementById('xmlIncludeDeclarationToggle', (element) => element.removeEventListener("change", toggleIncludeDeclarationXml));
+    tryGetElementById('xmlDeclarationVersionDropdown', (element) => element.removeEventListener("change", changeDeclarationVersionXml));
+    tryGetElementById('xmlDeclarationEncodingDropdown', (element) => element.removeEventListener("change", changeDeclarationEncodingXml));
+    tryGetElementById('xmlDeclarationStandaloneDropdown', (element) => element.removeEventListener("change", changeDeclarationStandaloneXml));
     
-    if(document.getElementById('xmlForceAttributeToggle') != null)
-    {
-      document.getElementById('xmlForceAttributeToggle').removeEventListener("change", toggleAttributePrefixXml);
-      document.getElementById('xmlForceAttributesTextField').removeEventListener("change", updateAttributePrefixXml);
-    }
-    if(document.getElementById('xmlForceChildElementToggle') != null)
-    {
-      document.getElementById('xmlForceChildElementToggle').removeEventListener("change", toggleChildElementPrefixXml);
-      document.getElementById('xmlForceChildElementsTextField').removeEventListener("change", updateChildElementPrefixXml);
-    }
-    if(document.getElementById('xmlForceInnerTextToggle') != null)
-    {
-      document.getElementById('xmlForceInnerTextToggle').removeEventListener("change", toggleInnerTextPrefixXml);
-      document.getElementById('xmlForceInnerTextTextField').removeEventListener("change", updateInnerTextPrefixXml);
-    }
+    tryGetElementById('xmlForceAttributeToggle', (element) => element.removeEventListener("change", toggleAttributePrefixXml));
+    tryGetElementById('xmlForceAttributesTextField', (element) => element.removeEventListener("change", updateAttributePrefixXml));
+    tryGetElementById('xmlForceChildElementToggle', (element) => element.removeEventListener("change", toggleChildElementPrefixXml));
+    tryGetElementById('xmlForceChildElementsTextField', (element) => element.removeEventListener("change", updateChildElementPrefixXml));
+    tryGetElementById('xmlForceInnerTextToggle', (element) => element.removeEventListener("change", toggleInnerTextPrefixXml));
+    tryGetElementById('xmlForceInnerTextTextField', (element) => element.removeEventListener("change", updateInnerTextPrefixXml));
     
     //Namespaces
-    if(document.getElementById('xmlRootNamespaceField') != null)
-    {
-      document.getElementById('xmlRootNamespaceField').removeEventListener("change", updateRootNamespaceXml);
-      document.getElementById('newNamespaceButton').removeEventListener("click", addNamespaceXml);
-    }
+    tryGetElementById('xmlRootNamespaceField', (element) => element.removeEventListener("change", updateRootNamespaceXml));
+    tryGetElementById('newNamespaceButton', (element) => element.removeEventListener("click", addNamespaceXml));
   }
   
   /**
@@ -2072,52 +2979,22 @@
   function removeJsonListeners()
   {
     //Basic
-    if(document.getElementById('contentsArrayToggle') != null)
-    {
-      document.getElementById('contentsArrayToggle').removeEventListener("change", toggleContentArrayJson);
-    }
-    if(document.getElementById('cellObjectToggle') != null)
-    {
-      document.getElementById('cellObjectToggle').removeEventListener("change", toggleCellObjectJson);
-    }
-    if(document.getElementById('arrayToggle') != null)
-    {
-      document.getElementById('arrayToggle').removeEventListener("change", toggleArrayJson);
-    }
-    if(document.getElementById('sheetArrayToggle') != null)
-    {
-      document.getElementById('sheetArrayToggle').removeEventListener("change", toggleSheetArrayJson);
-    }
-    if(document.getElementById('valueArrayToggle') != null)
-    {
-      document.getElementById('valueArrayToggle').removeEventListener("change", toggleValueArrayJson);
-    }
-    if(document.getElementById('forceStringToggle') != null)
-    {
-      document.getElementById('forceStringToggle').removeEventListener("change", toggleForceStringJson);
-    }
-    if(document.getElementById('jsonEmptyValueFormatDropdown') != null)
-    {
-      document.getElementById('jsonEmptyValueFormatDropdown').removeEventListener("change", changeEmptyValueFormatJson);
-    }
-    if(document.getElementById('jsonNullValueFormatDropdown') != null)
-    {
-      document.getElementById('jsonNullValueFormatDropdown').removeEventListener("change", changeNullValueFormatJson);
-    }
-    if(document.getElementById('jsonArraySeparatorCharTextField') != null)
-    {
-      document.getElementById('jsonArraySeparatorCharTextField').removeEventListener("change", updateSeparatorCharJson);
-    }
-    if(document.getElementById('jsonForceArrayToggle') != null)
-    {
-      document.getElementById('jsonForceArrayToggle').removeEventListener("change", toggleArrayPrefixJson);
-      document.getElementById('jsonForceArrayTextField').removeEventListener("change", updateArrayPrefixJson);
-    }
-    if(document.getElementById('nestForceArrayToggle') != null)
-    {
-      document.getElementById('nestForceArrayToggle').removeEventListener("change", toggleArrayPrefixNest);
-      document.getElementById('nestForceArrayTextField').removeEventListener("change", updateArrayPrefixNest);
-    }
+    tryGetElementById('replaceFileJson', (element) => element.addEventListener("change", changeReplaceFileTypeJson));
+    tryGetElementById('forceStringToggle', (element) => element.removeEventListener("change", toggleForceStringJson));
+    tryGetElementById('arrayToggle', (element) => element.removeEventListener("change", toggleArrayJson));
+    tryGetElementById('sheetArrayToggle', (element) => element.removeEventListener("change", toggleSheetArrayJson));
+    tryGetElementById('valueArrayToggle', (element) => element.removeEventListener("change", toggleValueArrayJson));
+    
+    //Advanced
+    tryGetElementById('contentsArrayToggle', (element) => element.removeEventListener("change", toggleContentArrayJson));
+    tryGetElementById('cellObjectToggle', (element) => element.removeEventListener("change", toggleCellObjectJson));
+    tryGetElementById('jsonEmptyValueFormatDropdown', (element) => element.removeEventListener("change", changeEmptyValueFormatJson));
+    tryGetElementById('jsonNullValueFormatDropdown', (element) => element.removeEventListener("change", changeNullValueFormatJson));
+    tryGetElementById('jsonArraySeparatorCharTextField', (element) => element.removeEventListener("change", updateSeparatorCharJson));
+    tryGetElementById('jsonForceArrayToggle', (element) => element.removeEventListener("change", toggleArrayPrefixJson));
+    tryGetElementById('jsonForceArrayTextField', (element) => element.removeEventListener("change", updateArrayPrefixJson));
+    tryGetElementById('nestForceArrayToggle', (element) => element.removeEventListener("change", toggleArrayPrefixNest));
+    tryGetElementById('nestForceArrayTextField', (element) => element.removeEventListener("change", updateArrayPrefixNest));
   }
   
   /**
@@ -2127,7 +3004,7 @@
   {
     visualizeData = true;
   
-    if(exportType === EXP_TYPE_XML) exportXml();
+    if(exportFormatType === ExportFormats.XML) exportXml();
     else exportJson();
     
     setProperties();
@@ -2140,7 +3017,7 @@
   {
     visualizeData = false;
   
-    if(exportType === EXP_TYPE_XML) exportXml();
+    if(exportFormatType === ExportFormats.XML) exportXml();
     else exportJson();
     
     setProperties();
@@ -2151,11 +3028,11 @@
    **/
   function exportXml()
   {
-    if(exportSheets === EXP_SHEET_SINGLE)
+    if(exportSheetsType === ExportSheetTypes.CurrentOnly)
     {
-      getActiveName(exportXmlSingle);
+      getActiveSheetNameAndId(exportXmlSingle);
     }
-    else if(exportSheets === EXP_SHEET_CUSTOM)
+    else if(exportSheetsType === ExportSheetTypes.Custom)
     {
       google.script.run.withFailureHandler(onCatastrophicError).exportXml(generateXmlSettings(false, targetSheets));
     }
@@ -2170,8 +3047,9 @@
    **/
   function exportXmlSingle(sheet)
   {
-    var newSheets = { };
-    newSheets[sheet] = 'true';
+    let newSheets = { };
+    //newSheets[sheet] = 'true';
+    newSheets[sheet["id"].toString()] = true;
     
     google.script.run.withFailureHandler(onCatastrophicError).exportXml(generateXmlSettings(true, newSheets));
   }
@@ -2181,11 +3059,11 @@
    **/
   function exportJson()
   {
-    if(exportSheets === EXP_SHEET_SINGLE)
+    if(exportSheetsType === ExportSheetTypes.CurrentOnly)
     {
-      getActiveName(exportJsonSingle);
+      getActiveSheetNameAndId(exportJsonSingle);
     }
-    else if(exportSheets === EXP_SHEET_CUSTOM)
+    else if(exportSheetsType === ExportSheetTypes.Custom)
     {
       google.script.run.withFailureHandler(onCatastrophicError).exportJson(generateJsonSettings(false, targetSheets));
     }
@@ -2200,8 +3078,9 @@
    **/
   function exportJsonSingle(sheet)
   {
-    var newSheets = { };
-    newSheets[sheet] = 'true';
+    let newSheets = { };
+    //newSheets[sheet] = 'true';
+    newSheets[sheet["id"].toString()] = true;
     
     google.script.run.withFailureHandler(onCatastrophicError).exportJson(generateJsonSettings(true, newSheets));
   }
