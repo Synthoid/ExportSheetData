@@ -1,10 +1,3 @@
----
-layout: docs
-title: Namespaces
-description: Documentation for Export Sheet Data's 'Namespaces' option.
-group: xml
----
-
 Namespaces
 ----------
 Namespaces used for the exported XML's elements. Attributes and elements can be declared with a namespace by using a name prefix. For example: `ss:Type`, `x:Width`, `mx:Platform`, ect. To add a namespace, click the `+` button next to the Namespaces label. To remove a namespace, click the `-` button next to the namespace's prefix label.

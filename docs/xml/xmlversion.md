@@ -1,10 +1,3 @@
----
-layout: docs
-title: XML Version
-description: Documentation for Export Sheet Data's 'XML version' option.
-group: xml
----
-
 XML version
 -----------
 Specifies the version of the XML standard shown in the XML declaration.

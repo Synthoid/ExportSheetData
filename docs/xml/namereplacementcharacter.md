@@ -1,10 +1,3 @@
----
-layout: docs
-title: Name Replacement Character
-description: Documentation for Export Sheet Data's 'Name replacement character' option.
-group: xml
----
-
 Name replacement character
 --------------------------
 Specifies the character that replaces illegal characters in XML element names.

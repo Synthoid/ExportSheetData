@@ -1,10 +1,3 @@
----
-layout: docs
-title: Export Value Arrays
-description: Documentation for Export Sheet Data's 'Export value arrays' option.
-group: json
----
-
 Export value arrays
 -------------------
 Export value arrays will export a sheet as a JSON array, with each row being used as a single element of the array, if it only contains one column.
@@ -24,15 +17,15 @@ Three|
 *Default Output:*
 ```json
 {
-  "Random" : {
-    "1" : {
-      "Values":1
+  "Random": {
+    "1": {
+      "Values": 1
     },
-    "true" : {
-      "Values":true
+    "true": {
+      "Values": true
     },
-    "Three" : {
-      "Values":"Three"
+    "Three": {
+      "Values": "Three"
     }
   }
 }
@@ -41,7 +34,7 @@ Three|
 *Value Array Output:*
 ```json
 {
-  "Values" : [
+  "Values": [
     1,
     true,
     "Three"

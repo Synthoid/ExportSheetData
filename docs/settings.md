@@ -1,10 +1,3 @@
----
-layout: docs
-title: Settings
-description: Import/Export settings.
-group: overview
----
-
 Importing and Exporting ESD Settings
 ------------------------------------
 As of v65, ESD supports exporting and importing settings via JSON strings. This is handled by the settings menu, which can be opened by selecting the "Settings" menu item:

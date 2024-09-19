@@ -1,10 +1,3 @@
----
-layout: docs
-title: Include First Column in Export
-description: Documentation for Export Sheet Data's 'Include first column in export' option.
-group: general
----
-
 Include first column in export
 ------------------------------
 Include the first column of each row as a distinct element in addition to it being used for the name of the row element.

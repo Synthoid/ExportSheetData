@@ -1,10 +1,3 @@
----
-layout: docs
-title: Array Prefix
-description: Documentation for Export Sheet Data's 'Array prefix' option.
-group: json
----
-
 Array prefix
 ------------
 Converts columns or sheets using the given prefix into JSON arrays. When enabled, the prefix is stripped from the output keys. (So the field `JA_Effects` will export as `Effects`)
@@ -18,7 +11,7 @@ This is useful when you may have certain cells with only one value, but you are 
 **Sheet name: `Spells`**
 
 Spell | Description | JA_Effects
------ | ----------- | -------
+----- | ----------- | ----------
 Cold Touch | Deal frost damage to enemies in melee range. | Freeze
 Fireball | Casts a fireball that can reach ranged enemies. | Burn
 Frostfire | Creates an explosion of cold fire affecting everyone around you. | Burn, Freeze
@@ -84,10 +77,10 @@ This is useful when you want some sheets to export as JSON arrays while others e
 
 ### Example: ###
 
-**Sheetname: JA_Spells**
+**Sheetname: `JA_Spells`**
 
 Spell | Description | JA_Effects
------ | ----------- | -------
+----- | ----------- | ----------
 Cold Touch | Deal frost damage to enemies in melee range. | Freeze
 Fireball | Casts a fireball that can reach ranged enemies. | Burn
 Frostfire | Creates an explosion of cold fire affecting everyone around you. | Burn, Freeze

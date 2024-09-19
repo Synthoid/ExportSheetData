@@ -1,10 +1,3 @@
----
-layout: docs
-title: Root Namespace URI
-description: Documentation for Export Sheet Data's 'Root namespace URI' option.
-group: xml
----
-
 Root namespace URI
 ------------------
 The root namespace used for the exported XML's elements.
@@ -16,7 +9,7 @@ This is defined via the `xmlns` attribute in the document's root element.
 **Sheet: `SheetPrograms`**
 
 Name | Company | ID
----- | ------- | -----------
+---- | ------- | --
 Excel | Microsoft | MS
 Sheets | Google | G
 Numbers | Apple | A

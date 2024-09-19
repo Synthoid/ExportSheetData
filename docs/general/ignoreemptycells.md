@@ -1,10 +1,3 @@
----
-layout: docs
-title: Ignore Empty Cells
-description: Documentation for Export Sheet Data's 'Ignore empty cells' option.
-group: general
----
-
 Ignore empty cells
 ------------------
 Prevent cells with empty values from being exported.

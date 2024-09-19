@@ -1,10 +1,3 @@
----
-layout: docs
-title: FAQ
-description: Frequently asked questions.
-group: overview
----
-
 Frequently Asked Questions
 --------------------------
 This page contains answers to some frequently asked questions about ESD.
@@ -14,14 +7,14 @@ Authorization Scopes
 --------------------
 ESD is an add-on for Google Sheets, and as such requires specific authorizations to function. These scopes (ordered by their official google api URLs) are:
 
-- `https://www.googleapis.com/auth/drive`
-  - Grants access to Google Drive files and folders.
+- `https://www.googleapis.com/auth/drive.file`
+  - Grants access to Google Drive files and folders that were created by ESD or specifically targeted by you via the Google Picker.
   - Needed for:
     - File creation when exporting data.
-    - Adjusting file contents when exporting data with [Replace existing file(s)](general/replaceexistingfiles.md) enabled.
+    - Updating contents of files selected via file picker.
     - Accessing folders via file picker when setting custom export locations.
-- `https://www.googleapis.com/auth/spreadsheets`
-  - Grants access to spreadsheet data.
+- `https://www.googleapis.com/auth/spreadsheets.currentonly`
+  - Grants access to data in the current spreadsheet.
   - Needed to access spreadsheet data when exporting JSON or XML.
 - `https://www.googleapis.com/auth/script.container.ui`
   - Grants access to Google's UI.

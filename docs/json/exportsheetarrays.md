@@ -1,13 +1,9 @@
----
-layout: docs
-title: Export Sheet Arrays
-description: Documentation for Export Sheet Data's 'Export sheet arrays' option.
-group: json
----
-
 Export sheet arrays
 -------------------
 Export sheet arrays will export sheets as JSON arrays with each row creating an element in the array.
+
+> [!NOTE]
+> This setting will force the first column to be included in each row's object.
 
 ### Example: ###
 
@@ -22,18 +18,15 @@ Sony | Playstation 4
 *Default Output:*
 ```json
 {
-  "Companies" : {
-    "Microsoft" : {
-      "Name":"Microsoft",
-      "Console":"Xbox One"
+  "Companies": {
+    "Microsoft": {
+      "Console": "Xbox Series X"
     },
-    "Nintendo" : {
-      "Name":"Nintendo",
-      "Console":"Switch"
+    "Nintendo": {
+      "Console": "Switch"
     },
-    "Sony" : {
-      "Name":"Sony",
-      "Console":"Playstation 4"
+    "Sony": {
+      "Console": "Playstation 5"
     }
   }
 }
@@ -42,18 +35,18 @@ Sony | Playstation 4
 *Sheet Array Output:*
 ```json
 {
-  "Companies" : [
+  "Companies": [
     {
-      "Name":"Microsoft",
-      "Console":"Xbox One"
+      "Name": "Microsoft",
+      "Console": "Xbox One"
     },
     {
-      "Name":"Nintendo",
-      "Console":"Switch"
+      "Name": "Nintendo",
+      "Console": "Switch"
     },
     {
-      "Name":"Sony",
-      "Console":"Playstation 4"
+      "Name": "Sony",
+      "Console": "Playstation 4"
     }
   ]
 }

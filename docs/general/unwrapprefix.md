@@ -1,10 +1,3 @@
----
-layout: docs
-title: Unwrap Sheet Prefix
-description: Documentation for Export Sheet Data's 'Unwrap sheet prefix' option.
-group: general
----
-
 Unwrap sheet prefix
 -------------------
 Sheets with names prefaced with the unwrap prefix value will be unwrapped.

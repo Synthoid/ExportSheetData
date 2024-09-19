@@ -1,10 +1,3 @@
----
-layout: docs
-title: Empty value format
-description: Documentation for Export Sheet Data's 'Empty value format' option.
-group: json
----
-
 Empty value format
 ------------------
 Value exported for empty cells.

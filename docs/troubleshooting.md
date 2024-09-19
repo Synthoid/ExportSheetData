@@ -1,10 +1,3 @@
----
-layout: docs
-title: Troubleshooting
-description: Support page for dealing with common issues.
-group: overview
----
-
 Troubleshooting
 ---------------
 
@@ -30,7 +23,7 @@ My file is taking a long time to export
 ---------------------------------------
 Google allocates resources for Apps Script operations as they are available. This means that exports can vary in their duration depending on time of day and traffic, and of course the amount of data being exported.
 
-Currently, XML exports of large data sets (ie 1,000's of lines) can take a few minutes to export due to using [XmlService](https://developers.google.com/apps-script/reference/xml-service/xml-service) to create XML. A custom version of XmlService is being written currently that exports dramatically faster (less than 1 second vs 80 seconds). This is targeted to be released with v66.
+Currently, XML exports of large data sets (ie 1,000's of lines) can take a few minutes to export due to using [XmlService](https://developers.google.com/apps-script/reference/xml-service/xml-service) to create XML. A custom version of XmlService is being written currently that exports dramatically faster (less than 1 second vs 80 seconds). This is targeted to be released with v67.
 
 ***NOTE: Google does not allow processes to run longer than 360 seconds (6 minutes). If an export process takes longer than this, it will fail.***
 
@@ -72,4 +65,4 @@ This issue can arrise when arise when [Nested Elements](general/nestedelements.m
 
 Boolean and number values are exporting as strings
 --------------------------------------------------
-There are two possibilities here. The first thing to check is if the [Force string values](json/forcestringvalues.md) option in enabled. If that is not enabled, make sure the cell is properly declared as a boolean or number. JSON value types are pulled from the sheet itself, so if the sheet sees the value `true` as a string instead of a boolean, or the value `101` as a string instead of an integer, they will be exported as strings.
+There are two possibilities here. The first thing to check is if the [Force string values](json/forcestringvalues.md) option in enabled. If that is not enabled, make sure the cell is properly declared as a boolean or number. JSON value types are pulled from the sheet itself, so if the sheet sees the value `true` as a string instead of a boolean, or the value `101` as a string instead of an integer, they will be exported as strings. This can occur if the cell value in question was formatted to be plain text.

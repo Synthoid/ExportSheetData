@@ -1,10 +1,3 @@
----
-layout: docs
-title: XML Tips & Tricks
-description: Tips for XML functionality
-group: xml
----
-
 XML Tips & Tricks
 -----------------
 This section covers how to use some more obscure XML functionality in ESD. These tips only apply when targeting the XML export format.

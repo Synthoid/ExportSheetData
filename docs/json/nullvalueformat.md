@@ -1,10 +1,3 @@
----
-layout: docs
-title: Null value format
-description: Documentation for Export Sheet Data's 'Null value format' option.
-group: json
----
-
 Null value format
 -----------------
 Value exported for cells containing the string "null".
@@ -16,14 +9,14 @@ Null will export cells with a standard JSON `null` value while String will expor
 **Sheet name: `Test`**
 
 ID | Value
----- | ------
+-- | -----
 Null Value | null
 
 *Null Output:*
 ```json
 {
-  "Test" : {
-    "Null Value" : null
+  "Test": {
+    "Null Value": null
   }
 }
 ```
@@ -32,8 +25,8 @@ Null Value | null
 ```json
 
 {
-  "Test" : {
-    "Null Value" : "null"
+  "Test": {
+    "Null Value": "null"
   }
 }
 ```

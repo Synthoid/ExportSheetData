@@ -1,10 +1,3 @@
----
-layout: docs
-title: Collapse Single Row Sheets
-description: Documentation for Export Sheet Data's 'Collapse single row sheets' option.
-group: general
----
-
 Collapse single row sheets
 -------------
 Remove the wrapping element of a sheet that has only one row (not including the keys row).

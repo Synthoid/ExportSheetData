@@ -1,10 +1,3 @@
----
-layout: docs
-title: Collapse Sheet Prefix
-description: Documentation for Export Sheet Data's 'Collapse sheet prefix' option.
-group: general
----
-
 Collapse sheet prefix
 ---------------------
 Sheets with names prefaced with the collapse prefix value will be collapsed if they have only one row of data (not counting keys).

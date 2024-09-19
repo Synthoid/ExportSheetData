@@ -1,10 +1,3 @@
----
-layout: docs
-title: Export Sheets
-description: Documentation for Export Sheet Data's 'Export Sheet(s)' option.
-group: format
----
-
 Export Sheet(s)
 ---------------
 

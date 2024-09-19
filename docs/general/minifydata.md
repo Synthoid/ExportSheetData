@@ -1,10 +1,3 @@
----
-layout: docs
-title: Minify Data
-description: Documentation for Export Sheet Data's 'Minify data' option.
-group: general
----
-
 Minify Data
 -----------
 Removes human readability formatting from exported data to produce a smaller file. The data is exactly the same, just without indentation and formatting used to make it more easily readable by humans.
@@ -20,8 +13,6 @@ Name | Type1 | Type2 | Move1 | Move2 | Move3 | Move4
 Bulbasaur | Grass | | Tackle | Growl | Leech Seed | Vine Whip
 Ivysaur | Grass | Poison | Leech Seed | Vine Whip | Sleep Powder | Take Down
 Venusaur | Grass | Poison | Leech Seed | Razor Leaf | Synthesis | Solar Beam
-
-
 
 *Default Outputs:*
 
@@ -153,4 +144,4 @@ Format | Default | Minified
 JSON | 6 KB | 4 KB
 XML | 7 KB | 5 KB
 
-A file with just 34 rows is about 2 KB smaller after minifiying. Imagine 151 rows, or 251, or 898!
+A file with just 34 rows is about 2 KB smaller after minifiying. Imagine 151 rows, or 251, or 1025!
