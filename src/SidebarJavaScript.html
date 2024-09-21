@@ -71,8 +71,6 @@
   const Keys = {
     Content: {
       Format: "exportType",
-      //Folder: "exportFolder", //TODO: Archive...
-      //FolderType: "exportFolderType", //TODO: Archive...
       Visualize: "visualize",
       SingleSheet: "singleSheet",
       Sheets: "exportSheets",
@@ -358,7 +356,7 @@
       {
         try
         {
-          let sheetIds = newValue;//JSON.parse(newValue);
+          let sheetIds = newValue;
           targetSheets = {};
 
           for(let i=0; i < sheetIds.length; i++)
@@ -372,16 +370,8 @@
         }
       }
     });
-    //if(settings.hasOwnProperty(Keys.Content.Format)) exportFormatType = settings[Keys.Content.Format];
-    //if(settings.hasOwnProperty(Keys.Content.Sheets)) exportSheets = settings[Keys.Content.Sheets] === "" ? exportSheets : settings[Keys.Content.Sheets];
-    //if(settings.hasOwnProperty(Keys.Content.TargetSheets)) targetSheets = settings[Keys.Content.TargetSheets] === "" ? targetSheets : JSON.parse(settings[Keys.Content.TargetSheets]);
     
     //General
-    //replaceExistingFiles = settings.hasOwnProperty(Keys.General.ReplaceFiles) ? settings[Keys.General.ReplaceFiles] === true : false;
-    //if(settings.hasOwnProperty(Keys.General.UnwrapSingle)) unwrapSingleRows = settings[Keys.General.UnwrapSingle] === true;
-    //if(settings.hasOwnProperty(Keys.General.CollapseSingle)) collapseSingleRows = settings[Keys.General.CollapseSingle] === true;
-    //if(settings.hasOwnProperty(Keys.General.IgnoreEmpty)) ignoreEmptyCells = settings[Keys.General.IgnoreEmpty] === true;
-
     tryValidateValue(settings, Keys.General.Minify, (newValue) => minifyData = newValue === true);
     tryValidateValue(settings, Keys.General.BoolsAsInts, (newValue) => exportBoolsAsInts = newValue === true);
     tryValidateValue(settings, Keys.General.IgnoreEmpty, (newValue) => ignoreEmptyCells = newValue === true);
@@ -460,65 +450,6 @@
     tryValidateValue(exportXmlSettings, Keys.Export.XML.ReplaceFile, (newValue) => replaceFileXmlId = newValue);
     tryValidateValue(exportXmlSettings, Keys.Export.XML.ReplaceFileType, (newValue) => replaceFileXmlType = newValue);
     
-    //Format
-    /*exportFormatType = settings["exportType"] != null ? settings["exportType"] : exportFormatType;
-    exportFolderType = settings["exportFolderType"] != null ? settings["exportFolderType"] : exportFolderType;
-    exportFolderId = settings["exportFolder"] != null ? settings["exportFolder"] : exportFolderId;
-    exportSheets = settings["exportSheets"] != null ? (settings["exportSheets"] === "" ? exportSheets : settings["exportSheets"]) : exportSheets;
-    targetSheets = settings["targetSheets"] != null ? (settings["targetSheets"] === "" ? targetSheets : JSON.parse(settings["targetSheets"])) : targetSheets;
-    
-    //General
-    replaceExistingFiles = settings["replaceExistingFiles"] != null ? settings["replaceExistingFiles"] === true : false;
-    unwrapSingleRows = settings["unwrapSingleRows"] != null ? settings["unwrapSingleRows"] === true : false;
-    collapseSingleRows = settings["collapseSingleRows"] != null ? settings["collapseSingleRows"] === true : false;
-    ignoreEmptyCells = settings["ignoreEmptyCells"] != null ? settings["ignoreEmptyCells"] === true : false;
-    
-    //Advanced
-    nestedElements = settings["nestedElements"] != null ? settings["nestedElements"] === true : false;
-    minifyData = settings["minifyData"] != null ? settings["minifyData"] === true : minifyData;
-    includeFirstColumn = settings["includeFirstColumn"] != null ? settings["includeFirstColumn"] === true : includeFirstColumn;
-    ignoreColumnsWithPrefix = settings["ignoreColumnsWithPrefix"] != null ? settings["ignoreColumnsWithPrefix"] === true : false;
-    ignoreColumnsPrefix = settings["ignorePrefix"] != null ? (settings["ignorePrefix"] === "" ? IGNORE_COLUMN_DEFAULT : settings["ignorePrefix"]) : IGNORE_COLUMN_DEFAULT;
-    unwrapSheetsWithPrefix = settings["unwrapSheetsWithPrefix"] != null ? settings["unwrapSheetsWithPrefix"] === true : false;
-    unwrapSheetsPrefix = settings["unwrapPrefix"] != null ? (settings["unwrapPrefix"] === "" ? UNWRAP_SHEETS_DEFAULT : settings["unwrapPrefix"]) : UNWRAP_SHEETS_DEFAULT;
-    collapseSheetsWithPrefix = settings["collapseSheetsWithPrefix"] != null ? settings["collapseSheetsWithPrefix"] === true : false;
-    collapseSheetsPrefix = settings["collapsePrefix"] != null ? (settings["collapsePrefix"] === "" ? COLLAPSE_SHEETS_DEFAULT : settings["collapsePrefix"]) : COLLAPSE_SHEETS_DEFAULT;
-    
-    //JSON
-    exportCellArrayJson = settings["exportCellArray"] != null ? settings["exportCellArray"] === true : exportCellArrayJson;
-    exportSheetArrayJson = settings["exportSheetArray"] != null ? settings["exportSheetArray"] === true : exportSheetArrayJson;
-    exportValueArrayJson = settings["exportValueArray"] != null ? settings["exportValueArray"] === true : exportValueArrayJson;
-    forceStringJson = settings["forceString"] != null ? settings["forceString"] === true : forceStringJson;
-    //Advanced JSON
-    exportContentsAsArrayJson = settings["exportContentsAsArray"] != null ? settings["exportContentsAsArray"] === true : exportContentsAsArrayJson;
-    exportCellObjectJson = settings["exportCellObject"] != null ? settings["exportCellObject"] === true : exportCellObjectJson;
-    emptyValueFormatJson = settings["emptyValueFormat"] != null ? (settings["emptyValueFormat"] === "" ? emptyValueFormatJson : settings["emptyValueFormat"]) : emptyValueFormatJson;
-    nullValueFormatJson = settings["nullValueFormat"] != null ? (settings["nullValueFormat"] === "" ? nullValueFormatJson : settings["nullValueFormat"]) : nullValueFormatJson;
-    arraySeparatorCharJson = settings["separatorChar"] != null ? (settings["separatorChar"] === "" ? "," : settings["separatorChar"]) : JSON_SEPARATOR_DEFAULT;
-    forceArrayJson = settings["forceArray"] != null ? settings["forceArray"] === true : forceArrayJson;
-    forceArrayPrefixJson = settings["forceArrayPrefix"] != null ? (settings["forceArrayPrefix"] === "" ? JSON_JA_DEFAULT : settings["forceArrayPrefix"]) : JSON_JA_DEFAULT;
-    forceArrayNest = settings["forceArrayNest"] != null ? settings["forceArrayNest"] === true : forceArrayNest;
-    forceArrayPrefixNest = settings["forceArrayPrefixNest"] != null ? (settings["forceArrayPrefixNest"] === "" ? NEST_NA_DEFAULT : settings["forceArrayPrefixNest"]) : NEST_NA_DEFAULT;
-    
-    //XML
-    exportChildElementXml = settings["exportChildElements"] != null ? settings["exportChildElements"] === true : exportChildElementXml;
-    exportBoolsAsIntsXml = settings["exportBoolsAsInts"] != null ? settings["exportBoolsAsInts"] === true : exportBoolsAsIntsXml;
-    rootElementXml = settings["rootElement"] != null ? (settings["rootElement"] === "" ? rootElementXml : settings["rootElement"]) : rootElementXml;
-    //Advanced XML
-    nameReplacementCharXml = settings["nameReplacementChar"] != null ? (settings["nameReplacementChar"] === "" ? nameReplacementCharXml : settings["nameReplacementChar"]) : nameReplacementCharXml;
-    includeDeclarationXml = settings["includeDeclaration"] != null ? settings["includeDeclaration"] === true : includeDeclarationXml;
-    declarationVersionXml = settings["declarationVersion"] != null ? (settings["declarationVersion"] === "" ? declarationVersionXml : settings["declarationVersion"]) : declarationVersionXml;
-    declarationEncodingXml = settings["declarationEncoding"] != null ? (settings["declarationEncoding"] === "" ? declarationEncodingXml : settings["declarationEncoding"]) : declarationEncodingXml;
-    declarationStandaloneXml = settings["declarationStandalone"] != null ? (settings["declarationStandalone"] === "" ? declarationStandaloneXml : settings["declarationStandalone"]) : declarationStandaloneXml;
-    forceAttributesXml = settings["forceAttributes"] != null ? settings["forceAttributes"] === true : forceAttributesXml;
-    forceAttributesPrefixXml = settings["attributePrefix"] != null ? (settings["attributePrefix"] === "" ? forceAttributesPrefixXml : settings["attributePrefix"]) : forceAttributesPrefixXml;
-    forceChildElementsXml = settings["forceChildElements"] != null ? settings["forceChildElements"] === true : forceChildElementsXml;
-    forceChildElementsPrefixXml = settings["childElementPrefix"] != null ? (settings["childElementPrefix"] === "" ? forceChildElementsPrefixXml : settings["childElementPrefix"]) : forceChildElementsPrefixXml;
-    forceInnerTextXml = settings["forceInnerText"] != null ? settings["forceInnerText"] === true : forceInnerTextXml;
-    forceInnerTextPrefixXml = settings["innerTextPrefix"] != null ? (settings["innerTextPrefix"] === "" ? forceInnerTextPrefixXml : settings["innerTextPrefix"]) : forceInnerTextPrefixXml;
-    rootNamespace = settings["rootNamespace"] != null ? (settings["rootNamespace"] === "" ? rootNamespace : settings["rootNamespace"]) : rootNamespace;
-    namespaces = settings["namespaces"] != null ? settings["namespaces"] : namespaces;*/
-    
     //Enable export and visualize buttons
     document.getElementById("exportButton").disabled = false;
     document.getElementById("visualizeButton").disabled = false;
@@ -532,65 +463,6 @@
    **/
   function generateProperties()
   {
-    //TODO: Create nested sections for JSON/XML
-    /*let properties = {
-      //Format settings
-      "exportType" : exportFormatType,
-      "exportFolderType" : exportFolderType,
-      "exportFolder" : exportFolderId,
-      "exportSheets" : exportSheets,
-      "targetSheets" : JSON.stringify(targetSheets),
-      //General settings
-      "replaceExistingFiles" : replaceExistingFiles,
-      "unwrapSingleRows" : unwrapSingleRows,
-      "collapseSingleRows" : collapseSingleRows,
-      "ignoreEmptyCells" : ignoreEmptyCells,
-      //Advanced
-      "ignoreColumnsWithPrefix" : ignoreColumnsWithPrefix,
-      "minifyData" : minifyData,
-      "includeFirstColumn" : includeFirstColumn,
-      "ignorePrefix" : (ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix),
-      "unwrapSheetsWithPrefix" : unwrapSheetsWithPrefix,
-      "unwrapPrefix" : (unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix),
-      "collapseSheetsWithPrefix" : collapseSheetsWithPrefix,
-      "collapsePrefix" : (collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix),
-      //Nested Elements
-      "nestedElements" : nestedElements,
-      "forceArrayNest" : forceArrayNest,
-      "forceArrayPrefixNest" : (forceArrayPrefixNest === "" ? NEST_NA_DEFAULT : forceArrayPrefixNest),
-      //JSON
-      "forceString" : forceStringJson,
-      "exportCellArray" : exportCellArrayJson,
-      "exportSheetArray" : exportSheetArrayJson,
-      "exportValueArray" : exportValueArrayJson,
-      //Advanced
-      "exportContentsAsArray" : exportContentsAsArrayJson,
-      "exportCellObject" : exportCellObjectJson,
-      "emptyValueFormat" : emptyValueFormatJson,
-      "nullValueFormat" : nullValueFormatJson,
-      "separatorChar" : getSeparatorCharJson(),
-      "forceArray" : forceArrayJson,
-      "forceArrayPrefix" : (forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson),
-      //XML
-      "exportChildElements" : exportChildElementXml,
-      "exportBoolsAsInts" : exportBoolsAsIntsXml,
-      "rootElement" : getRootElement(),
-      //Advanced
-      "nameReplacementChar" : nameReplacementCharXml,
-      "includeDeclaration" : includeDeclarationXml,
-      "declarationVersion" : declarationVersionXml,
-      "declarationEncoding" : declarationEncodingXml,
-      "declarationStandalone" : declarationStandaloneXml,
-      "forceAttributes" : forceAttributesXml,
-      "attributePrefix" : (forceAttributesPrefixXml === "" ? XML_ATT_DEFAULT : forceAttributesPrefixXml),
-      "forceChildElements" : forceChildElementsXml,
-      "childElementPrefix" : (forceChildElementsPrefixXml === "" ? XML_CE_DEFAULT : forceChildElementsPrefixXml),
-      "forceInnerText" : forceInnerTextXml,
-      "innerTextPrefix" : (forceInnerTextPrefixXml === "" ? XML_IT_DEFAULT : forceInnerTextPrefixXml),
-      "rootNamespace" : rootNamespace,
-      "namespaces" : namespaces
-    };*/
-
     let properties = {};
     let exportProperties = {};
     let exportJsonProperties = {};
@@ -617,9 +489,8 @@
     //Format
     properties[Keys.Content.Format] = exportFormatType;
     properties[Keys.Content.Visualize] = visualizeData;
-    //properties[Keys.Content.SingleSheet] = singleSheet;
     properties[Keys.Content.Sheets] = exportSheetsType;
-    properties[Keys.Content.TargetSheets] = exportSheetsType === ExportSheetTypes.All ? null : getTargetSheetsArray(targetSheets);//JSON.stringify(targetSheets);
+    properties[Keys.Content.TargetSheets] = exportSheetsType === ExportSheetTypes.All ? null : getTargetSheetsArray(targetSheets);
 
     //General
     properties[Keys.General.Minify] = minifyData;
@@ -683,43 +554,6 @@
    **/
   function generateXmlSettings(singleSheet, sheetsToExport)
   {
-    //TODO: Create nested sections for JSON/XML
-    /*let settings = {
-      //Format
-      "exportType" : exportFormatType,
-      "exportFolderType" : exportFolderType,
-      "exportFolder" : exportFolderId,
-      "visualize" : visualizeData,
-      "singleSheet" : singleSheet,
-      //General
-      "replaceExistingFiles" : replaceExistingFiles,
-      "unwrapSingleRows" : unwrapSingleRows,
-      "collapseSingleRows" : collapseSingleRows,
-      "ignoreEmptyCells" : ignoreEmptyCells,
-      //Advanced
-      "nestedElements" : nestedElements,
-      "minifyData" : minifyData,
-      "includeFirstColumn" : includeFirstColumn,
-      "ignorePrefix" : getIgnorePrefix(),
-      "unwrapPrefix" : getUnwrapPrefix(),
-      "collapsePrefix" : getCollapsePrefix(),
-      "targetSheets" : exportSheets,
-      //XML
-      "exportChildElements" : exportChildElementXml,
-      "exportBoolsAsInts" : exportBoolsAsIntsXml,
-      "rootElement" : getRootElement(),
-      //Advanced
-      "nameReplacementChar" : nameReplacementCharXml,
-      "declarationVersion" : getDeclarationVersion(),
-      "declarationEncoding" : getDeclarationEncoding(),
-      "declarationStandalone" : getDeclarationStandalone(),
-      "attributePrefix" : getAttributePrefix(),
-      "childElementPrefix" : getChildElementPrefix(),
-      "innerTextPrefix" : getInnerTextPrefix(),
-      "rootNamespace" : rootNamespace,
-      "namespaces" : namespaces
-    };*/
-
     let settings = {};
     let exportSettings = {};
     let exportXmlSettings = {};
@@ -785,41 +619,6 @@
    **/
   function generateJsonSettings(singleSheet, sheetsToExport)
   {
-    //TODO: Create nested sections for JSON/XML
-    /*let settings = {
-      //Format
-      "exportType" : exportFormatType,
-      "exportFolderType" : exportFolderType,
-      "exportFolder" : exportFolderId,
-      "visualize" : visualizeData,
-      "singleSheet" : singleSheet,
-      //General
-      "replaceExistingFiles" : replaceExistingFiles,
-      "unwrapSingleRows" : unwrapSingleRows,
-      "collapseSingleRows" : collapseSingleRows,
-      "ignoreEmptyCells" : ignoreEmptyCells,
-      //Advanced
-      "nestedElements" : nestedElements,
-      "minifyData" : minifyData,
-      "includeFirstColumn" : includeFirstColumn,
-      "ignorePrefix" : getIgnorePrefix(),
-      "unwrapPrefix" : getUnwrapPrefix(),
-      "collapsePrefix" : getCollapsePrefix(),
-      "targetSheets" : exportSheets,
-      //JSON
-      "forceString" : forceStringJson,
-      "exportCellArray" : exportCellArrayJson,
-      "exportSheetArray" : exportSheetArrayJson,
-      "exportValueArray" : exportValueArrayJson,
-      "exportContentsAsArray" : exportContentsAsArrayJson,
-      "exportCellObject" : exportCellObjectJson,
-      "emptyValueFormat" : emptyValueFormatJson,
-      "nullValueFormat" : nullValueFormatJson,
-      "separatorChar" : getSeparatorCharJson(),
-      "forceArrayPrefix" : getForceArrayPrefixJson(),
-      "forceArrayPrefixNest" : getForceArrayPrefixNest()
-    };*/
-
     let settings = {};
     let exportSettings = {};
     let exportJsonSettings = {};
@@ -975,16 +774,6 @@
     if(name === "") replaceFileJsonId = "";
 
     refreshFileInputValues(replaceFileJsonId, name, "replaceFileJsonName", "openReplaceFileJsonButton");
-    /*let inputElement = document.getElementById("replaceFileJsonName");
-
-    if(inputElement != null) inputElement.value = name;
-
-    let openFileButton = document.getElementById("openReplaceFileJsonButton");
-
-    if(openFileButton != null)
-    {
-      openFileButton.disabled = replaceFileJsonId === "";
-    }*/
   }
 
   /**
@@ -998,16 +787,6 @@
   {
     tryGetElementById(inputFieldId, (element) => element.value = fileName);
     tryGetElementById(buttonId, (element) => element.disabled = fileId === "");
-    /*let inputElement = document.getElementById(inputFieldId);
-
-    if(inputElement != null) inputElement.value = fileName;
-
-    let openFileButton = document.getElementById(buttonId);
-
-    if(openFileButton != null)
-    {
-      openFileButton.disabled = fileId === "";
-    }*/
   }
   
   /**
@@ -1120,6 +899,7 @@
 
   /**
    * Callback invoked when the user selects a custom export location via the file picker.
+   * @param {string} fileSelectData Stringified JSON containing data for a file's ID and name.
    **/
   function selectExportFolder(fileSelectData)
   {
@@ -1133,6 +913,7 @@
 
   /**
    * Callback invoked when the user selects a JSON file to replace via the file picker.
+   * @param {string} fileSelectData Stringified JSON containing data for a file's ID and name.
    **/
   function selectReplaceFileJson(fileSelectData)
   {
@@ -1142,21 +923,11 @@
 
       onGetReplaceFileJsonName(replaceFileJsonName);
     });
-    //TODO: Consolidate into one method since export location, JSON, and XML use mostly the same code here...
-    /*let json = JSON.parse(fileSelectData);
-
-    if(json[SELECT_FILE_KEYS.Valid] !== true) return;
-
-    let fileJson = json[SELECT_FILE_KEYS.File];
-
-    replaceFileJsonId = fileJson.hasOwnProperty("id") ? fileJson["id"] : "";
-    replaceFileJsonName = fileJson.hasOwnProperty("name") ? fileJson["name"] : "NO_NAME_FOUND";
-
-    onGetReplaceFileJsonName(replaceFileJsonName);*/
   }
 
   /**
    * Callback invoked when the user selects a XML file to replace via the file picker.
+   * @param {string} fileSelectData Stringified JSON containing data for a file's ID and name.
    **/
   function selectReplaceFileXml(fileSelectData)
   {
@@ -1290,10 +1061,11 @@
   {
     ignoreColumnsWithPrefix = !ignoreColumnsWithPrefix;
     
-    if(document.getElementById('ignoreColumnsPrefixTextField') != null)
+    tryGetElementById('ignoreColumnsPrefixTextField', (element) => element.disabled = !ignoreColumnsWithPrefix);
+    /*if(document.getElementById('ignoreColumnsPrefixTextField') != null)
     {
       document.getElementById('ignoreColumnsPrefixTextField').disabled = !ignoreColumnsWithPrefix;
-    }
+    }*/
   }
   
   /**
@@ -1322,10 +1094,12 @@
   {
     unwrapSheetsWithPrefix = !unwrapSheetsWithPrefix;
     
-    if(document.getElementById('unwrapSheetsPrefixTextField') != null)
+    tryGetElementById('unwrapSheetsPrefixTextField', (element) => element.disabled = !unwrapSheetsWithPrefix);
+    
+    /*if(document.getElementById('unwrapSheetsPrefixTextField') != null)
     {
       document.getElementById('unwrapSheetsPrefixTextField').disabled = !unwrapSheetsWithPrefix;
-    }
+    }*/
   }
   
   /**
@@ -1354,10 +1128,11 @@
   {
     collapseSheetsWithPrefix = !collapseSheetsWithPrefix;
     
-    if(document.getElementById('collapseSheetsPrefixTextField') != null)
+    tryGetElementById('collapseSheetsPrefixTextField', (element) => element.disabled = !collapseSheetsWithPrefix);
+    /*if(document.getElementById('collapseSheetsPrefixTextField') != null)
     {
       document.getElementById('collapseSheetsPrefixTextField').disabled = !collapseSheetsWithPrefix;
-    }
+    }*/
   }
   
   //XML Options
@@ -1369,24 +1144,6 @@
     replaceFileXmlType = document.getElementById("replaceFileXml").value;
 
     refreshFileDataFields(replaceFileXmlId, replaceFileXmlType, REPLACE_FILE_OPTIONS.Disabled, "replaceFileXmlNameSection", "replaceFileXmlName", "openReplaceFileXmlButton", "Select file...", "openXmlFilePicker()", "openReplaceFileXml()", onGetReplaceFileXmlName);
-    /*const hasTargetFile = replaceFileXmlId != null && replaceFileXmlId !== "";
-    let sectionText = "";
-
-    if(replaceFileXmlType !== REPLACE_FILE_OPTIONS.Disabled)
-    {
-      sectionText = "<input id='replaceFileXmlName' type='text' size='12' value='' placeholder='Select file...' disabled /> ";
-      sectionText += "<button onclick='openXmlFilePicker()'>Browse</button>";
-      sectionText += "<button id='openReplaceFileXmlButton' onclick='openReplaceFileXml()'";
-      
-      //if(replaceFileXmlId == null || replaceFileXmlId === "") sectionText += " disabled";
-      if(!hasTargetFile) sectionText += " disabled";
-
-      sectionText += ">Open</button>";
-    }
-    
-    document.getElementById("replaceFileXmlNameSection").innerHTML = sectionText;
-
-    if(hasTargetFile) getFileName(replaceFileXmlId, onGetReplaceFileXmlName);*/
   }
 
   /**
@@ -1567,10 +1324,11 @@
   {
     forceAttributesXml = !forceAttributesXml;
     
-    if(document.getElementById('xmlForceAttributesTextField') != null)
+    tryGetElementById('xmlForceAttributesTextField', (element) => element.disabled = !forceAttributesXml);
+    /*if(document.getElementById('xmlForceAttributesTextField') != null)
     {
       document.getElementById('xmlForceAttributesTextField').disabled = !forceAttributesXml;
-    }
+    }*/
   }
   
   /**
@@ -1579,11 +1337,13 @@
   function toggleChildElementPrefixXml()
   {
     forceChildElementsXml = !forceChildElementsXml;
+
+    tryGetElementById('xmlForceChildElementsTextField', (element) => element.disabled = !forceChildElementsXml);
     
-    if(document.getElementById('xmlForceChildElementsTextField') != null)
+    /*if(document.getElementById('xmlForceChildElementsTextField') != null)
     {
       document.getElementById('xmlForceChildElementsTextField').disabled = !forceChildElementsXml;
-    }
+    }*/
   }
   
   /**
@@ -1593,10 +1353,11 @@
   {
     forceInnerTextXml = !forceInnerTextXml;
     
-    if(document.getElementById('xmlForceInnerTextTextField') != null)
+    tryGetElementById('xmlForceInnerTextTextField', (element) => element.disabled = !forceInnerTextXml);
+    /*if(document.getElementById('xmlForceInnerTextTextField') != null)
     {
       document.getElementById('xmlForceInnerTextTextField').disabled = !forceInnerTextXml;
-    }
+    }*/
   }
   
   //XML Namespaces
@@ -1741,23 +1502,6 @@
     replaceFileJsonType = document.getElementById("replaceFileJson").value;
     
     refreshFileDataFields(replaceFileJsonId, replaceFileJsonType, REPLACE_FILE_OPTIONS.Disabled, "replaceFileJsonNameSection", "replaceFileJsonName", "openReplaceFileJsonButton", "Select file...", "openJsonFilePicker()", "openReplaceFileJson()", onGetReplaceFileJsonName);
-    //TODO: Move to a refresh method so we can invoke in refreshSideBar();
-    /*const hasTargetFile = replaceFileJsonId != null && replaceFileJsonId !== "";
-    let sectionText = "";
-
-    if(replaceFileJsonType !== REPLACE_FILE_OPTIONS.Disabled)
-    {
-      sectionText = "<input id='replaceFileJsonName' type='text' size='12' value='' placeholder='Select file...' disabled /> ";
-      sectionText += "<button onclick='openJsonFilePicker()'>Browse</button><button id='openReplaceFileJsonButton' onclick='openReplaceFileJson()'";
-      
-      if(!hasTargetFile) sectionText += " disabled";
-
-      sectionText += ">Open</button>";
-    }
-    
-    document.getElementById("replaceFileJsonNameSection").innerHTML = sectionText;
-
-    if(hasTargetFile) getFileName(replaceFileJsonId, onGetReplaceFileJsonName);*/
   }
   
   function refreshFileDataFields(fileId, fileOperationType, defaultOperationType, sectionElementId, inputElementId, openButtonId, inputPlaceholder, fileSelectionCallback, openFileCallback, getFileNameCallback)
@@ -1881,10 +1625,11 @@
   {
     forceArrayJson = !forceArrayJson;
     
-    if(document.getElementById('jsonForceArrayTextField') != null)
+    tryGetElementById('jsonForceArrayTextField', (element) => element.disabled = !forceArrayJson);
+    /*if(document.getElementById('jsonForceArrayTextField') != null)
     {
       document.getElementById('jsonForceArrayTextField').disabled = !forceArrayJson;
-    }
+    }*/
   }
   
   /**
@@ -1903,10 +1648,11 @@
   {
     forceArrayNest = !forceArrayNest;
     
-    if(document.getElementById('nestForceArrayTextField') != null)
+    tryGetElementById('nestForceArrayTextField', (element) => element.disabled = !forceArrayNest);
+    /*if(document.getElementById('nestForceArrayTextField') != null)
     {
       document.getElementById('nestForceArrayTextField').disabled = !forceArrayNest;
-    }
+    }*/
   }
   
   /**
@@ -1980,10 +1726,6 @@
     
     //General Options
     generalText += "<div class='accordion generalHeader active'><h1>General</h1></div><div class='accordionPanel'>";
-    //Replace existing files
-    /*generalText += "<div class='sectionWrapper'><input id='replaceToggle' type='checkbox' value='Replace'";
-    if(replaceExistingFiles) generalText += " checked";
-    generalText += "/><div class='option'>Replace existing file(s)<div class='tooltip note'>Find files in the export folder with the same name as the exported file, replace the contents of the most recently modified one, and trash any remaining files with the same name.</div></div></div>";*/
     //Minify Data
     generalText += "<div class='sectionWrapper'><input id='minifyDataToggle' type='checkbox' value='minifyData'";
     if(minifyData) generalText += " checked";
@@ -2147,42 +1889,6 @@
       }
 
       advancedXmlText += "</select></div>";
-
-      /*advancedXmlText += "><option value='none'";
-      if(declarationEncodingXml === "none") advancedXmlText += " selected"; //TODO: Can move these lines to an array and loop...
-      advancedXmlText += ">None</option><option value='UTF-8'";
-      if(declarationEncodingXml === "UTF-8") advancedXmlText += " selected";
-      advancedXmlText += ">UTF-8</option><option value='UTF-16'";
-      if(declarationEncodingXml === "UTF-16") advancedXmlText += " selected";
-      advancedXmlText += ">UTF-16</option><option value='ISO-10646-UCS-2'";
-      if(declarationEncodingXml === "ISO-10646-UCS-2") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-10646-UCS-2</option><option value='ISO-10646-UCS-4'";
-      if(declarationEncodingXml === "ISO-10646-UCS-4") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-10646-UCS-4</option><option value='ISO-8859-1'";
-      if(declarationEncodingXml === "ISO-8859-1") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-1</option><option value='ISO-8859-2'";
-      if(declarationEncodingXml === "ISO-8859-2") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-2</option><option value='ISO-8859-3'";
-      if(declarationEncodingXml === "ISO-8859-3") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-3</option><option value='ISO-8859-4'";
-      if(declarationEncodingXml === "ISO-8859-4") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-4</option><option value='ISO-8859-5'";
-      if(declarationEncodingXml === "ISO-8859-5") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-5</option><option value='ISO-8859-6'";
-      if(declarationEncodingXml === "ISO-8859-6") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-6</option><option value='ISO-8859-7'";
-      if(declarationEncodingXml === "ISO-8859-7") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-7</option><option value='ISO-8859-8'";
-      if(declarationEncodingXml === "ISO-8859-8") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-8</option><option value='ISO-8859-9'";
-      if(declarationEncodingXml === "ISO-8859-9") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-8859-9</option><option value='ISO-2022-JP'";
-      if(declarationEncodingXml === "ISO-2022-JP") advancedXmlText += " selected";
-      advancedXmlText += ">ISO-2022-JP</option><option value='Shift_JIS'";
-      if(declarationEncodingXml === "Shift_JIS") advancedXmlText += " selected";
-      advancedXmlText += ">Shift_JIS</option><option value='EUC-JP'";
-      if(declarationEncodingXml === "EUC-JP") advancedXmlText += " selected";
-      advancedXmlText += ">EUC-JP</option></select></div>";*/
 
       //Declaration Standalone
       advancedXmlText += "<div class='sectionWrapper'><div class='option'><label for='xmlDeclarationStandaloneDropdown'>Standalone</label><div class='tooltip note padded'>Indicates whether a document relies on information from an external source, such as external document type definition (DTD).</div></div><br><select id='xmlDeclarationStandaloneDropdown' onchange='changeDeclarationStandaloneXml()'";
@@ -2387,22 +2093,6 @@
     exportFolderType = document.getElementById("folderSelect").value;
     
     refreshFileDataFields(exportFolderId, exportFolderType, EXPORT_FOLDER_LOCATIONS.MyDrive, "exportFolderNameSection", "exportFolderName", "openExportFolderButton", "Select folder...", "openFolderPicker()", "openExportFolder()", onGetExportFolderName);
-    /*const hasTargetFolder = exportFolderId != null && exportFolderId !== "";
-    let sectionText = "";
-
-    if(exportFolderType !== EXPORT_FOLDER_LOCATIONS.MyDrive)
-    {
-      sectionText = "<input id='exportFolderName' type='text' size='12' value='' placeholder='Select folder...' disabled /> ";
-      sectionText += "<button onclick='openFolderPicker()'>Browse</button><button id='openExportFolderButton' onclick='openExportFolder()'";
-      
-      if(!hasTargetFolder) sectionText += " disabled";
-
-      sectionText += ">Open</button>";
-    }
-    
-    document.getElementById("exportFolderNameSection").innerHTML = sectionText;
-
-    if(hasTargetFolder) getFileName(exportFolderId, onGetExportFolderName);*/
   }
   
   /**
@@ -2484,7 +2174,7 @@
     for(let i=0; i < sheetsData.length; i++)
     {
       let toggleValue = cachedToggles[sheetsData[i]["toggleId"]];
-      //if(cachedToggles[sheetsData[i]] == null || cachedToggles[sheetsData[i]] === false || cachedToggles[sheetsData[i]] === 'false')
+      
       if(toggleValue == null || toggleValue === false || toggleValue === 'false')
       {
         allActive = false;
@@ -2498,27 +2188,6 @@
     if(allActive === true) text += "checked ";
     
     text += "/><label for='allSheetsToggle'> All</label></div><hr><div class='scrollWrapper'>";
-    
-    /*for(let i=0; i < sheetsData.length; i++)
-    {
-      text += "<p>";
-      
-      if(cachedToggles[sheetsData[i]] != null)
-      {
-        text += "<input id='" + formatSheetName(sheetsData[i]) + "Toggle' type='checkbox' value='true'";
-        if(cachedToggles[sheetsData[i]] === 'true' || cachedToggles[sheetsData[i]] === true) text += " checked";
-        text += "/> " + sheetsData[i];
-        
-        targetSheets[sheetsData[i]] = (cachedToggles[sheetsData[i]] === 'true' ? 'true' : 'false');
-      }
-      else
-      {
-        text += "<input id='" + formatSheetName(sheetsData[i]) + "Toggle' type='checkbox' value='false'/> " + sheetsData[i];
-        targetSheets[sheetsData[i]] = 'false';
-      }
-      
-      text += "</p>";
-    }*/
 
     for(let i=0; i < sheetsData.length; i++)
     {
@@ -2528,7 +2197,6 @@
       {
         let toggleValue = cachedToggles[sheetsData[i]["toggleId"]];
         text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='" + (toggleValue === true) + "'";
-        //if(toggleValue === 'true' || toggleValue === true) text += " checked";
         if(toggleValue === true) text += " checked";
         text += "/><label for='" + sheetsData[i]["toggleId"] + "Toggle'> " + sheetsData[i]["name"] + "</label>";
         
@@ -2570,24 +2238,6 @@
     if(defaultValue === true) text += "checked ";
     
     text += "/><label for='allSheetsToggle'> All</label></div><hr><div class='scrollWrapper'>";
-    
-    /*for(let i=0; i < sheetNames.length; i++)
-    {
-      text += "<p>";
-      
-      if(defaultValue === true)
-      {
-        text += "<input id='" + formatSheetName(sheetNames[i]) + "Toggle' type='checkbox' value='true' checked /> " + sheetNames[i];
-        targetSheets[sheetNames[i]] = 'true';
-      }
-      else
-      {
-        text += "<input id='" + formatSheetName(sheetNames[i]) + "Toggle' type='checkbox' value='false' /> " + sheetNames[i];
-        targetSheets[sheetNames[i]] = 'false';
-      }
-      
-      text += "</p>";
-    }*/
 
     for(let i=0; i < sheetsData.length; i++)
     {
@@ -2595,13 +2245,11 @@
       
       if(defaultValue === true)
       {
-        //text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='true' checked /> " + sheetsData[i]["name"];
         text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='true' checked /><label for='" + sheetsData[i]["toggleId"] + "Toggle'> " + sheetsData[i]["name"] + "</label>";
         targetSheets[sheetsData[i]["toggleId"]] = true;
       }
       else
       {
-        //text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='false' /> " + sheetsData[i]["name"];
         text += "<input id='" + sheetsData[i]["toggleId"] + "Toggle' type='checkbox' value='false' /><label for='" + sheetsData[i]["toggleId"] + "Toggle'> " + sheetsData[i]["name"] + "</label>";
         targetSheets[sheetsData[i]["toggleId"]] = false;
       }
@@ -2651,21 +2299,6 @@
   {
     generateSheetToggles(currentSheets, false);
   }
-  
-  /**
-   * Checks if all the sheets are selected for export
-   * @return {boolean}
-   **/
-  /*function checkAllTogglesTrue()
-  {
-    for(let i=0; i < currentSheets.length; i++)
-    {
-      //if(targetSheets[currentSheets[i]] === 'false') return false;
-      if(targetSheets[currentSheets[i]["toggleId"]] !== true) return false;
-    }
-
-    return true;
-  }*/
 
   /**
    * Checks the status of all custom sheet export toggles and returns a value indicating the summary state. 0 for all false, 1 for all true, and 2 for indeterminate.
@@ -2678,7 +2311,6 @@
 
     for(let i=0; i < currentSheets.length; i++)
     {
-      //if(targetSheets[currentSheets[i]] === 'false') return false;
       if(targetSheets[currentSheets[i]["toggleId"]] === true) count++;
     }
 
@@ -2744,7 +2376,6 @@
       {
         let targetSheet = currentSheets[i];
         document.getElementById(targetSheet["toggleId"] + 'Toggle').addEventListener("change", function() { toggleSheet(targetSheet); });
-        //document.getElementById(formatSheetName(targetSheet) + 'Toggle').addEventListener("change", function() { toggleSheet(targetSheet); });
       }())
     }
   }
@@ -2760,17 +2391,13 @@
     {
       (function()
       {
-        //if(document.getElementById(formatSheetName(currentSheets[i]) + 'Toggle') != null)
         if(document.getElementById(currentSheets[i]["toggleId"] + 'Toggle') != null)
         {
           let targetSheet = currentSheets[i];
           document.getElementById(targetSheet["toggleId"] + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
-          //document.getElementById(formatSheetName(targetSheet) + 'Toggle').removeEventListener("change", function() { toggleSheet(targetSheet); });
         }
       }())
     }
-
-    //currentSheets = [];
     
     document.getElementById("customSheetSelect").innerHTML = "";
   }
@@ -2785,7 +2412,6 @@
     document.getElementById('folderSelect').addEventListener("change", changeExportFolderFormat);
     document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
     //General Options
-    //document.getElementById('replaceToggle').addEventListener("change",toggleReplace);
     document.getElementById('exportBoolsAsIntsToggle').addEventListener("change", toggleExportBoolsAsInts);
     document.getElementById('unwrapSingleRowToggle').addEventListener("change",toggleUnwrapSingleRows);
     document.getElementById('collapseSingleRowToggle').addEventListener("change",toggleCollapseSingleRows);
@@ -2811,7 +2437,8 @@
     
     for(let i=0; i < accordions.length; i++)
     {
-      if(accordions[i].id.startsWith("namespace")) continue; // Check if the accorion is an XML namespace accordion and skip if it is. These have their own method for assigning event listeners.
+      // Check if the accorion is an XML namespace accordion and skip if it is. These have their own method for assigning event listeners.
+      if(accordions[i].id.startsWith("namespace")) continue;
       
       accordions[i].addEventListener("click", function()
       {
@@ -2846,7 +2473,6 @@
   function addXmlListeners()
   {
     //XML Options
-    //document.getElementById('fileSelectXml').addEventListener("change", changeReplaceFileTypeXml);
     document.getElementById('elementToggle').addEventListener("change", toggleElement);
     //Advanced Options
     document.getElementById('xmlRootField').addEventListener("change", updateRootElementXml);
@@ -2872,7 +2498,6 @@
   function addJsonListeners()
   {
     //JSON Options
-    //document.getElementById('replaceFileJson').addEventListener("change", changeReplaceFileTypeJson);
     document.getElementById('forceStringToggle').addEventListener("change", toggleForceStringJson);
     document.getElementById('arrayToggle').addEventListener("change", toggleArrayJson);
     document.getElementById('sheetArrayToggle').addEventListener("change", toggleSheetArrayJson);
@@ -2894,48 +2519,20 @@
    **/
   function removeGeneralListeners()
   {
-    //Basic
-    /*if(document.getElementById('formatSelect') != null)
-    {
-      document.getElementById('formatSelect').addEventListener("change", changeExportFormat); //TODO: Should these removeEventListener instead???
-    }
-    if(document.getElementById('folderSelect') != null)
-    {
-      document.getElementById('folderSelect').addEventListener("change", changeExportFolderFormat);
-    }
-    if(document.getElementById('sheetSelect') != null)
-    {
-      document.getElementById('sheetSelect').addEventListener("change", changeExportSheets);
-    }*/
+    //Format
     tryGetElementById('formatSelect', (element) => element.removeEventListener("change", changeExportFormat));
     tryGetElementById('folderSelect', (element) => element.removeEventListener("change", changeExportFolderFormat));
     tryGetElementById('sheetSelect', (element) => element.removeEventListener("change", changeExportSheets));
-    /*if(document.getElementById('replaceToggle') != null)
-    {
-      document.getElementById('replaceToggle').removeEventListener("change", toggleReplace);
-    }*/
-    //tryGetElementById('replaceToggle', (element) => element.removeEventListener("change", toggleReplace));
-    /*if(document.getElementById('unwrapSingleRowToggle') != null)
-    {
-      document.getElementById('unwrapSingleRowToggle').removeEventListener("change", toggleUnwrapSingleRows);
-    }
-    if(document.getElementById('collapseSingleRowToggle') != null)
-    {
-      document.getElementById('collapseSingleRowToggle').removeEventListener("change", toggleCollapseSingleRows);
-    }
-    if(document.getElementById('ignoreEmptyCellsToggle') != null)
-    {
-      document.getElementById('ignoreEmptyCellsToggle').removeEventListener("change", toggleIgnoreEmptyCells);
-    }*/
+    //General
+    tryGetElementById('minifyDataToggle', (element) => element.removeEventListener("change", toggleMinifyData));
     tryGetElementById('exportBoolsAsIntsToggle', (element) => element.removeEventListener("change", toggleExportBoolsAsInts));
-    tryGetElementById('unwrapSingleRowToggle', (element) => element.removeEventListener("change", toggleUnwrapSingleRows));
-    tryGetElementById('collapseSingleRowToggle', (element) => element.removeEventListener("change", toggleCollapseSingleRows));
     tryGetElementById('ignoreEmptyCellsToggle', (element) => element.removeEventListener("change", toggleIgnoreEmptyCells));
+    tryGetElementById('firstColumnToggle', (element) => element.removeEventListener("change", toggleIncludeFirstColumn));
     
     //Advanced
     tryGetElementById('nestedElementsToggle', (element) => element.removeEventListener("change", toggleNestedElements));
-    tryGetElementById('minifyDataToggle', (element) => element.removeEventListener("change", toggleMinifyData));
-    tryGetElementById('firstColumnToggle', (element) => element.removeEventListener("change", toggleIncludeFirstColumn));
+    tryGetElementById('unwrapSingleRowToggle', (element) => element.removeEventListener("change", toggleUnwrapSingleRows));
+    tryGetElementById('collapseSingleRowToggle', (element) => element.removeEventListener("change", toggleCollapseSingleRows));
     tryGetElementById('ignoreColumnsToggle', (element) => element.removeEventListener("change", toggleIgnoreColumnsWithPrefix));
     tryGetElementById('ignoreColumnsPrefixTextField', (element) => element.removeEventListener("change", updateIgnorePrefix));
     tryGetElementById('unwrapSheetsToggle', (element) => element.removeEventListener("change", toggleUnwrapSheetsWithPrefix));
@@ -3047,8 +2644,7 @@
    **/
   function exportXmlSingle(sheet)
   {
-    let newSheets = { };
-    //newSheets[sheet] = 'true';
+    let newSheets = {};
     newSheets[sheet["id"].toString()] = true;
     
     google.script.run.withFailureHandler(onCatastrophicError).exportXml(generateXmlSettings(true, newSheets));
@@ -3078,8 +2674,7 @@
    **/
   function exportJsonSingle(sheet)
   {
-    let newSheets = { };
-    //newSheets[sheet] = 'true';
+    let newSheets = {};
     newSheets[sheet["id"].toString()] = true;
     
     google.script.run.withFailureHandler(onCatastrophicError).exportJson(generateJsonSettings(true, newSheets));

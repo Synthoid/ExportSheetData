@@ -325,17 +325,6 @@ function setExportPropertiesInternal(newProperties, documentKey, userKey)
 function getExportProperties()
 {
   return getExportPropertiesInternal(Keys.Properties.Document.Settings, Keys.Properties.User.Settings);
-  //This returns a composite of properties, with the general settings stored in document properties, and export folder/replacement files stored in user properties...
-  /*let documentProperties = PropertiesService.getDocumentProperties();
-  let documentExportProperties = documentProperties.getProperty(Keys.Properties.Document.Settings);
-  let userProperties = PropertiesService.getUserProperties();
-  let userExportProperties = userProperties.getProperty(Keys.Properties.User.Settings);
-  let documentSettings = documentExportProperties != null ? JSON.parse(documentExportProperties) : {};
-  let userSettings = userExportProperties != null ? JSON.parse(userExportProperties) : {};
-  
-  documentSettings["export"] = userSettings;
-  
-  return JSON.stringify(documentSettings);*/
 }
 
 /**
@@ -345,15 +334,6 @@ function getExportProperties()
 function setExportProperties(newProperties)
 {
   setExportPropertiesInternal(newProperties, Keys.Properties.Document.Settings, Keys.Properties.User.Settings);
-  /*let documentProperties = PropertiesService.getDocumentProperties();
-  let userProperties = PropertiesService.getUserProperties();
-  let documentSettings = JSON.parse(newProperties);
-  let userSettings = documentSettings["export"];
-  
-  delete documentSettings["export"]; //Delete export location/replace file values due to OAuth limitations...
-  
-  documentProperties.setProperty(Keys.Properties.Document.Settings, JSON.stringify(documentSettings));
-  userProperties.setProperty(Keys.Properties.User.Settings, JSON.stringify(userSettings));*/
 }
 
 /**
@@ -387,10 +367,6 @@ function clearExportProperties(showModal)
 function getPrevExportProperties()
 {
   return getExportPropertiesInternal(Keys.Properties.Document.PreviousSettings, Keys.Properties.User.PreviousSettings);
-  /*let documentProperties = PropertiesService.getDocumentProperties();
-  
-  return documentProperties.getProperty(Keys.Properties.Document.PreviousSettings);*/
-  //return properties.getProperty("prev");
 }
 
 /**
@@ -400,10 +376,6 @@ function getPrevExportProperties()
 function setPrevExportProperties(newProperties)
 {
   setExportPropertiesInternal(newProperties, Keys.Properties.Document.PreviousSettings, Keys.Properties.User.PreviousSettings);
-  /*let properties = PropertiesService.getDocumentProperties();
-  
-  properties.setProperty(Keys.Properties.Document.PreviousSettings, newProperties);*/
-  //properties.setProperty("prev", newProperties);
 }
 
 /**
@@ -416,7 +388,6 @@ function validateAndSetExportProperties(settingsString)
   let message = "Settings have been imported from another ESD document. The sidebar will now refresh.";
   //let hasCustomFileData = false;
   
-  //if(settings.hasOwnProperty("targetSheets"))
   //Target sheets
   if(settings.hasOwnProperty(Keys.ExportSettings.TargetSheets))
   {
@@ -650,12 +621,9 @@ function getActiveSheetNameAndId()
  **/
 function getCellContentArray(cell, separatorChar, cellArray)
 {
-  //let cellArray = [];
-  
   //If the cell isn't a string, it's value can't be split into an array.
   if(typeof(cell) !== "string")
   {
-    Logger.log(`${cell}: [${typeof(cell)}] : [${cell == null}] : [${cell == ""}]`)
     if(cell != "") cellArray.push(cell);
     
     return 0;
@@ -703,20 +671,10 @@ function getCellContentArray(cell, separatorChar, cellArray)
   //Return early if no commas are detected...
   if(commaIndicies.length === 0)
   {
-    //cellArray.push(cell);
-    //return 0;
     status = 0;
   }
         
   //Populate the array
-  /*let startIndex = 0;
-  for(let i=0; i < commaIndicies.length; i++)
-  {
-    let arrayString = content.slice(startIndex, commaIndicies[i]);
-    if(arrayString != "") cellArray.push(arrayString.replace('"', ' ').replace('"', ' ').trim()); //Get rid of the wrapping quotes
-    startIndex = commaIndicies[i] + 1; // +1 so the next string doesn't start with a comma
-  }*/
-  
   if(commaIndicies.length > 0)
   {
     let startIndex = 0;
@@ -725,7 +683,8 @@ function getCellContentArray(cell, separatorChar, cellArray)
     for(let i=0; i < commaIndicies.length; i++)
     {
       let arrayString = content.slice(startIndex, commaIndicies[i]);
-      if(arrayString != "") //cellArray.push(arrayString.replace('"', ' ').replace('"', ' ').trim());
+
+      if(arrayString != "")
       {
         arrayString = arrayString.trim();
 
@@ -748,11 +707,8 @@ function getCellContentArray(cell, separatorChar, cellArray)
     //Push the string from the last comma to the end of the content string
     let lastString = content.slice(startIndex, endIndex);
     //Get rid of wrapping quotes
-    //let trimmedString = lastString.replace('"', ' ').replace('"', ' ').trim();
-    //if(trimmedString != "") cellArray.push(trimmedString);
     if(lastString != "")
     {
-      //cellArray.push(lastString.replace('"', ' ').replace('"', ' ').trim());
       lastString = lastString.trim();
 
       if(lastString.length > 2 && lastString[0] === '"' && lastString[lastString.length-1] === '"')
@@ -764,22 +720,11 @@ function getCellContentArray(cell, separatorChar, cellArray)
         cellArray.push(lastString);
       }
     }
-
-    /*if(lastString === '""')
-    {
-      status = -2;
-    }*/
   }
   else
   {
-    //Logger.log(content);
     if(content != "") cellArray.push(content);
   }
-  
-  /*if(commaIndicies.length == 0 && content !== "") // If there are no commas to make the array, return the whole content
-  {
-    cellArray.push(content);
-  }*/
   
   //Convert values to their correct type (float, bool, etc)
   for(let i=0; i < cellArray.length; i++)
@@ -837,35 +782,17 @@ function getCellContentArray(cell, separatorChar, cellArray)
     //String
     else if(cellArray[i].length > 1)
     {
-      //Logger.log(`${cellArray[i]}: ${cellArray[i][0] === '"'} | ${cellArray[i][cellArray[i].length - 1] === '"'}`);
       //Strip wrapping quotes...
       if(cellArray[i][0] === '"' && cellArray[i][cellArray[i].length - 1] === '"')
       {
-        //Logger.log("Strip: " + cellArray[i]);
         cellArray[i] = cellArray[i].substring(1, cellArray[i].length - 1);
         
         //If the cell was a single escaped string like "Test1, Test2", return a special status.
         if(cellArray.length == 1) status = 2;
-        //else if(i === cellArray.length - 1) status = -2; //Temporary status flag to prevent trimming the last element if it was intentionally set to "".
       }
     }
   }
 
-  //Logger.log("A: " + status + " | " + content + "\n" + cellArray);
-  //TODO: Should strip all empty entries...
-
-  switch(status)
-  {
-    case -2: //Correct the special flag
-      status = 1;
-      break;
-    default: //Strip trailing empty strings by default, so "1," exports as [ 1 ] instead of [ 1, "" ] 
-      //if(cellArray.length > 1 && cellArray[cellArray.length - 1] === "") cellArray.pop();
-      break;
-  }
-
-  //Logger.log("B: " + status + " | " + content + "\n" + cellArray);
-  
   return status;
 }
 
@@ -933,7 +860,6 @@ function getXmlNameAndNamespace(value, namespaces, rootNamespace, noNamespace)
     default:
       output = [ values[values.length-1], getXmlNamespace(values[0], namespaces, noNamespace) ];
       
-      //TODO: Don't call XmlService here, check if the prefix and uri are empty strings?
       if(output[1] == noNamespace) output[1] = rootNamespace;
       break;
   }
@@ -1017,33 +943,6 @@ function formatJsonValue(value, valueFormatSettings)
   
   return newValue;
 }
-
-/**
- * @return {string}
- **/
-/*function formatJsonString(value, asObject)
-{
-  if(value.length > 1)
-  {
-    //Get rid of wrapping quotes (")
-    if(value[0] === '"' && value[value.length-1] === '"')
-    {
-      let endValue = value.length - 1;
-      
-      if(endValue < 1) endValue = 1;
-      
-      value = value.substring(1, endValue);
-    }
-    //Don't format object values (wrapped with {})
-    if(asObject && value[0] === '{' && value[value.length-1] === '}')
-    {
-      //Need to format to match the rest of the file
-      return value;
-    }
-  }
-  
-  return JSON.stringify(value);
-}*/
 
 /**
  * Returns true if a key starts with the specified prefix.
@@ -1318,12 +1217,12 @@ function getSubpathTypeJson(subpath)
     switch(subpath[0])
     {
       case '[':
-      type = SubpathTypes.Array;
-      break;
+        type = SubpathTypes.Array;
+        break;
       
       case '{':
-      type = SubpathTypes.Object;
-      break;
+        type = SubpathTypes.Object;
+        break;
     }
   }
   
@@ -1384,7 +1283,6 @@ function trimSafe(value)
  **/
 function getEmptyCellValueJson(formatType)
 {
-  //TODO: Convert format type to int value...
   switch(formatType)
   {
     case "string": return "";
@@ -1506,39 +1404,6 @@ function exportSpreadsheetXml(formatSettings, callback)
   let xmlAdvancedSettings = xmlSettings[Keys.Objects.Advanced];
   
   //File settings
-  /*var exportFolderType = settings["exportFolderType"];
-  var exportFolder = settings["exportFolder"];
-  var visualize = settings["visualize"];
-  var singleSheet = settings["singleSheet"];
-  var replaceFile = settings["replaceExistingFiles"];
-  var unwrap = settings["unwrapSingleRows"];
-  var collapse = settings["collapseSingleRows"];
-  var ignoreEmpty = settings["ignoreEmptyCells"];
-  var nestedElements = settings["nestedElements"];
-  var minifyData = settings["minifyData"];
-  var includeFirstColumn = settings["includeFirstColumn"];
-  var ignorePrefix = settings["ignorePrefix"];
-  var unwrapPrefix = settings["unwrapPrefix"];
-  var collapsePrefix = settings["collapsePrefix"];
-  var customSheets = settings["targetSheets"];
-  
-  //XML settings
-  var useChildElements = settings["exportChildElements"];
-  var exportBoolsAsInts = settings["exportBoolsAsInts"];
-  var rootElement = settings["rootElement"];
-  //Advanced
-  var nameReplacementChar = settings["nameReplacementChar"];
-  var declarationVersion = settings["declarationVersion"];
-  var declarationEncoding = settings["declarationEncoding"];
-  var declarationStandalone = settings["declarationStandalone"];
-  var attributePrefix = settings["attributePrefix"];
-  var childElementPrefix = settings["childElementPrefix"];
-  var innerTextPrefix = settings["innerTextPrefix"];
-  //Namepsaces
-  var rootNamespaceRaw = settings["rootNamespace"];
-  var namespacesRaw = settings["namespaces"];*/
-
-  //File settings
   let exportFolderType = exportSettings[Keys.ExportSettings.Export.FolderType];
   let exportFolderId = exportSettings[Keys.ExportSettings.Export.FolderId];
   let replaceFile = exportXmlSettings[Keys.ExportSettings.Export.XML.ReplaceFileType] === ReplaceFileOptions.Enabled;
@@ -1560,7 +1425,7 @@ function exportSpreadsheetXml(formatSettings, callback)
   let collapsePrefix = settings[Keys.ExportSettings.CollapsePrefix];
 
   //Nested Elements
-  let nestedElements = settings[Keys.ExportSettings.NestedElements];
+  //let nestedElements = settings[Keys.ExportSettings.NestedElements];
   
   //XML settings
   let useChildElements = xmlSettings[Keys.ExportSettings.XML.ExportChildElements];
@@ -1603,26 +1468,14 @@ function exportSpreadsheetXml(formatSettings, callback)
   
   if(customSheets != null)
   {
-    /*let exportSheets = sheets;
-    sheets = [];
-    
-    for(let i=0; i < exportSheets.length; i++)
-    {
-      if(customSheets[exportSheets[i].getName()] === 'true')
-      {
-        if(spreadsheet.getSheetByName(exportSheets[i].getName()) != null)
-        {
-          sheets.push(spreadsheet.getSheetByName(exportSheets[i].getName()));
-        }
-      }
-    }*/
     sheets = getActiveExportSheets(customSheets);
   }
   
   let fileName = spreadsheet.getName() + (singleSheet ? (" - " + sheets[0].getName()) : "") + ".xml";
   //let sheetValues = [[]];
   
-  let xmlRoot = XmlService.createElement(formatXmlName(rootElement, nameReplacementChar), rootNamespace); //Create the root XML element. https://developers.google.com/apps-script/reference/xml-service/
+  //Create the root XML element. https://developers.google.com/apps-script/reference/xml-service/
+  let xmlRoot = XmlService.createElement(formatXmlName(rootElement, nameReplacementChar), rootNamespace);
   
   if(namespaces.length > 0)
   {
@@ -1649,7 +1502,7 @@ function exportSpreadsheetXml(formatSettings, callback)
   for(let i=0; i < sheets.length; i++)
   {
     let cachedColumnNames = {};
-    let cachedColumnNamespaces = {};
+    //let cachedColumnNamespaces = {};
     let sheetName = sheets[i].getName();
     let range = sheets[i].getDataRange();
     let values = range.getValues();
@@ -1695,11 +1548,14 @@ function exportSpreadsheetXml(formatSettings, callback)
       columnNamesAndNamespaces.push(getXmlNameAndNamespace(values[0][j], namespaces, rootNamespace, noNamespace));
     }
     
-    for(let j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
+    //j = 1 because we don't need the keys to have a row
+    for(let j=1; j < rows; j++)
     {
-      if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
-      
-      let isComment = (values[j][0] === "!--"); //If the first cell in a row starts with !--, treat the row as a comment
+      //Skip rows with the ignore prefix
+      if(keyHasPrefix(values[j][0], ignorePrefix)) continue;
+
+      //If the first cell in a row starts with !--, treat the row as a comment
+      let isComment = (values[j][0] === "!--");
       let attributeKeys = [];
       let childElementKeys = [];
       let innerTextKeys = [];
@@ -1713,7 +1569,8 @@ function exportSpreadsheetXml(formatSettings, callback)
       let rowXml = XmlService.createElement("Comment");
       
       //Separate columns into those that export as child elements or attributes
-      let startIndex = (includeFirstColumn && !isComment) ? 0 : 1; //Exclude the first column by default since it is used as the name of the row element, or because this is a comment element
+      //Exclude the first column by default since it is used as the name of the row element, or because this is a comment element
+      let startIndex = (includeFirstColumn && !isComment) ? 0 : 1;
       
       for(let k=startIndex; k < columns; k++)
       {
@@ -1733,18 +1590,16 @@ function exportSpreadsheetXml(formatSettings, callback)
           
           //TODO: Cached column name should use the prefix stripped values...
           //if(!cachedColumnNames.hasOwnProperty(columnNameAndNamespace[0])) cachedColumnNames[columnNameAndNamespace[0]] = formatXmlName(columnNameAndNamespace[0], nameReplacementChar);
-          
-          if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue; //Skip columns with the ignore prefix
+
+          //Skip columns with the ignore prefix
+          if(keyHasPrefix(columnNameAndNamespace[0], ignorePrefix)) continue;
         
           let columnNamespace = columnNameAndNamespace[1];
 
-          Logger.log(columnNameAndNamespace[0]);
-          
           //Child Elements
           if((useChildElements && !keyHasPrefix(columnNameAndNamespace[0], attributePrefix) && !keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix)) || 
             keyHasPrefix(columnNameAndNamespace[0], childElementPrefix))
           {
-            Logger.log("A");
             if(!cachedColumnNames.hasOwnProperty(columnNameAndNamespace[0])) cachedColumnNames[columnNameAndNamespace[0]] = formatXmlName(stripPrefix(columnNameAndNamespace[0], childElementPrefix), nameReplacementChar);
             
             childElementKeys.push(cachedColumnNames[columnNameAndNamespace[0]])//stripPrefix(columnNameAndNamespace[0], childElementPrefix));
@@ -1754,7 +1609,6 @@ function exportSpreadsheetXml(formatSettings, callback)
           //Attributes
           else if(!keyHasPrefix(columnNameAndNamespace[0], innerTextPrefix))
           {
-            Logger.log("B");
             if(!cachedColumnNames.hasOwnProperty(columnNameAndNamespace[0])) cachedColumnNames[columnNameAndNamespace[0]] = formatXmlName(stripPrefix(columnNameAndNamespace[0], attributePrefix), nameReplacementChar);
             
             attributeKeys.push(cachedColumnNames[columnNameAndNamespace[0]])//stripPrefix(columnNameAndNamespace[0], attributePrefix));
@@ -1764,7 +1618,6 @@ function exportSpreadsheetXml(formatSettings, callback)
           //Inner Text
           else
           {
-            Logger.log("C");
             if(!cachedColumnNames.hasOwnProperty(columnNameAndNamespace[0])) cachedColumnNames[columnNameAndNamespace[0]] = formatXmlName(stripPrefix(columnNameAndNamespace[0], innerTextPrefix), nameReplacementChar);
             
             innerTextKeys.push(cachedColumnNames[columnNameAndNamespace[0]])//stripPrefix(columnNameAndNamespace[0], innerTextPrefix));
@@ -1783,7 +1636,8 @@ function exportSpreadsheetXml(formatSettings, callback)
       //Finish Comment logic
       if(isComment)
       {
-        sheetXml.addContent(XmlService.createComment(rowXml.getText().replace(/[-]/g, '_'))); //Replace '-' with '_' as hyphens cause errors in comment nodes
+        //Replace '-' with '_' as hyphens cause errors in comment nodes
+        sheetXml.addContent(XmlService.createComment(rowXml.getText().replace(/[-]/g, '_')));
         
         continue;
       }
@@ -1891,19 +1745,6 @@ function exportSpreadsheetXml(formatSettings, callback)
     
     xmlRaw = xmlDeclaration + xmlRaw;
   }
-  
-  /*let exportSettings = {
-    "filename" : fileName,
-    "content" : xmlRaw,
-    "export-folder" : (exportFolderType === "default" ? "" : exportFolder),
-    "mime" : MimeTypes.XML,
-    "visualize" : visualize,
-    "replace-file" : replaceFile,
-    "message" : exportMessage,
-    "message-height" : exportMessageHeight
-  };
-  
-  callback(exportSettings);*/
 
   let fileSettings = {};
 
@@ -1936,22 +1777,6 @@ function exportSpreadsheetJson(formatSettings, callback)
   let jsonAdvancedSettings = jsonSettings[Keys.Objects.Advanced];
   
   //File settings
-  /*var exportFolderType = settings["exportFolderType"];
-  var exportFolder = settings["exportFolder"];
-  var visualize = settings["visualize"];
-  var singleSheet = settings["singleSheet"];
-  var replaceFile = settings["replaceExistingFiles"];
-  var unwrap = settings["unwrapSingleRows"];
-  var collapse = settings["collapseSingleRows"] && !unwrap;
-  var ignoreEmpty = settings["ignoreEmptyCells"];
-  var ignorePrefix = settings["ignorePrefix"];
-  var unwrapPrefix = settings["unwrapPrefix"];
-  var collapsePrefix = settings["collapsePrefix"];
-  var customSheets = settings["targetSheets"];
-  var minifyData = settings["minifyData"];
-  var includeFirstColumn = settings["includeFirstColumn"];*/
-
-  //let exportFolderType = exportSettings[Keys.ExportSettings.Export.FolderType];
   let exportFolderType = exportSettings[Keys.ExportSettings.Export.FolderType];
   let exportFolderId = exportSettings[Keys.ExportSettings.Export.FolderId];
   let replaceFile = exportJsonSettings[Keys.ExportSettings.Export.JSON.ReplaceFileType] === ReplaceFileOptions.Enabled;
@@ -1973,21 +1798,9 @@ function exportSpreadsheetJson(formatSettings, callback)
   let collapsePrefix = settings[Keys.ExportSettings.CollapsePrefix];
   
   //Nested Settings
-  /*var nestedElements = settings["nestedElements"];
-  var nestedArrayPrefix = settings["forceArrayPrefixNest"];*/
   let nestedElements = settings[Keys.ExportSettings.NestedElements];
 
   //JSON settings
-  /*var contentsArray = settings["exportContentsAsArray"];
-  var exportCellObjectJson = settings["exportCellObject"];
-  var exportArray = settings["exportCellArray"];
-  var sheetArrayJson = settings["exportSheetArray"];
-  var valueArray = settings["exportValueArray"];
-  var forceString = settings["forceString"];
-  var emptyValueFormat = settings["emptyValueFormat"];
-  var nullValueFormat = settings["nullValueFormat"];
-  var separatorChar = settings["separatorChar"];
-  var arrayPrefix = settings["forceArrayPrefix"];*/
   let forceString = jsonSettings[Keys.ExportSettings.JSON.ForceStringValues];
   let exportCellArray = jsonSettings[Keys.ExportSettings.JSON.ExportCellArray];
   let sheetArrayJson = jsonSettings[Keys.ExportSettings.JSON.ExportSheetArray];
@@ -2015,23 +1828,6 @@ function exportSpreadsheetJson(formatSettings, callback)
   
   if(customSheets != null)
   {
-    /*if((isObject(customSheets) && Object.keys(customSheets).length > 0) || (!isObject(customSheets) && customSheets.length > 2))
-    {
-      let exportSheets = sheets;
-      sheets = [];
-      
-      for(let i=0; i < exportSheets.length; i++)
-      {
-        if(customSheets[exportSheets[i].getName()] === 'true')
-        {
-          if(spreadsheet.getSheetByName(exportSheets[i].getName()) != null)
-          {
-            sheets.push(spreadsheet.getSheetByName(exportSheets[i].getName()));
-          }
-        }
-      }
-    }*/
-    
     sheets = getActiveExportSheets(customSheets);
   }
   
@@ -2050,20 +1846,25 @@ function exportSpreadsheetJson(formatSettings, callback)
     let values = range.getValues();
     let rows = range.getNumRows();
     let columns = range.getNumColumns();
-    let unwrapSheet = unwrap && rows <= 2; //Will this sheet be unwrapped?
-    let collapseSheet = collapse && rows <= 2 && !unwrapSheet; //Will this sheet be collapsed
+    //Will this sheet be unwrapped?
+    let unwrapSheet = unwrap && rows <= 2;
+    //Will this sheet be collapsed
+    let collapseSheet = collapse && rows <= 2 && !unwrapSheet;
     let sheetName = sheets[i].getName();
     let sheetArray = sheetArrayJson;
-    let sheetIsValueArray = (valueArray && columns === 1); //Is this sheet a value array?
+    //Is this sheet a value array?
+    let sheetIsValueArray = (valueArray && columns === 1);
     let sheetJsonObject = {};
     let sheetJsonArray = [];
-    
-    let rowImplicitNames = []; //Used to keep associations with implicit key values per row.
+    //Used to keep associations with implicit key values per row.
+    let rowImplicitNames = [];
     let rowImplicitValues = [];
-    
-    let hasNesting = false; //Will be set to true if any nesting occurs.
-    let useNestingArray = false; //If true, the sheet's contents will be in an array
-    let forceNestedArray = false; //If true, all keys in the sheet will have "{#SHEET}{#ROW}" inserted at their beginning.
+    //Will be set to true if any nesting occurs.
+    let hasNesting = false;
+    //If true, the sheet's contents will be in an array
+    let useNestingArray = false;
+    //If true, all keys in the sheet will have "{#SHEET}{#ROW}" inserted at their beginning.
+    let forceNestedArray = false;
     
     let forceUnwrap = false;
     let forceCollapse = false;
@@ -2118,12 +1919,15 @@ function exportSpreadsheetJson(formatSettings, callback)
     //If both nested elements and sheet arrays are enabled, need to know which to use for this sheet
     if(sheetArray && nestedElements && !useNestingArray)
     {
-      let keyNesting = false; //At least one column is using nested element syntax
-      let keyNestingIsArray = true; //At least one column is not set up to use nested array syntax (prefaced with {#SHEET}{#ROW})
+      //At least one column is using nested element syntax
+      let keyNesting = false;
+      //At least one column is not set up to use nested array syntax (prefaced with {#SHEET}{#ROW})
+      let keyNestingIsArray = true;
       
       for(let j=0; j < columns; j++)
       {
-        if(values[0][j] === "" || values[0][j] == null) continue; //Skip columns with empty keys
+        //Skip columns with empty keys
+        if(values[0][j] === "" || values[0][j] == null) continue;
         
         let keyPath = getKeyPath(values[0][j], rowImplicitNames, rowImplicitValues, nestedElements);
         
@@ -2148,13 +1952,16 @@ function exportSpreadsheetJson(formatSettings, callback)
     
     if(unwrap && rows > 2 && !forceUnwrap) unwrapSheet = false;
     
-    for(let j=1; j < rows; j++) //j = 1 because we don't need the keys to have a row
+    //j = 1 because we don't need the keys to have a row
+    for(let j=1; j < rows; j++)
     {
-      if(keyHasPrefix(values[j][0], ignorePrefix)) continue; //Skip rows with the ignore prefix
+      //Skip rows with the ignore prefix
+      if(keyHasPrefix(values[j][0], ignorePrefix)) continue;
     
       //let rowArray = [];
       let rowObject = {};
-      let rowIndexNames = []; //Used to keep associations with row indexes correct
+      //Used to keep associations with row indexes correct
+      let rowIndexNames = [];
       let rowIndexValues = [];
       
       if(!sheetIsValueArray)
@@ -2165,8 +1972,10 @@ function exportSpreadsheetJson(formatSettings, callback)
         {
           let keyPrefix = "";
           
-          if(values[0][k] === "" || values[0][k] == null) continue; //Skip columns with empty keys
-          if(ignoreEmpty && (values[j][k] === "" || values[j][k] == null)) continue; //Skip empty cells if desired (can help cut down on clutter)
+          //Skip columns with empty keys
+          if(values[0][k] === "" || values[0][k] == null) continue;
+          //Skip empty cells if desired (can help cut down on clutter)
+          if(ignoreEmpty && (values[j][k] === "" || values[j][k] == null)) continue;
           
           let key = values[0][k];
           
@@ -2182,14 +1991,16 @@ function exportSpreadsheetJson(formatSettings, callback)
             keyPrefix = arrayPrefix;
           }
           
-          let keyPath = getKeyPath(key, rowImplicitNames, rowImplicitValues, nestedElements); //Get the path specified by the key (for nested object support)
-          key = keyPath[keyPath.length-1]; //Get the actual key value
+          //Get the path specified by the key (for nested object support)
+          let keyPath = getKeyPath(key, rowImplicitNames, rowImplicitValues, nestedElements);
+          //Get the actual key value
+          key = keyPath[keyPath.length-1];
           
           if(keyPrefix !== "") key = keyPrefix + key;
+          //Skip columns with the ignore prefix
+          if(keyHasPrefix(key, ignorePrefix)) continue;
           
-          if(keyHasPrefix(key, ignorePrefix)) continue; //Skip columns with the ignore prefix
-          
-          if(forceNestedArray)//Insert forced {#SHEET} and {#ROW} values
+          if(forceNestedArray) //Insert forced {#SHEET} and {#ROW} values
           {
             if(keyPath[0] !== "{#SHEET}") //Only insert sheet path if it doesn't already exist
             {
@@ -2247,49 +2058,9 @@ function exportSpreadsheetJson(formatSettings, callback)
                 else content = cellArray[0];
                 break;
             }
-            
-            //formatJsonValue(content, valueFormatSettings);
-            //Force values in the array to be strings if desired
-            /*if(forceString)
-            {
-              for(let l=0; l < content.length; l++)
-              {
-                if(content[l] !== "")
-                {
-                  if(isObject(content[l]))
-                  {
-                    for(field in content[l])
-                    {
-                      content[l][field] = content[l][field].toString();
-                    }
-                  }
-                  else
-                  {
-                    content[l] = content[l].toString();
-                  }
-                }
-              }
-            }*/
           }
-          /*else if(forceString)
-          {
-            //Force value to be a string if desired
-            if(isObject(content))
-            {
-              for(field in content)
-              {
-                content[field] = content[field].toString().trim();
-              }
-            }
-            else
-            {
-              content = content.toString().trim();
-            }
-          }*/
 
           content = formatJsonValue(content, valueFormatSettings);
-          
-          //Logger.log(`12: ${content}`);
           
           //Convert the key to a string and strip unneeded prefixes
           if(arrayPrefix != "") key = stripPrefix(key.toString(), arrayPrefix);
@@ -2316,9 +2087,12 @@ function exportSpreadsheetJson(formatSettings, callback)
               //Check if the subpath points to an object and is meant to be searched for somehow (either by key or index)
               if(subpathType == SubpathTypes.Object && isSearchSubpath(subpath))
               {
-                subpath = subpath.substring(1); //Get the substring of the key so we know what type of search to perform
-                let searchType = getSubpathSearchType(subpath); //Get the type of search specified by nesting formatting in the column key
-                let firstObjectIndex = -1; //If searching through an array, need to ensure that values are only added to an object element, not an int or string.
+                //Get the substring of the key so we know what type of search to perform
+                subpath = subpath.substring(1);
+                //Get the type of search specified by nesting formatting in the column key
+                let searchType = getSubpathSearchType(subpath);
+                //If searching through an array, need to ensure that values are only added to an object element, not an int or string.
+                let firstObjectIndex = -1;
                 
                 switch(searchType)
                 {
@@ -2327,7 +2101,8 @@ function exportSpreadsheetJson(formatSettings, callback)
                   //The current element is an array, so look through each element for the first element with the target field with a matching value
                   if(isArray(element))
                   {
-                    let fieldlessElement = -1; //Fieldless element is used to find an element in the array that doesn't have the specified subpath field.
+                    //Fieldless element is used to find an element in the array that doesn't have the specified subpath field.
+                    let fieldlessElement = -1;
                     
                     for(let m=0; m < element.length; m++)
                     {
@@ -2397,9 +2172,11 @@ function exportSpreadsheetJson(formatSettings, callback)
                   
                   //Search for an array element at the index matching this row's index
                   case SearchTypes.Row:
-                  if(isArray(element)) //Only update the value if the element is an array
+                  //Only update the value if the element is an array
+                  if(isArray(element))
                   {
-                    let rowIndex = j - 1; //j - 1, subtracting 1 for the key row
+                    //j - 1, subtracting 1 for the key row
+                    let rowIndex = j - 1;
                     
                     if(getIndexOf(rowIndexNames, (getKeyPathString(keyPath, l) + "|" + (j-1))) >= 0)
                     {
@@ -2621,7 +2398,6 @@ function exportSpreadsheetJson(formatSettings, callback)
             //Format empty and null content
             if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
             else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
-            //else if(content === "null") content = getNullCellValueJson(nullValueFormat);
             
             element[key] = content;
           }
@@ -2630,12 +2406,8 @@ function exportSpreadsheetJson(formatSettings, callback)
             //Format empty and null content
             if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
             else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
-            //else if(content === "null") content = getNullCellValueJson(nullValueFormat);
           
             rowObject[key] = content;
-            
-            //Logger.log(JSON.stringify(content));
-            //Logger.log(`${key}: ${rowObject[key]}`);
             
             if(nestedElements) element[key] = content;
           }
@@ -2651,7 +2423,6 @@ function exportSpreadsheetJson(formatSettings, callback)
         let content = values[j][0];
         
         //We want to export cell arrays, or this column should be exported as an array, so convert the target cell's value to an array of values.
-        //if(exportCellArray && (getCellContentArray(content, separatorChar).length > 1) || (arrayPrefix != "" && keyHasPrefix(values[0][0], arrayPrefix)))
         if(exportCellArray || keyHasPrefix(values[0][0], arrayPrefix))
         {
           let forceArray = keyHasPrefix(values[0][0], arrayPrefix);
@@ -2665,36 +2436,20 @@ function exportSpreadsheetJson(formatSettings, callback)
               if(forceArray) content = cellArray;
               break;
             case 1: //Full array
-              content = cellArray;//getCellContentArray(content, separatorChar);
+              content = cellArray;
               break;
             case 2: //Escaped single string
               if(forceArray) content = cellArray;
               else content = cellArray[0];
               break;
           }
-          //content = getCellContentArray(content, separatorChar);
-          
-          //Force array values to be strings if desired
-          /*if(forceString)
-          {
-            for(let l=0; l < content.length; l++)
-            {
-              if(content[l] != "") content[l] = content[l].toString();
-            }
-          }*/
         }
-        /*else if(forceString)
-        {
-          //Force value to be a string if desired
-          content = content.toString();
-        }*/
 
         content = formatJsonValue(content, valueFormatSettings);
         
         //Format empty and null content
         if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
         else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
-        //else if(content === "null") content = getNullCellValueJson(nullValueFormat);
         
         if(unwrapSheet) sheetJsonObject[key] = content;
         else sheetJsonArray.push(content);
@@ -2804,16 +2559,6 @@ function exportSpreadsheetJson(formatSettings, callback)
     exportMessage += nestedFormattingErrorMessage;
   }
   
-  /*let exportSettings = {
-    "filename" : fileName,
-    "content" : rawValue,
-    "export-folder" : (exportFolderType === "default" ? "" : exportFolder),
-    "mime" : MimeTypes.JSON,
-    "visualize" : visualize,
-    "replace-file" : replaceFile,
-    "message" : exportMessage,
-    "message-height" : exportMessageHeight
-  };*/
   let fileSettings = {};
 
   fileSettings[Keys.FileSettings.Filename] = fileName;
@@ -2839,7 +2584,6 @@ function reexportFile()
   let props = getPrevExportProperties();
   let parsedProps = JSON.parse(props);
   
-  //if(parsedProps["exportType"] == "xmlFormat")
   if(parsedProps[Keys.ExportSettings.Format] === ExportFormats.XML)
   {
     exportXml(props);
@@ -2887,7 +2631,7 @@ async function exportDocument(exportSettings)
     let replaceFile = blob[Keys.FileSettings.ReplaceFile];
     let replaceFileId = blob[Keys.FileSettings.ReplaceFileId];
     let file = null;
-    
+    //Only return fields needed for our uses: https://developers.google.com/drive/api/guides/fields-parameter
     const fieldsData = { 'fields' : 'id,name,webViewLink,webContentLink' };
 
     //Update existing file...
@@ -2925,7 +2669,7 @@ async function exportDocument(exportSettings)
       let fileBlob = Utilities.newBlob(content, type);
 
       //https://developers.google.com/drive/api/reference/rest/v3/files#File
-      file = await Drive.Files.create(newFile, fileBlob, fieldsData); //Only return fields needed for our uses: https://developers.google.com/drive/api/guides/fields-parameter
+      file = await Drive.Files.create(newFile, fileBlob, fieldsData);
     }
     
     let message = '';
@@ -3243,13 +2987,12 @@ function include(filename)
 function checkVersionNumber()
 {
   const temp = PropertiesService.getUserProperties();
-  //let latestVersion = temp.getProperty("esd-latestVersion");
   const latestVersion = temp.getProperty(Keys.Properties.LatestVersion);
   
   if(latestVersion === "" || parseInt(latestVersion) !== esdVersion)
   {
-    //PropertiesService.getUserProperties().setProperty("esd-latestVersion", esdVersion.toString());
     PropertiesService.getUserProperties().setProperty(Keys.Properties.LatestVersion, esdVersion.toString());
+
     openNewVersionModal();
   }
 }
@@ -3293,8 +3036,8 @@ function onOpen(e)
   .addItem("About (v" + esdVersion + ")", "openAboutModal")
   .addItem("Support ESD", "openSupportModal")
   //For testing purposes
-  //.addSeparator()
-  //.addItem("What's New", "openNewVersionModal")
+  .addSeparator()
+  .addItem("What's New", "openNewVersionModal")
   //.addItem("Check Properties", "checkProperties")
   .addToUi();
 };
