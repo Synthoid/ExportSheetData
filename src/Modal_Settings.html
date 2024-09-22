@@ -117,7 +117,7 @@
         
         newSettingsString = JSON.stringify(settings);
         
-        google.script.run.validateAndSetExportProperties(newSettingsString);
+        google.script.run.withSuccessHandler(onSetSettingsSuccess).validateAndSetExportProperties(newSettingsString);
       }
       
       
@@ -145,6 +145,12 @@
       function onCurrentSettingsFail(error)
       {
         google.script.run.openErrorModal("Issue loading settings", "Could not retrieve settings.", error.stack);
+      }
+
+
+      function onSetSettingsSuccess()
+      {
+        google.script.host.close();
       }
       
       getCurrentSettings();

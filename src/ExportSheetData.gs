@@ -310,12 +310,15 @@ function setExportPropertiesInternal(newProperties, documentKey, userKey)
   let documentProperties = PropertiesService.getDocumentProperties();
   let userProperties = PropertiesService.getUserProperties();
   let documentSettings = JSON.parse(newProperties);
-  let userSettings = documentSettings[Keys.Properties.Export];
+  let hasUserSettings = documentSettings.hasOwnProperty(Keys.Properties.Export);
+  let userSettings = hasUserSettings ? documentSettings[Keys.Properties.Export] : {};
   
   delete documentSettings[Keys.Properties.Export]; //Delete export location/replace file values due to OAuth limitations...
   
   documentProperties.setProperty(documentKey, JSON.stringify(documentSettings));
-  userProperties.setProperty(userKey, JSON.stringify(userSettings));
+
+  //Only update export folder and target file if there's actual data...
+  if(hasUserSettings) userProperties.setProperty(userKey, JSON.stringify(userSettings));
 }
 
 /**
@@ -384,16 +387,14 @@ function setPrevExportProperties(newProperties)
 function validateAndSetExportProperties(settingsString)
 {
   let settings = JSON.parse(settingsString);
-  //let exportSettings = settings.hasOwnProperty("export") ? settings ["export"] : {};
   let message = "Settings have been imported from another ESD document. The sidebar will now refresh.";
-  //let hasCustomFileData = false;
   
   //Target sheets
   if(settings.hasOwnProperty(Keys.ExportSettings.TargetSheets))
   {
-    if(settings[Keys.ExportSettings.TargetSheets] !== "{}") message += "\n\nNote: Custom export sheet targets are not imported and will need to be set up.";
+    if(settings[Keys.ExportSettings.TargetSheets] !== "[]") message += "\n\nNote: Custom export sheet targets are not imported and will need to be set up.";
     
-    settings[Keys.ExportSettings.TargetSheets] = "{}"; //Don't populate export sheets since those are likely to be custom per sheet.
+    settings[Keys.ExportSettings.TargetSheets] = "[]"; //Don't populate export sheets since those are likely to be custom per sheet.
   }
 
   //User export data
@@ -2083,6 +2084,8 @@ function exportSpreadsheetJson(formatSettings, callback)
               let subpathType = getSubpathTypeJson(keyPath[l]);
               let subpath = trimKeySubpath(keyPath[l]);
               let foundMatch = false;
+              //If searching through an array, need to ensure that values are only added to an object element, not an int or string.
+              let firstObjectIndex = -1;
               
               //Check if the subpath points to an object and is meant to be searched for somehow (either by key or index)
               if(subpathType == SubpathTypes.Object && isSearchSubpath(subpath))
@@ -2091,8 +2094,6 @@ function exportSpreadsheetJson(formatSettings, callback)
                 subpath = subpath.substring(1);
                 //Get the type of search specified by nesting formatting in the column key
                 let searchType = getSubpathSearchType(subpath);
-                //If searching through an array, need to ensure that values are only added to an object element, not an int or string.
-                let firstObjectIndex = -1;
                 
                 switch(searchType)
                 {

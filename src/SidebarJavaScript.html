@@ -116,9 +116,9 @@
         EmptyValueFormat: "emptyValueFormat",
         NullValueFormat: "nullValueFormat",
         SeparatorChar: "separatorChar",
-        ForceArray: "forceArray",
+        ForceArrayWithPrefix: "forceArray",
         ForceArrayPrefix: "forceArrayPrefix",
-        ForceNestedArray: "forceArrayNest",
+        ForceNestedArrayWithPrefix: "forceArrayNest",
         ForceNestedArrayPrefix: "forceArrayNestPrefix"
       }
     },
@@ -131,11 +131,11 @@
         DeclarationVersion: "declarationVersion",
         DeclarationEncoding: "declarationEncoding",
         DeclarationStandalone: "declarationStandalone",
-        ForceAttributes: "forceAttributes",
+        ForceAttributesWithPrefix: "forceAttributes",
         ForceAttributesPrefix: "attributePrefix",
-        ForceChildElements: "forceChildElements",
+        ForceChildElementsWithPrefix: "forceChildElements",
         ForceChildElementsPrefix: "childElementPrefix",
-        ForceInnerText: "forceInnerText",
+        ForceInnerTextWithPrefix: "forceInnerText",
         ForceInnerTextPrefix: "innerTextPrefix",
         RootNamespace: "rootNamespace",
         Namespaces: "namespaces"
@@ -231,13 +231,13 @@
   //XML declaration standalone
   let declarationStandaloneXml = "none";
   //Columns using keys starting with a specified string will always be exported as attributes
-  let forceAttributesXml = false;
+  let forceAttributesWithPrefixXml = false;
   let forceAttributesPrefixXml = "ATT_";
   //Columns using keys starting with a specified string will always be exported as child elements
-  let forceChildElementsXml = false;
+  let forceChildElementsWithPrefixXml = false;
   let forceChildElementsPrefixXml = "CE_";
   //Columns using keys starting with a specified string will always be exported as inner text
-  let forceInnerTextXml = false;
+  let forceInnerTextWithPrefixXml = false;
   let forceInnerTextPrefixXml = "IT_";
   //Namespaces
   let rootNamespace = "";
@@ -272,11 +272,11 @@
   //Separator char for JSON arrays
   let arraySeparatorCharJson = ",";
   //Sheets or columns using keys starting with a specified string will always be exported as JSON arrays
-  let forceArrayJson = false;
+  let forceArrayWithPrefixJson = false;
   let forceArrayPrefixJson = "JA_";
   //Sheets using the specified prefix will always be exported as nested arrays
-  let forceArrayNest = false;
-  let forceArrayPrefixNest = "NAR_";
+  let forceNestedArrayWithPrefix = false;
+  let forceNestedArrayPrefix = "NA_";
   
   /**
    * Get the properties for the sheet to automatically set values based on the user's last export for this document.
@@ -361,6 +361,8 @@
 
           for(let i=0; i < sheetIds.length; i++)
           {
+            if(sheetIds[i] == null) continue;
+
             targetSheets[sheetIds[i].toString()] = true;
           }
         }
@@ -404,10 +406,10 @@
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.EmptyValueFormat, (newValue) => emptyValueFormatJson = newValue === "" ? emptyValueFormatJson : newValue);
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.NullValueFormat, (newValue) => nullValueFormatJson = newValue === "" ? nullValueFormatJson : newValue);
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.SeparatorChar, (newValue) => arraySeparatorCharJson = newValue === "" ? JSON_SEPARATOR_DEFAULT : newValue);
-    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceArray, (newValue) => forceArrayJson = newValue === true);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceArrayWithPrefix, (newValue) => forceArrayWithPrefixJson = newValue === true);
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceArrayPrefix, (newValue) => forceArrayPrefixJson = newValue === "" ? JSON_JA_DEFAULT : newValue);
-    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceNestedArray, (newValue) => forceArrayNest = newValue === true);
-    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceNestedArrayPrefix, (newValue) => forceArrayPrefixNest = newValue === "" ? NEST_NA_DEFAULT : newValue);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceNestedArrayWithPrefix, (newValue) => forceNestedArrayWithPrefix = newValue === true);
+    tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceNestedArrayPrefix, (newValue) => forceNestedArrayPrefix = newValue === "" ? NEST_NA_DEFAULT : newValue);
     
     //XML
     let xmlSettings = settings.hasOwnProperty(Keys.Objects.XML) ? settings[Keys.Objects.XML] : settings;
@@ -423,11 +425,11 @@
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationVersion, (newValue) => declarationVersionXml = newValue === "" ? declarationVersionXml : newValue);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationEncoding, (newValue) => declarationEncodingXml = newValue === "" ? declarationEncodingXml : newValue);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationStandalone, (newValue) => declarationStandaloneXml = newValue === "" ? declarationStandaloneXml : newValue);
-    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceAttributes, (newValue) => forceAttributesXml = newValue === true);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceAttributesWithPrefix, (newValue) => forceAttributesWithPrefixXml = newValue === true);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceAttributesPrefix, (newValue) => forceAttributesPrefixXml = newValue === "" ? forceAttributesPrefixXml : newValue);
-    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceChildElements, (newValue) => forceChildElementsXml = newValue === true);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceChildElementsWithPrefix, (newValue) => forceChildElementsWithPrefixXml = newValue === true);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceChildElementsPrefix, (newValue) => forceChildElementsPrefixXml = newValue === "" ? forceChildElementsPrefixXml : newValue);
-    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceInnerText, (newValue) => forceInnerTextXml = newValue === true);
+    tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceInnerTextWithPrefix, (newValue) => forceInnerTextWithPrefixXml = newValue === true);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceInnerTextPrefix, (newValue) => forceInnerTextPrefixXml = newValue === "" ? forceInnerTextPrefixXml : newValue);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.RootNamespace, (newValue) => rootNamespace = newValue === "" ? rootNamespace : newValue);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.Namespaces, (newValue) => namespaces = newValue);
@@ -502,8 +504,11 @@
     properties[Keys.General.Advanced.NestedElements] = nestedElements;
     properties[Keys.General.Advanced.UnwrapSingle] = unwrapSingleRows;
     properties[Keys.General.Advanced.CollapseSingle] = collapseSingleRows;
+    properties[Keys.General.Advanced.IgnoreWithPrefix] = ignoreColumnsWithPrefix;
     properties[Keys.General.Advanced.IgnorePrefix] = ignoreColumnsPrefix === "" ? IGNORE_COLUMN_DEFAULT : ignoreColumnsPrefix;
+    properties[Keys.General.Advanced.UnwrapWithPrefix] = unwrapSheetsWithPrefix;
     properties[Keys.General.Advanced.UnwrapPrefix] = unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
+    properties[Keys.General.Advanced.CollapseWithPrefix] = collapseSheetsWithPrefix;
     properties[Keys.General.Advanced.CollapsePrefix] = collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
 
     //JSON
@@ -518,10 +523,10 @@
     jsonAdvancedProperties[Keys.JSON.Advanced.EmptyValueFormat] = emptyValueFormatJson;
     jsonAdvancedProperties[Keys.JSON.Advanced.NullValueFormat] = nullValueFormatJson;
     jsonAdvancedProperties[Keys.JSON.Advanced.SeparatorChar] = getSeparatorCharJson();
-    jsonAdvancedProperties[Keys.JSON.Advanced.ForceArray] = forceArrayJson;
+    jsonAdvancedProperties[Keys.JSON.Advanced.ForceArrayWithPrefix] = forceArrayWithPrefixJson;
     jsonAdvancedProperties[Keys.JSON.Advanced.ForceArrayPrefix] = forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson;
-    jsonAdvancedProperties[Keys.JSON.Advanced.ForceNestedArray] = forceArrayNest;
-    jsonAdvancedProperties[Keys.JSON.Advanced.ForceNestedArrayPrefix] = forceArrayPrefixNest === "" ? NEST_NA_DEFAULT : forceArrayPrefixNest;
+    jsonAdvancedProperties[Keys.JSON.Advanced.ForceNestedArrayWithPrefix] = forceNestedArrayWithPrefix;
+    jsonAdvancedProperties[Keys.JSON.Advanced.ForceNestedArrayPrefix] = forceNestedArrayPrefix === "" ? NEST_NA_DEFAULT : forceNestedArrayPrefix;
 
     //XML
     xmlProperties[Keys.XML.ChildElements] = exportChildElementXml;
@@ -530,11 +535,14 @@
     //XML Advanced
     xmlAdvancedProperties[Keys.XML.Advanced.NameReplacementChar] = nameReplacementCharXml;
     xmlAdvancedProperties[Keys.XML.Advanced.IncludeDeclaration] = includeDeclarationXml;
-    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationVersion] = getDeclarationVersion();
-    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationEncoding] = getDeclarationEncoding();
-    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationStandalone] = getDeclarationStandalone();
+    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationVersion] = declarationVersionXml;
+    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationEncoding] = declarationEncodingXml;
+    xmlAdvancedProperties[Keys.XML.Advanced.DeclarationStandalone] = declarationStandaloneXml;
+    xmlAdvancedProperties[Keys.XML.Advanced.ForceAttributesWithPrefix] = forceAttributesWithPrefixXml;
     xmlAdvancedProperties[Keys.XML.Advanced.ForceAttributesPrefix] = getAttributePrefix();
+    xmlAdvancedProperties[Keys.XML.Advanced.ForceChildElementsWithPrefix] = forceChildElementsWithPrefixXml;
     xmlAdvancedProperties[Keys.XML.Advanced.ForceChildElementsPrefix] = getChildElementPrefix();
+    xmlAdvancedProperties[Keys.XML.Advanced.ForceInnerTextWithPrefix] = forceInnerTextWithPrefixXml;
     xmlAdvancedProperties[Keys.XML.Advanced.ForceInnerTextPrefix] = getInnerTextPrefix();
     xmlAdvancedProperties[Keys.XML.Advanced.RootNamespace] = rootNamespace;
     xmlAdvancedProperties[Keys.XML.Advanced.Namespaces] = namespaces;
@@ -550,6 +558,8 @@
   
   /**
    * Creates a JSON blob representing the current XML settings
+   * @param {boolean} singleSheet Is the export operation for the current sheet only?
+   * @param {Object} sheetsToExport Object containing sheets to export, indexed by sheet ID.
    * @return {string}
    **/
   function generateXmlSettings(singleSheet, sheetsToExport)
@@ -615,6 +625,8 @@
   
   /**
    * Creates a JSON blob representing the current JSON settings
+   * @param {boolean} singleSheet Is the export operation for the current sheet only?
+   * @param {Object} sheetsToExport Object containing sheets to export, indexed by sheet ID.
    * @return {string}
    **/
   function generateJsonSettings(singleSheet, sheetsToExport)
@@ -668,9 +680,9 @@
     jsonAdvancedSettings[Keys.JSON.Advanced.EmptyValueFormat] = emptyValueFormatJson;
     jsonAdvancedSettings[Keys.JSON.Advanced.NullValueFormat] = nullValueFormatJson;
     jsonAdvancedSettings[Keys.JSON.Advanced.SeparatorChar] = getSeparatorCharJson();
-    //jsonAdvancedSettings[Keys.JSON.Advanced.ForceArray] = forceArrayJson;
+    //jsonAdvancedSettings[Keys.JSON.Advanced.ForceArrayWithPrefix] = forceArrayWithPrefixJson;
     jsonAdvancedSettings[Keys.JSON.Advanced.ForceArrayPrefix] = getForceArrayPrefixJson();
-    //jsonAdvancedSettings[Keys.JSON.Advanced.ForceNestedArray] = forceArrayNest;
+    //jsonAdvancedSettings[Keys.JSON.Advanced.ForceNestedArrayWithPrefix] = forceNestedArrayWithPrefix;
     jsonAdvancedSettings[Keys.JSON.Advanced.ForceNestedArrayPrefix] = getForceArrayPrefixNest();
 
     jsonSettings[Keys.Objects.Advanced] = jsonAdvancedSettings;
@@ -1017,6 +1029,9 @@
   function toggleNestedElements()
   {
     nestedElements = !nestedElements;
+
+    tryGetElementById('nestForceArrayToggle', (element) => element.disabled = !nestedElements);
+    tryGetElementById('nestForceArrayTextField', (element) => element.disabled = !nestedElements || !forceNestedArrayWithPrefix);
   }
   
   /**
@@ -1095,11 +1110,6 @@
     unwrapSheetsWithPrefix = !unwrapSheetsWithPrefix;
     
     tryGetElementById('unwrapSheetsPrefixTextField', (element) => element.disabled = !unwrapSheetsWithPrefix);
-    
-    /*if(document.getElementById('unwrapSheetsPrefixTextField') != null)
-    {
-      document.getElementById('unwrapSheetsPrefixTextField').disabled = !unwrapSheetsWithPrefix;
-    }*/
   }
   
   /**
@@ -1129,10 +1139,6 @@
     collapseSheetsWithPrefix = !collapseSheetsWithPrefix;
     
     tryGetElementById('collapseSheetsPrefixTextField', (element) => element.disabled = !collapseSheetsWithPrefix);
-    /*if(document.getElementById('collapseSheetsPrefixTextField') != null)
-    {
-      document.getElementById('collapseSheetsPrefixTextField').disabled = !collapseSheetsWithPrefix;
-    }*/
   }
   
   //XML Options
@@ -1206,34 +1212,34 @@
   }
   
   /**
-   * Get the forceAttributesPrefixXml value. This will return an empty string if forceAttributesXml is false or a default value if forceAttributesPrefixXml is empty
+   * Get the forceAttributesPrefixXml value. This will return an empty string if forceAttributesWithPrefixXml is false or a default value if forceAttributesPrefixXml is empty
    * @return {string}
    **/
   function getAttributePrefix()
   {
-    if(forceAttributesXml === false) return "";
+    if(forceAttributesWithPrefixXml === false) return "";
   
     return forceAttributesPrefixXml === "" ? XML_ATT_DEFAULT : forceAttributesPrefixXml;
   }
   
   /**
-   * Get the forceChildElementsPrefixXml value. This will return an empty string if forceChildElementsXml is false or a default value if forceChildElementsPrefixXml is empty
+   * Get the forceChildElementsPrefixXml value. This will return an empty string if forceChildElementsWithPrefixXml is false or a default value if forceChildElementsPrefixXml is empty
    * @return {string}
    **/
   function getChildElementPrefix()
   {
-    if(forceChildElementsXml === false) return "";
+    if(forceChildElementsWithPrefixXml === false) return "";
   
     return forceChildElementsPrefixXml === "" ? XML_CE_DEFAULT : forceChildElementsPrefixXml;
   }
   
   /**
-   * Get the forceInnerTextPrefixXml value. This will return an empty string if forceInnerTextXml is false or a default value if forceInnerTextPrefixXml is empty
+   * Get the forceInnerTextPrefixXml value. This will return an empty string if forceInnerTextWithPrefixXml is false or a default value if forceInnerTextPrefixXml is empty
    * @return {string}
    **/
   function getInnerTextPrefix()
   {
-    if(forceInnerTextXml === false) return "";
+    if(forceInnerTextWithPrefixXml === false) return "";
     
     return forceInnerTextPrefixXml === "" ? XML_IT_DEFAULT : forceInnerTextPrefixXml;
   }
@@ -1251,7 +1257,7 @@
    **/
   function updateAttributePrefixXml()
   {
-    forceAttributesPrefixXml = document.getElementById("xmlForceAttributesTextField").value;
+    forceAttributesPrefixXml = document.getElementById("xmlForceAttributesPrefixTextField").value;
   }
   
   /**
@@ -1259,7 +1265,7 @@
    **/
   function updateChildElementPrefixXml()
   {
-    forceChildElementsPrefixXml = document.getElementById("xmlForceChildElementsTextField").value;
+    forceChildElementsPrefixXml = document.getElementById("xmlForceChildElementsPrefixTextField").value;
   }
   
   /**
@@ -1267,7 +1273,7 @@
    **/
   function updateInnerTextPrefixXml()
   {
-    forceInnerTextPrefixXml = document.getElementById("xmlForceInnerTextTextField").value;
+    forceInnerTextPrefixXml = document.getElementById("xmlForceInnerTextPrefixTextField").value;
   }
   
   /**
@@ -1318,46 +1324,33 @@
   }
   
   /**
-   * Toggle the forceAttributesXml boolean's value.
+   * Toggle the forceAttributesWithPrefixXml boolean's value.
    **/
   function toggleAttributePrefixXml()
   {
-    forceAttributesXml = !forceAttributesXml;
+    forceAttributesWithPrefixXml = !forceAttributesWithPrefixXml;
     
-    tryGetElementById('xmlForceAttributesTextField', (element) => element.disabled = !forceAttributesXml);
-    /*if(document.getElementById('xmlForceAttributesTextField') != null)
-    {
-      document.getElementById('xmlForceAttributesTextField').disabled = !forceAttributesXml;
-    }*/
+    tryGetElementById('xmlForceAttributesPrefixTextField', (element) => element.disabled = !forceAttributesWithPrefixXml);
   }
   
   /**
-   * Toggle the forceChildElementsXml boolean's value.
+   * Toggle the forceChildElementsWithPrefixXml boolean's value.
    **/
   function toggleChildElementPrefixXml()
   {
-    forceChildElementsXml = !forceChildElementsXml;
+    forceChildElementsWithPrefixXml = !forceChildElementsWithPrefixXml;
 
-    tryGetElementById('xmlForceChildElementsTextField', (element) => element.disabled = !forceChildElementsXml);
-    
-    /*if(document.getElementById('xmlForceChildElementsTextField') != null)
-    {
-      document.getElementById('xmlForceChildElementsTextField').disabled = !forceChildElementsXml;
-    }*/
+    tryGetElementById('xmlForceChildElementsPrefixTextField', (element) => element.disabled = !forceChildElementsWithPrefixXml);
   }
   
   /**
-   * Toggle the forceInnerTextXml boolean's value.
+   * Toggle the forceInnerTextWithPrefixXml boolean's value.
    **/
   function toggleInnerTextPrefixXml()
   {
-    forceInnerTextXml = !forceInnerTextXml;
+    forceInnerTextWithPrefixXml = !forceInnerTextWithPrefixXml;
     
-    tryGetElementById('xmlForceInnerTextTextField', (element) => element.disabled = !forceInnerTextXml);
-    /*if(document.getElementById('xmlForceInnerTextTextField') != null)
-    {
-      document.getElementById('xmlForceInnerTextTextField').disabled = !forceInnerTextXml;
-    }*/
+    tryGetElementById('xmlForceInnerTextPrefixTextField', (element) => element.disabled = !forceInnerTextWithPrefixXml);
   }
   
   //XML Namespaces
@@ -1584,12 +1577,12 @@
   }
   
   /**
-   * Get the forceArrayPrefixJson value. This will return an empty string if forceArrayJson is false or a default value if forceArrayPrefixJson is empty
+   * Get the forceArrayPrefixJson value. This will return an empty string if forceArrayWithPrefixJson is false or a default value if forceArrayPrefixJson is empty
    * @return {string}
    **/
   function getForceArrayPrefixJson()
   {
-    if(forceArrayJson === false) return "";
+    if(forceArrayWithPrefixJson === false) return "";
   
     return forceArrayPrefixJson === "" ? JSON_JA_DEFAULT : forceArrayPrefixJson;
   }
@@ -1619,17 +1612,13 @@
   }
   
   /**
-   * Toggle the forceArrayJson boolean's value.
+   * Toggle the forceArrayWithPrefixJson boolean's value.
    **/
   function toggleArrayPrefixJson()
   {
-    forceArrayJson = !forceArrayJson;
+    forceArrayWithPrefixJson = !forceArrayWithPrefixJson;
     
-    tryGetElementById('jsonForceArrayTextField', (element) => element.disabled = !forceArrayJson);
-    /*if(document.getElementById('jsonForceArrayTextField') != null)
-    {
-      document.getElementById('jsonForceArrayTextField').disabled = !forceArrayJson;
-    }*/
+    tryGetElementById('jsonForceArrayTextField', (element) => element.disabled = !forceArrayWithPrefixJson);
   }
   
   /**
@@ -1642,36 +1631,32 @@
   
   //Nested Elements options
   /**
-   * Toggle the forceArrayNest boolean's value.
+   * Toggle the forceNestedArrayWithPrefix boolean's value.
    **/
   function toggleArrayPrefixNest()
   {
-    forceArrayNest = !forceArrayNest;
+    forceNestedArrayWithPrefix = !forceNestedArrayWithPrefix;
     
-    tryGetElementById('nestForceArrayTextField', (element) => element.disabled = !forceArrayNest);
-    /*if(document.getElementById('nestForceArrayTextField') != null)
-    {
-      document.getElementById('nestForceArrayTextField').disabled = !forceArrayNest;
-    }*/
+    tryGetElementById('nestForceArrayTextField', (element) => element.disabled = !forceNestedArrayWithPrefix);
   }
   
   /**
-   * Update the forceArrayPrefixNest value to the current value set in its field
+   * Update the forceNestedArrayPrefix value to the current value set in its field
    **/
   function updateArrayPrefixNest()
   {
-    forceArrayPrefixNest = document.getElementById("nestForceArrayTextField").value;
+    forceNestedArrayPrefix = document.getElementById("nestForceArrayTextField").value;
   }
   
   /**
-   * Get the forceArrayPrefixNest value. This will return an empty string if forceArrayNest is false or a default value if forceArrayPrefixNest is empty
+   * Get the forceNestedArrayPrefix value. This will return an empty string if forceNestedArrayWithPrefix is false or a default value if forceNestedArrayPrefix is empty
    * @return {string}
    **/
   function getForceArrayPrefixNest()
   {
-    if(forceArrayNest === false) return "";
+    if(forceNestedArrayWithPrefix === false) return "";
   
-    return forceArrayPrefixNest === "" ? NEST_NA_DEFAULT : forceArrayPrefixNest;
+    return forceNestedArrayPrefix === "" ? NEST_NA_DEFAULT : forceNestedArrayPrefix;
   }
   
   /**
@@ -1902,31 +1887,31 @@
       advancedXmlText += ">No</option></select></div></div>";
       advancedXmlText += "</div>";
       //Force attribute column export
-      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceAttributeToggle' type='checkbox' value='false'";
-      if(forceAttributesXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/><div class='option'><label for='xmlForceAttributeToggle'>Attributes prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as attributes.</div></div>";
-      advancedXmlText += "<div class='subOption'><p id='xmlForceAttributeText'><input id='xmlForceAttributesTextField' type='text' value=";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceAttributeWithPrefixToggle' type='checkbox' value='false'";
+      if(forceAttributesWithPrefixXml === true) advancedXmlText += " checked";
+      advancedXmlText += "/><div class='option'><label for='xmlForceAttributeWithPrefixToggle'>Attributes prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as attributes.</div></div>";
+      advancedXmlText += "<div class='subOption'><p id='xmlForceAttributeText'><input id='xmlForceAttributesPrefixTextField' type='text' value=";
       advancedXmlText += "'" + forceAttributesPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_ATT_DEFAULT + "'";
-      if(forceAttributesXml === false) advancedXmlText += " disabled";
+      if(forceAttributesWithPrefixXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div></div>";
       //Force child element column export
-      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceChildElementToggle' type='checkbox' value='false'";
-      if(forceChildElementsXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/><div class='option'><label for='xmlForceChildElementToggle'>Child elements prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as child elements.</div></div>";
-      advancedXmlText += "<div class='subOption'><p id='xmlForceChildElementsText'><input id='xmlForceChildElementsTextField' type='text' value=";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceChildElementWithPrefixToggle' type='checkbox' value='false'";
+      if(forceChildElementsWithPrefixXml === true) advancedXmlText += " checked";
+      advancedXmlText += "/><div class='option'><label for='xmlForceChildElementWithPrefixToggle'>Child elements prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as child elements.</div></div>";
+      advancedXmlText += "<div class='subOption'><p id='xmlForceChildElementsText'><input id='xmlForceChildElementsPrefixTextField' type='text' value=";
       advancedXmlText += "'" + forceChildElementsPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_CE_DEFAULT + "'";
-      if(forceChildElementsXml === false) advancedXmlText += " disabled";
+      if(forceChildElementsWithPrefixXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div></div>";
       //Force inner text column export
-      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceInnerTextToggle' type='checkbox' value='false'";
-      if(forceInnerTextXml === true) advancedXmlText += " checked";
-      advancedXmlText += "/><div class='option'><label for='xmlForceInnerTextToggle'>Inner text prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as inner text of the row element.</div></div>";
-      advancedXmlText += "<div class='subOption'><p id='xmlForceInnerTextText'><input id='xmlForceInnerTextTextField' type='text' value=";
+      advancedXmlText += "<div class='sectionWrapper'><input id='xmlForceInnerTextWithPrefixToggle' type='checkbox' value='false'";
+      if(forceInnerTextWithPrefixXml === true) advancedXmlText += " checked";
+      advancedXmlText += "/><div class='option'><label for='xmlForceInnerTextWithPrefixToggle'>Inner text prefix</label><div class='tooltip note'>Force columns with keys using the specified prefix to export as inner text of the row element.</div></div>";
+      advancedXmlText += "<div class='subOption'><p id='xmlForceInnerTextText'><input id='xmlForceInnerTextPrefixTextField' type='text' value=";
       advancedXmlText += "'" + forceInnerTextPrefixXml + "'";
       advancedXmlText += " placeholder='" + XML_IT_DEFAULT + "'";
-      if(forceInnerTextXml === false) advancedXmlText += " disabled";
+      if(forceInnerTextWithPrefixXml === false) advancedXmlText += " disabled";
       advancedXmlText += "/></p></div></div></div>";
       
       //XML Namespaces
@@ -2043,21 +2028,22 @@
       advancedJsonText += "/></div>";
       //Force JSON array export
       advancedJsonText += "<div class='sectionWrapper'><input id='jsonForceArrayToggle' type='checkbox' value='false'";
-      if(forceArrayJson === true) advancedJsonText += " checked";
+      if(forceArrayWithPrefixJson === true) advancedJsonText += " checked";
       advancedJsonText += "/><div class='option'><label for='jsonForceArrayToggle'>Array prefix</label><div class='tooltip note'>Force sheets or cells in columns with keys using the specified prefix to export as JSON arrays.</div></div>";
       advancedJsonText += "<div class='subOption'><p id='jsonForceArrayText'><input id='jsonForceArrayTextField' type='text' value=";
       advancedJsonText += "'" + forceArrayPrefixJson + "'";
       advancedJsonText += " placeholder='" + JSON_JA_DEFAULT + "'";
-      if(forceArrayJson === false) advancedJsonText += " disabled";
+      if(forceArrayWithPrefixJson === false) advancedJsonText += " disabled";
       advancedJsonText += "/></p></div></div>";
       //Force nested array export
       advancedJsonText += "<div class='sectionWrapper'><input id='nestForceArrayToggle' type='checkbox' value='false'";
-      if(forceArrayNest === true) advancedJsonText += " checked";
+      if(forceNestedArrayWithPrefix === true) advancedJsonText += " checked";
+      if(nestedElements === false) advancedJsonText += " disabled";
       advancedJsonText += "/><div class='option'><label for='nestForceArrayToggle'>Nested Array prefix</label><div class='tooltip note'>Force sheets with names using the specified prefix to export as Nested Element arrays.</div></div>";
       advancedJsonText += "<div class='subOption'><p id='nestForceArrayText'><input id='nestForceArrayTextField' type='text' value=";
-      advancedJsonText += "'" + forceArrayPrefixNest + "'";
+      advancedJsonText += "'" + forceNestedArrayPrefix + "'";
       advancedJsonText += " placeholder='" + NEST_NA_DEFAULT + "'";
-      if(forceArrayNest === false) advancedJsonText += " disabled";
+      if(forceNestedArrayWithPrefix === false || nestedElements === false) advancedJsonText += " disabled";
       advancedJsonText += "/></p></div></div>";
       advancedJsonText += "</div>";
       
@@ -2119,6 +2105,8 @@
   function getTargetSheetsArray(sheetData)
   {
     let sheetArray = [];
+
+    if(sheetData == null) return sheetArray;
 
     for(key in sheetData)
     {
@@ -2217,7 +2205,6 @@
 
     if(getSheetToggleSummaryStatus() === 2)
     {
-      console.log("Indeterminate!");
       document.getElementById('allSheetsToggle').indeterminate = true;
     }
     
@@ -2263,7 +2250,6 @@
 
     if(getSheetToggleSummaryStatus() === 2)
     {
-      console.log("Indeterminate2!");
       document.getElementById('allSheetsToggle').indeterminate = true;
     }
     
@@ -2385,7 +2371,7 @@
    **/
   function clearSheetToggles()
   {
-    targetSheets = { };
+    targetSheets = {};
     
     for(let i=0; i < currentSheets.length; i++)
     {
@@ -2481,12 +2467,12 @@
     document.getElementById('xmlDeclarationVersionDropdown').addEventListener("change", changeDeclarationVersionXml);
     document.getElementById('xmlDeclarationEncodingDropdown').addEventListener("change", changeDeclarationEncodingXml);
     document.getElementById('xmlDeclarationStandaloneDropdown').addEventListener("change", changeDeclarationStandaloneXml);
-    document.getElementById('xmlForceAttributeToggle').addEventListener("change", toggleAttributePrefixXml);
-    document.getElementById('xmlForceAttributesTextField').addEventListener("change", updateAttributePrefixXml);
-    document.getElementById('xmlForceChildElementToggle').addEventListener("change", toggleChildElementPrefixXml);
-    document.getElementById('xmlForceChildElementsTextField').addEventListener("change", updateChildElementPrefixXml);
-    document.getElementById('xmlForceInnerTextToggle').addEventListener("change", toggleInnerTextPrefixXml);
-    document.getElementById('xmlForceInnerTextTextField').addEventListener("change", updateInnerTextPrefixXml);
+    document.getElementById('xmlForceAttributeWithPrefixToggle').addEventListener("change", toggleAttributePrefixXml);
+    document.getElementById('xmlForceAttributesPrefixTextField').addEventListener("change", updateAttributePrefixXml);
+    document.getElementById('xmlForceChildElementWithPrefixToggle').addEventListener("change", toggleChildElementPrefixXml);
+    document.getElementById('xmlForceChildElementsPrefixTextField').addEventListener("change", updateChildElementPrefixXml);
+    document.getElementById('xmlForceInnerTextWithPrefixToggle').addEventListener("change", toggleInnerTextPrefixXml);
+    document.getElementById('xmlForceInnerTextPrefixTextField').addEventListener("change", updateInnerTextPrefixXml);
     //XML Namespaces
     document.getElementById('xmlRootNamespaceField').addEventListener("change", updateRootNamespaceXml);
     document.getElementById('newNamespaceButton').addEventListener("click", addNamespaceXml);
@@ -2558,12 +2544,12 @@
     tryGetElementById('xmlDeclarationEncodingDropdown', (element) => element.removeEventListener("change", changeDeclarationEncodingXml));
     tryGetElementById('xmlDeclarationStandaloneDropdown', (element) => element.removeEventListener("change", changeDeclarationStandaloneXml));
     
-    tryGetElementById('xmlForceAttributeToggle', (element) => element.removeEventListener("change", toggleAttributePrefixXml));
-    tryGetElementById('xmlForceAttributesTextField', (element) => element.removeEventListener("change", updateAttributePrefixXml));
-    tryGetElementById('xmlForceChildElementToggle', (element) => element.removeEventListener("change", toggleChildElementPrefixXml));
-    tryGetElementById('xmlForceChildElementsTextField', (element) => element.removeEventListener("change", updateChildElementPrefixXml));
-    tryGetElementById('xmlForceInnerTextToggle', (element) => element.removeEventListener("change", toggleInnerTextPrefixXml));
-    tryGetElementById('xmlForceInnerTextTextField', (element) => element.removeEventListener("change", updateInnerTextPrefixXml));
+    tryGetElementById('xmlForceAttributeWithPrefixToggle', (element) => element.removeEventListener("change", toggleAttributePrefixXml));
+    tryGetElementById('xmlForceAttributesPrefixTextField', (element) => element.removeEventListener("change", updateAttributePrefixXml));
+    tryGetElementById('xmlForceChildElementWithPrefixToggle', (element) => element.removeEventListener("change", toggleChildElementPrefixXml));
+    tryGetElementById('xmlForceChildElementsPrefixTextField', (element) => element.removeEventListener("change", updateChildElementPrefixXml));
+    tryGetElementById('xmlForceInnerTextWithPrefixToggle', (element) => element.removeEventListener("change", toggleInnerTextPrefixXml));
+    tryGetElementById('xmlForceInnerTextPrefixTextField', (element) => element.removeEventListener("change", updateInnerTextPrefixXml));
     
     //Namespaces
     tryGetElementById('xmlRootNamespaceField', (element) => element.removeEventListener("change", updateRootNamespaceXml));
