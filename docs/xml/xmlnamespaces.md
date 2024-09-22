@@ -23,7 +23,7 @@ These are defined via `xmlns:prefix` attributes in the document's root element.
 **Sheet: `SheetPrograms`**
 
 Name | Company | ss:ID
----- | ------- | -----------
+---- | ------- | -----
 sm:Excel | Microsoft | MS
 sg:Sheets | Google | G
 sa:Numbers | Apple | A
@@ -39,7 +39,8 @@ sa:Numbers | Apple | A
 </data>
 ```
 
-Note that the colons (`:`) have been replaced with underscores (`_`) in this export, as colons are not valid XML tag characters unless they are used for namespaces.
+> [!NOTE]
+> Colons (`:`) have been replaced with underscores (`_`) in this export, as colons are not valid XML tag characters unless they are used for namespaces.
 
 *Various namespaces set:*
 ```xml

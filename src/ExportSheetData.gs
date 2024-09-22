@@ -199,9 +199,9 @@ const Keys = {
         EmptyValueFormat: "emptyValueFormat", //string
         NullValueFormat: "nullValueFormat", //string
         SeparatorChar: "separatorChar", //string
-        ForceArray: "forceArray", //bool
+        //ForceArrayWithPrefix: "forceArray", //bool
         ForceArrayPrefix: "forceArrayPrefix", //string
-        ForceNestedArray: "forceArrayNest", //bool
+        //ForceNestedArrayWithPrefix: "forceArrayNest", //bool
         ForceNestedArrayPrefix: "forceArrayNestPrefix" //string
       }
     },
@@ -214,11 +214,11 @@ const Keys = {
         DeclarationVersion: "declarationVersion", //string
         DeclarationEncoding: "declarationEncoding", //string
         DeclarationStandalone: "declarationStandalone", //string
-        ForceAttributes: "forceAttributes", //bool
+        //ForceAttributesWithPrefix: "forceAttributes", //bool
         AttributePrefix: "attributePrefix", //string
-        ForceChildElements: "forceChildElements", //bool
+        //ForceChildElementsWithPrefix: "forceChildElements", //bool
         ChildElementPrefix: "childElementPrefix", //string
-        ForceInnerText: "forceInnerText", //bool
+        //ForceInnerTextWithPrefix: "forceInnerText", //bool
         InnerTextPrefix: "innerTextPrefix", //string
         RootNamespace: "rootNamespace", //string
         Namespaces: "namespaces" //string array
@@ -852,16 +852,21 @@ function getXmlNameAndNamespace(value, namespaces, rootNamespace, noNamespace)
   
   switch(values.length)
   {
-    case 0:
+    case 0: //"Test"
       output = [ "", rootNamespace ];
       break;
-    case 1:
+    case 1: //"Test:"
       output = [ values[0], rootNamespace ];
       break;
-    default:
+    default: //"ss:Test", "ss:x:Test", etc
       output = [ values[values.length-1], getXmlNamespace(values[0], namespaces, noNamespace) ];
       
-      if(output[1] == noNamespace) output[1] = rootNamespace;
+      //If no valid namespace is found, use the noNamespace namespace, and set the value as the raw value.
+      if(output[1] == noNamespace)
+      {
+        output[0] = value;
+        output[1] = rootNamespace;
+      }
       break;
   }
   
@@ -1820,8 +1825,6 @@ function exportSpreadsheetJson(formatSettings, callback)
     "boolsAsInts" : exportBoolsAsInts,
     "forceStrings": forceString
   };
-
-  Logger.log(valueFormatSettings);
   
   //Sheets info
   let spreadsheet = SpreadsheetApp.getActive();
@@ -2486,7 +2489,6 @@ function exportSpreadsheetJson(formatSettings, callback)
             }
             else
             {
-              //Logger.log(JSON.stringify(rowObject));
               sheetJsonObject[values[j][0]] = rowObject;
             }
           }
@@ -2999,7 +3001,7 @@ function checkVersionNumber()
 }
 
 /**
- * Log various properties
+ * Log various properties.
  **/
 function checkProperties()
 {
@@ -3037,8 +3039,8 @@ function onOpen(e)
   .addItem("About (v" + esdVersion + ")", "openAboutModal")
   .addItem("Support ESD", "openSupportModal")
   //For testing purposes
-  .addSeparator()
-  .addItem("What's New", "openNewVersionModal")
+  //.addSeparator()
+  //.addItem("What's New", "openNewVersionModal")
   //.addItem("Check Properties", "checkProperties")
   .addToUi();
 };
