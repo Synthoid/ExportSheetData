@@ -8,6 +8,12 @@ This will open the settings menu. Here, you can see the current documents settin
 
 ![settings01](images/settings/settings02.png)
 
-Once you have pasted a settings JSON blob into the bottom field, you can click the `Load Settings` button to import those settings into the current document. Doing so will refresh the current settings and reopen the sidebar. *Specific sheets targeted when [Export sheets](format/exportsheets.md) is set to custom are not imported with the rest of the settings.* This is because different spreadsheets may have different IDs for targeted sheets so their saved export values may be incorrect.
+Once you have pasted a settings JSON blob into the bottom field, you can click the `Load Settings` button to import those settings into the current document. Doing so will refresh the current settings and reopen the sidebar.
 
-You can also clear the current settings for the document. ***This cannot be undone, so you will have to adjust or load settings again once `Clear` has been clicked. Use this with caution.***
+> [!NOTE]
+> Specific sheets targeted when [Export sheets](format/exportsheets.md) is set to custom are not imported with the rest of the settings. This is because different spreadsheets may have different IDs for targeted sheets so their saved export values may be incorrect.<br><br>Custom export folder and file replacement targets are also not imported due to `auth/drive.file` scope limitations.
+
+You can also clear the current settings for the document. 
+
+> [!CAUTION]
+> This cannot be undone, so you will have to adjust or load settings again once `Clear` has been clicked. Use this with caution.***
