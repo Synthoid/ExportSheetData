@@ -6,7 +6,6 @@
 <head>
   <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
   <script type="text/javascript">
-    const SecretKeys = {7a45b807-892a-41bc-8878-251f15d23742};
     const TIMEOUT_DURATION = 360;
     const DIALOG_DIMENSIONS = { //These values should be slightly smaller than the size set in ExportSheetData.openPicker()
         width: 650,
@@ -24,8 +23,10 @@
       Timeout: 4,
       Error: 5
     };
+    
     let pickerApiLoaded = false;
-    let settings = {};
+    let oauthToken = "";
+    let secretKeys = {};
 
     function onApiLoad()
     {
@@ -35,68 +36,66 @@
           }
       });
         
-      google.script.run.withSuccessHandler(createPicker).withFailureHandler(showError).getOAuthToken();
-      google.script.run.withSuccessHandler(onSettingsLoaded).getExportProperties();
+      google.script.run.withSuccessHandler(getSecrets).withFailureHandler(showError).getOAuthToken();
+    }
+
+    /**
+     * Get secrets needed for proper picker authorization.
+     * @param {string} token OAuth token for the user.
+     **/
+    function getSecrets(token)
+    {
+      oauthToken = token;
+
+      google.script.run.withSuccessHandler(onGetSecretsSuccess).withFailureHandler(showError).getSecrets();
     }
 
     /**
      * Create the actual picker object.
-     * @param {string} token OAuth token for the user.
      **/
-    function createPicker(token)
+    function createPicker()
     {
-        if(pickerApiLoaded && token)
-        {
-          let secrets = SecretKeys;
-
-          const API_KEY = secrets["apiKey"];
-          const APP_ID = secrets["appId"];
-
-          let docsView = new google.picker.DocsView()
-            .setIncludeFolders(true) //Show folders in selection view.
-            .setSelectFolderEnabled({92448e1e-6921-4988-b669-722446bde3c6}) //Allow the user to select folders.
-            //.setMode(google.picker.DocsViewMode.GRID) //Display folders as a grid
-            .setMimeTypes('{9a53e586-c360-412c-86ab-e30cfdb2d26d}');
-
-          let picker = new google.picker.PickerBuilder()
-            .addView(docsView)
-            .enableFeature(google.picker.Feature.NAV_HIDDEN)
-            .hideTitleBar()
-            .setSize(DIALOG_DIMENSIONS.width - 2, DIALOG_DIMENSIONS.height - 2) // -2 to create padding and prevent scroll bars
-            .setDeveloperKey(API_KEY)
-            .setAppId(APP_ID)
-            .setOAuthToken(token)
-            .setCallback(pickerCallback)
-            .setOrigin(google.script.host.origin)
-            .build();
-
-          picker.setVisible(true);
-
-          document.getElementById('result').innerHTML = '';
-        }
-        else
-        {
-          showError('Unable to load the file picker. Please close the modal and try again.');
-        }
-    }
-    
-
-    function onSettingsLoaded(documentSettings)
-    {
-      if(documentSettings == null || documentSettings === "")
+      if(pickerApiLoaded && oauthToken)
       {
-        settings = {};
+        let secrets = secretKeys;
+
+        const API_KEY = secrets["apiKey"];
+        const APP_ID = secrets["appId"];
+
+        let docsView = new google.picker.DocsView()
+          .setIncludeFolders(true) //Show folders in selection view.
+          .setSelectFolderEnabled({92448e1e-6921-4988-b669-722446bde3c6}) //Allow the user to select folders if applicable.
+          //.setMode(google.picker.DocsViewMode.GRID) //Display folders as a grid
+          .setMimeTypes('{9a53e586-c360-412c-86ab-e30cfdb2d26d}'); //Set files that can be selected.
+
+        let picker = new google.picker.PickerBuilder()
+          .addView(docsView)
+          .enableFeature(google.picker.Feature.NAV_HIDDEN)
+          .hideTitleBar()
+          .setSize(DIALOG_DIMENSIONS.width - 2, DIALOG_DIMENSIONS.height - 2) // -2 to create padding and prevent scroll bars
+          .setDeveloperKey(API_KEY)
+          .setAppId(APP_ID)
+          .setOAuthToken(oauthToken)
+          .setCallback(pickerCallback)
+          .setOrigin(google.script.host.origin)
+          .build();
+
+        picker.setVisible(true);
+
+        document.getElementById('result').innerHTML = '';
       }
       else
       {
-        settings = JSON.parse(documentSettings);
+        showError('Unable to load the file picker. Please close the modal and try again.');
       }
     }
-    
 
-    function onSettingsLoadFail(documentSettings)
+
+    function onGetSecretsSuccess(secretsJson)
     {
-      document.getElementById('result').innerHTML = "Could not load document properties. Please close the modal and open it again.";
+      secretKeys = secretsJson;
+
+      createPicker();
     }
 
     /**

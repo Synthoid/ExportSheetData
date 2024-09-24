@@ -131,9 +131,6 @@ const FormatGuids = {
     FileType: '{9a53e586-c360-412c-86ab-e30cfdb2d26d}',
     SelectFolders: '{92448e1e-6921-4988-b669-722446bde3c6}',
     CallbackName: '{568234c9-e57f-49bf-ba26-0f2d886b0d08}'
-  },
-  Secrets: {
-    SecretObject: '{7a45b807-892a-41bc-8878-251f15d23742}'
   }
 };
 
@@ -2830,9 +2827,7 @@ function openToast(message)
 function openPicker(mimeType, title, callback)
 {
   let htmlString = HtmlService.createTemplateFromFile('FilePicker').getRawContent();
-  let secrets = getSecrets();
-
-  htmlString = htmlString.replace(FormatGuids.Secrets.SecretObject, JSON.stringify(secrets));
+  
   htmlString = htmlString.replace(FormatGuids.Picker.FileType, mimeType);
   htmlString = htmlString.replace(FormatGuids.Picker.SelectFolders, mimeType === MimeTypes.Folder);
   htmlString = htmlString.replace(FormatGuids.Picker.CallbackName, callback.name);
