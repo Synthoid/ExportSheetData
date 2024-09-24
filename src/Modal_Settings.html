@@ -136,8 +136,22 @@
       function onCurrentSettingsSuccess(settings)
       {
         let allSettings = JSON.parse(settings);
-        let currentSettings = allSettings.hasOwnProperty("settings") ? JSON.stringify(JSON.parse(allSettings["settings"]), null, 2) : "No settings created yet! Please export or visualize data to create settings values.";
-      
+        let currentSettings = "";
+
+        if(allSettings.hasOwnProperty("settings"))
+        {
+          let exportSettings = JSON.parse(allSettings["settings"]);
+
+          //Delete export settings from the object, since those are user specific.
+          if(exportSettings.hasOwnProperty("export")) delete exportSettings["export"];
+
+          currentSettings = JSON.stringify(exportSettings, null, 2);
+        }
+        else
+        {
+          currentSettings = "No settings created yet! Please export or visualize data to create settings values.";
+        }
+
         document.getElementById("current-clipboard").value = currentSettings;
       }
       

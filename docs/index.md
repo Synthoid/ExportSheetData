@@ -17,8 +17,8 @@ These settings determine which format (JSON or XML) to export your data to, as w
 
 Setting | Description
 ------- | -----------
-[Export Format](format/exportformat.md) | Data format to export to (JSON or XML)
-[Export Folder](format/exportfolder.md) | Where files are exported to
+[Export Format](format/exportformat.md) | Format for exported data (JSON or XML)
+[Export Folder](format/exportfolder.md) | Where files are exported to on Drive
 [Export Sheet(s)](format/exportsheets.md) | Sheet tabs to include in the exported data
 
 General Settings

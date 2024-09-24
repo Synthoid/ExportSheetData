@@ -281,20 +281,14 @@ function setProperties(newProperties)
 /**
  * Returns the total export settings for ESD in the open document as a stringified JSON blob.
  * @param {string} documentKey Key for the target document property.
- * @param {string} userKey Key for the target user property.
  * @return {string}
  **/
-function getExportPropertiesInternal(documentKey, userKey)
+function getExportPropertiesInternal(documentKey)
 {
   //This returns a composite of properties, with the general settings stored in document properties, and export folder/replacement files stored in user properties...
   let documentProperties = PropertiesService.getDocumentProperties();
   let documentExportProperties = documentProperties.getProperty(documentKey);
-  let userProperties = PropertiesService.getUserProperties();
-  let userExportProperties = userProperties.getProperty(userKey);
   let documentSettings = documentExportProperties != null ? JSON.parse(documentExportProperties) : {};
-  let userSettings = userExportProperties != null ? JSON.parse(userExportProperties) : {};
-  
-  documentSettings[Keys.Properties.Export] = userSettings;
   
   return JSON.stringify(documentSettings);
 }
@@ -302,23 +296,14 @@ function getExportPropertiesInternal(documentKey, userKey)
 /**
  * Saves the total export settings for ESD in the open document so the user doesn't need to reselect them next time ESD is opened.
  * @param {object} newProperties Stringified JSON blob representing properties.
- * @param {string} documentKey Key for the target document property.
- * @param {string} userKey Key for the target user property.
+ * @param {string} documentKey Key for the settings field in document properties.
  **/
-function setExportPropertiesInternal(newProperties, documentKey, userKey)
+function setExportPropertiesInternal(newProperties, documentKey)
 {
   let documentProperties = PropertiesService.getDocumentProperties();
-  let userProperties = PropertiesService.getUserProperties();
   let documentSettings = JSON.parse(newProperties);
-  let hasUserSettings = documentSettings.hasOwnProperty(Keys.Properties.Export);
-  let userSettings = hasUserSettings ? documentSettings[Keys.Properties.Export] : {};
-  
-  delete documentSettings[Keys.Properties.Export]; //Delete export location/replace file values due to OAuth limitations...
   
   documentProperties.setProperty(documentKey, JSON.stringify(documentSettings));
-
-  //Only update export folder and target file if there's actual data...
-  if(hasUserSettings) userProperties.setProperty(userKey, JSON.stringify(userSettings));
 }
 
 /**
@@ -346,16 +331,10 @@ function setExportProperties(newProperties)
 function clearExportProperties(showModal)
 {
   let documentProperties = PropertiesService.getDocumentProperties();
-  let userProperties = PropertiesService.getUserProperties();
   
   if(documentProperties.getProperty(Keys.Properties.Document.Settings) != null)
   {
     documentProperties.deleteProperty(Keys.Properties.Document.Settings);
-  }
-
-  if(userProperties.getProperty(Keys.Properties.User.Settings) != null)
-  {
-    userProperties.deleteProperty(Keys.Properties.User.Settings);
   }
   
   if(showModal) SpreadsheetApp.getUi().alert("ESD export settings have been cleared! The sidebar will now refresh.");
