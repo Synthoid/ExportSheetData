@@ -11,9 +11,9 @@ Export sheet arrays will export sheets as JSON arrays with each row creating an 
 
 Name | Console
 ---- | -------
-Microsoft | Xbox One
+Microsoft | Xbox Series X
 Nintendo | Switch
-Sony | Playstation 4
+Sony | Playstation 5
 
 *Default Output:*
 ```json
@@ -38,7 +38,7 @@ Sony | Playstation 4
   "Companies": [
     {
       "Name": "Microsoft",
-      "Console": "Xbox One"
+      "Console": "Xbox Series X"
     },
     {
       "Name": "Nintendo",
@@ -46,7 +46,7 @@ Sony | Playstation 4
     },
     {
       "Name": "Sony",
-      "Console": "Playstation 4"
+      "Console": "Playstation 5"
     }
   ]
 }

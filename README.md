@@ -14,48 +14,54 @@ Install
 
 Export Sheet Data is available on the Google Workspace Marketplace.
 
-**NOTE:** There is a known bug when using add-ons while multiple accounts are signed in. If you run into a situation where the ESD sidebar doesn't seem to load, visit the [troubleshooting](docs/troubleshooting.md) page for help.
-
-Frequently Asked Questions
---------------------------
-You can see answers to frequently asked questions about ESD [here](docs/faq.md).
+> [!WARNING]
+> There is a known bug that can affect add-ons while multiple accounts are signed in. If you run into a situation where the ESD sidebar doesn't seem to load, visit the [troubleshooting](docs/troubleshooting.md) page for help.
 
 Documentation
 -------------
 [Documentation index page](https://github.com/Synthoid/ExportSheetData/blob/master/docs/index.md)
 
-The best way to figure out how to use Export Sheet Data is by opening the sidebar, reading the tooltips of various options and experimenting with the output using the Visualize option.
+The best way to learn how to use Export Sheet Data is by using it! Open the sidebar, read the tooltips of various seettings, and experiment by using the Visualize option.
 
-For detailed documentation on each option, take a look at the documentation.
+For detailed documentation on each option, take a look at ESD's documentation.
 
 If you want to create more advanced data structures, make sure to read the Wiki page about [Nested Elements](https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements).
 
 Troubleshooting
 ---------------
-If you ever experience an issue or have difficulty using ESD, you can look at the [toubleshooting](docs/troubleshooting.md) page for help. This page contains solutions for common issues you may encounter, especially for the more complex features of ESD. If you notice anything the troubleshooting page does not cover, feel free to make a new issue to help improve ESD!
+If you ever experience an issue or have difficulty using ESD, you can look at the [toubleshooting](docs/troubleshooting.md) page for help. This page contains solutions for common issues you may encounter, especially for the more complex features of ESD.
+
+If you notice anything the troubleshooting page does not cover, feel free to make a new issue to help improve ESD!
+
+Frequently Asked Questions
+--------------------------
+You can see answers to frequently asked questions about ESD [here](docs/faq.md).
 
 Development Status
 ------------------
 Export Sheet Data supports a wide variety of features. Currently, this includes:
 
 **JSON**
-* Forcing all data to string values
-* Exporting individual cells as JSON arrays
-* Exporting a sheet's contents as an array of JSON objects
-* Creating complex data structures via Nested Elements
+* Force all data to string values
+* Export individual cells as JSON objects or arrays
+* Export a sheet's contents as an array of JSON objects
+* Create complex data structures via Nested Elements
 
 **XML**
-* Exporting columns as attributes, child elements, or inner text of a row
+* Export columns as attributes, child elements, or inner text of a row's element
 * Automatic formatting of XML illegal characters like `&`, `<`, and `>`
-* Exporting booleans as integers
 * XML comments and declaration support
 * XML namespaces
  
 **General**
-* Visualize data before exporting
-* Exporting specific sheets
-* Unwrapping or collapsing a sheet's data for easier access after exporting
-* Minifying exported data to produce smaller files
+* Visualize data
+* Export files to Drive
+* Replace target Drive file contents
+* Download files directly
+* Export specific sheets
+* Unwrap or collapse a sheet's data for easier access after exporting
+* Minify exported data to produce smaller files
+* Export booleans as integers
  
 Contributing
 ------------
