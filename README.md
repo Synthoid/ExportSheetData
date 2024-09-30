@@ -1,12 +1,6 @@
 ![Export Sheet Data](images/esd_banner.png)
 
-Export Sheet Data is an add-on for Google Sheets that allows sheets to be exported as JSON or XML.
-
-Goals
------
-**Convenient:** Export Sheet Data is meant to be simple to use but very powerful. No more exporting multiple CSVs then compiling data.
-
-**Customizable:** Options and formats can be tweaked to reflect personal taste. Default or stringified values for JSON. Attributes or child elements for XML. Format your data the way you want.
+Export Sheet Data is an add-on for Google Sheets that allows data to be exported as JSON or XML.
 
 Install
 -------
@@ -31,37 +25,48 @@ Troubleshooting
 ---------------
 If you ever experience an issue or have difficulty using ESD, you can look at the [toubleshooting](docs/troubleshooting.md) page for help. This page contains solutions for common issues you may encounter, especially for the more complex features of ESD.
 
-If you notice anything the troubleshooting page does not cover, feel free to make a new issue to help improve ESD!
+Should you notice anything the troubleshooting page does not cover, feel free to make a new issue to help improve ESD!
 
 Frequently Asked Questions
 --------------------------
 You can see answers to frequently asked questions about ESD [here](docs/faq.md).
 
+Goals
+-----
+**Convenient**
+
+Export Sheet Data is meant to be simple to use but very powerful. No more exporting multiple CSVs then compiling data.
+
+**Customizable**
+
+Options and formats can be tweaked to reflect personal taste. Default or stringified values for JSON. Attributes or child elements for XML. Format your data the way you want!
+
 Development Status
 ------------------
 Export Sheet Data supports a wide variety of features. Currently, this includes:
 
+**General**
+- Visualize data
+- Export files to Drive
+- Replace target Drive file contents
+- Download files directly
+- Export specific sheets
+- Unwrap or collapse a sheet's data for easier access after exporting
+- Minify exported data to produce smaller files
+- Export booleans as integers
+- Format date-time values
+
 **JSON**
-* Force all data to string values
-* Export individual cells as JSON objects or arrays
-* Export a sheet's contents as an array of JSON objects
-* Create complex data structures via Nested Elements
+- Force all data to string values
+- Export individual cells as JSON objects or arrays
+- Export a sheet's contents as an array of JSON objects
+- Create complex data structures via Nested Elements
 
 **XML**
-* Export columns as attributes, child elements, or inner text of a row's element
-* Automatic formatting of XML illegal characters like `&`, `<`, and `>`
-* XML comments and declaration support
-* XML namespaces
- 
-**General**
-* Visualize data
-* Export files to Drive
-* Replace target Drive file contents
-* Download files directly
-* Export specific sheets
-* Unwrap or collapse a sheet's data for easier access after exporting
-* Minify exported data to produce smaller files
-* Export booleans as integers
+- Export columns as attributes, child elements, or inner text of a row's element
+- Automatic formatting of XML illegal characters like `&`, `<`, and `>`
+- XML comments and declaration support
+- XML namespaces
  
 Contributing
 ------------
