@@ -45,8 +45,8 @@ Setting | Description
 [Unwrap prefix](general/unwrapprefix.md) | Unwrap sheets with names using the specified prefix
 [Collapse prefix](general/collapseprefix.md) | Collapse sheets with names using the specified prefix
 [Date Format](general/dateformat.md) | How date-time values should be formatted
-[Date Locale](general/datelocale.md) | Locale for custom date-time formats
-[Date Options](general/dateoptions.md) | Settings for specific values on custom date-time formats
+[Date Time Zone](general/datetimezone.md) | Time zone for custom date-time formats
+[Date Format String](general/dateformatstring.md) | Formatting string for custom date-time formats
 
 JSON Settings
 -------------
