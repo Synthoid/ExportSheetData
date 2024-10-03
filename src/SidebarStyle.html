@@ -199,6 +199,34 @@
   {
     padding: 8px;
   }
+
+  /*.validationSpan
+  {
+    position: absolute;
+    margin-right: 0px;
+  }*/
+
+  .validationSpan::after
+  {
+    border-radius: 4px;
+    margin-left: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .validationSpan.valid::after
+  {
+    border: 1px solid green;
+    color: green;
+    content: "✓";
+  }
+
+  .validationSpan.invalid::after
+  {
+    border: 1px solid red;
+    color: red;
+    content: "✖";
+  }
   
   .xmlNamespace .accordion
   {
@@ -291,6 +319,12 @@
   {
     background: #595959;
     color: #ffffff;
+  }
+  
+  textarea
+  {
+    width: 200px;
+    resize: none;
   }
 
   h1

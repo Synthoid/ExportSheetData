@@ -2,7 +2,7 @@
  * Current version number for ESD.
  * @type {number}
  **/
-const esdVersion = 66;
+const esdVersion = 67;
 
 //Popup Message
 /**
@@ -107,6 +107,15 @@ const ReplaceFileOptions = {
 };
 
 /**
+ * Values for date-time format types.
+ * @enum {string}
+ **/
+const DateTimeFormats = {
+  Default: "Default",
+  Custom: "Custom"
+};
+
+/**
  * GUIDs used to format popup strings.
  **/
 const FormatGuids = {
@@ -165,12 +174,21 @@ const Keys = {
     //Advanced
     UnwrapSingleRows: "unwrapSingleRows", //bool
     CollapseSingleRows: "collapseSingleRows", //bool
+    //Ignore prefix
     IgnoreColumnsWithPrefix: "ignoreColumnsWithPrefix", //bool
     IgnorePrefix: "ignorePrefix", //string
+    //Unwrap prefix
     UnwrapSheetsWithPrefix: "unwrapSheetsWithPrefix", //bool
     UnwrapPrefix: "unwrapPrefix", //string
+    //Collapse prefix
     CollapseSheetsWithPrefix: "collapseSheetsWithPrefix", //bool
-    CollapsePrefix: "collapsePrefix", //string
+    CollapsePrefix: "collapsePrefix", //string,
+    //Date-Time
+    DateFormat: "dateFormat",
+    DateTimeZone: "dateTimeZone",
+    DateFormatString: "dateFormatString",
+    //DateLocale: "dateLocale",
+    //DateOptions: "dateOptions",
     //Nested Elements
     NestedElements: "nestedElements", //bool
     Export: {
@@ -459,7 +477,7 @@ function getActiveExportSheets(exportSheetIds)
 }
 
 /**
- * Returns true if the passed value is an array.
+ * Returns true if the given value is an array.
  * @return {boolean}
  **/
 function isArray(array)
@@ -468,7 +486,7 @@ function isArray(array)
 }
 
 /**
- * Returns true if the pased value is an object and is not null.
+ * Returns true if the given value is an object and is not null.
  * @return {boolean}
  **/
 function isObject(object)
@@ -477,12 +495,95 @@ function isObject(object)
 }
 
 /**
- * Returns true if the passed value is a string and some variant of "null"
+ * Returns true if the given value is a string and some variant of "null"
  * @return {boolean}
  **/
 function isNullString(value)
 {
   return typeof(value) === 'string' && (value.localeCompare("null", "en", { sensitivity : "base" }) === 0);
+}
+
+/**
+ * Returns true if the given value can be parsed as a valid number.
+ * @return {boolean}
+ **/
+function isNumber(value)
+{
+  //Smoke test using parseFloat. Will catch values like "six" but not values like "6-7"
+  if(isNaN(parseFloat(value))) return false;
+
+  //Made it through the first round, so do a more thorough check.
+  let isNumber = true;
+  let minusCount = 0;
+  let decimalCount = 0;
+  
+  //Parse float is unreliable, so loop through to make sure the string is actually a float
+  for(let i=0; i < value.length; i++)
+  {
+    if(isNaN(value[i]))
+    {
+      if(value[i] === '.')
+      {
+        if(decimalCount > 0)
+        {
+          //More than one decimal, not a valid number...
+          isNumber = false;
+          break;
+        }
+        else
+        {
+          decimalCount++;
+        }
+      }
+      else if(value[i] === '-')
+      {
+        if(i > 0)
+        {
+          //Dash not at the start of the number, not a valid number...
+          isNumber = false;
+          break;
+        }
+        if(minusCount > 0)
+        {
+          //More than one dash, not a valid number...
+          isNumber = false;
+          break;
+        }
+        else
+        {
+          minusCount++;
+        }
+      }
+      else
+      {
+        isNumber = false;
+        break;
+      }
+    }
+  }
+
+  return isNumber;
+}
+
+/**
+ * Returns true if the given value is a date object.
+ * @param {any} value Value to check.
+ * @param {boolean} includeParsedDate If true, try to parse non-Date values to see if they are indeed dates.
+ * @return {boolean}
+ **/
+function isDate(value, includeParsedDate)
+{
+  let isValueDate = value instanceof Date;
+
+  if(!isValueDate && includeParsedDate)
+  {
+    if(!isNaN(new Date(value).valueOf()))
+    {
+      isValueDate = true;
+    }
+  }
+
+  return isValueDate;
 }
 
 /**
@@ -672,7 +773,19 @@ function getCellContentArray(cell, separatorChar, cellArray)
         }
         else
         {
-          cellArray.push(arrayString);
+          //Check for dates, but only if not numbers or all numbers will be dates...
+          if(isNumber(arrayString))
+          {
+            cellArray.push(new Number(arrayString));
+          }
+          else if(isDate(arrayString, true))
+          {
+            cellArray.push(new Date(arrayString));
+          }
+          else
+          {
+            cellArray.push(arrayString);
+          }
         }
       }
       startIndex = commaIndicies[i] + 1; // +1 so the next string doesn't start with a comma
@@ -694,7 +807,19 @@ function getCellContentArray(cell, separatorChar, cellArray)
       }
       else
       {
-        cellArray.push(lastString);
+        //Check for dates, but only if not numbers or all numbers will be dates...
+        if(isNumber(lastString))
+        {
+          cellArray.push(new Number(lastString));
+        }
+        else if(isDate(lastString, true))
+        {
+          cellArray.push(new Date(lastString));
+        }
+        else
+        {
+          cellArray.push(lastString);
+        }
       }
     }
   }
@@ -706,50 +831,20 @@ function getCellContentArray(cell, separatorChar, cellArray)
   //Convert values to their correct type (float, bool, etc)
   for(let i=0; i < cellArray.length; i++)
   {
-    if(!isNaN(parseFloat(cellArray[i])))
+    //Numbers
+    if(cellArray[i] instanceof Number)
     {
-      let isNumber = true;
-      let minusCount = 0;
-      let decimalCount = 0;
-      
-      //Parse float is unreliable, so loop through to make sure the string is actually a float
-      for(let j=0; j < cellArray[i].length; j++)
-      {
-        if(isNaN(cellArray[i][j]))
-        {
-          if(cellArray[i][j] === '.')
-          {
-            if(decimalCount > 0)
-            {
-              isNumber = false;
-              break;
-            }
-            else
-            {
-              decimalCount++;
-            }
-          }
-          else if(cellArray[i][j] === '-')
-          {
-            if(minusCount > 0)
-            {
-              isNumber = false;
-              break;
-            }
-            else
-            {
-              minusCount++;
-            }
-          }
-          else
-          {
-            isNumber = false;
-            break;
-          }
-        }
-      }
-      
-      if(isNumber) cellArray[i] = parseFloat(cellArray[i]);
+      continue;
+    }
+    /*else if(isNumber(cellArray[i]))
+    {
+      cellArray[i] = parseFloat(cellArray[i]);
+    }*/
+    //Dates
+    else if(isDate(cellArray, false))
+    {
+      //Do nothing to date values...
+      continue;
     }
     //Booleans
     else if(cellArray[i] === 'true') cellArray[i] = true;
@@ -763,6 +858,7 @@ function getCellContentArray(cell, separatorChar, cellArray)
       if(cellArray[i][0] === '"' && cellArray[i][cellArray[i].length - 1] === '"')
       {
         cellArray[i] = cellArray[i].substring(1, cellArray[i].length - 1);
+        //const subString = cellArray[i].substring(1, cellArray[i].length - 1);
         
         //If the cell was a single escaped string like "Test1, Test2", return a special status.
         if(cellArray.length == 1) status = 2;
@@ -867,6 +963,23 @@ function getXmlNamespace(prefix, namespaces, noNamespace)
 }
 
 /**
+ * Formats the given date value based on user settings.
+ * @param {Date} value Date value to format.
+ * @param {string} timeZone Output timezone for the formatted date.
+ * @param {string} formatting Formatting used to format date values.
+ * @return {string}
+ **/
+function formatDateValue(value, timeZone, formatting)
+{
+  if(!(value instanceof Date))
+  {
+    value = new Date(value);
+  }
+
+  return Utilities.formatDate(value, timeZone, formatting);
+}
+
+/**
  * Formats the given XML value based on user settings.
  * @param {any} value Value to format.
  * @param {object} valueFormatSettings Settings for how values should be formatted.
@@ -875,10 +988,19 @@ function getXmlNamespace(prefix, namespaces, noNamespace)
 function formatXmlValue(value, valueFormatSettings)
 {
   const exportBoolsAsInts = valueFormatSettings["boolsAsInts"];
+  const formatDates = valueFormatSettings["formatDates"];
   
   if(exportBoolsAsInts && typeof(value) === "boolean")
   {
     return value ? 1 : 0;
+  }
+  else if(formatDates && isDate(value, false))
+  {
+    const dateFormatting =  valueFormatSettings["dateFormatting"];
+    const timeZone = dateFormatting["timeZone"];
+    const formatString = dateFormatting["formatString"];
+
+    return formatDateValue(value, timeZone, formatString);
   }
   
   return value;
@@ -893,6 +1015,7 @@ function formatXmlValue(value, valueFormatSettings)
 function formatJsonValue(value, valueFormatSettings)
 {
   const exportBoolsAsInts = valueFormatSettings["boolsAsInts"];
+  const formatDates = valueFormatSettings["formatDates"];
   const forceStrings = valueFormatSettings["forceStrings"];
   let newValue = value;
 
@@ -902,6 +1025,14 @@ function formatJsonValue(value, valueFormatSettings)
     {
       newValue[i] = formatJsonValue(newValue[i], valueFormatSettings);
     }
+  }
+  else if(formatDates && isDate(newValue, false))
+  {
+    const dateFormatting =  valueFormatSettings["dateFormatting"];
+    const timeZone = dateFormatting["timeZone"];
+    const formatString = dateFormatting["formatString"];
+
+    newValue = formatDateValue(newValue, timeZone, formatString);
   }
   else if(isObject(newValue))
   {
@@ -1405,6 +1536,10 @@ function exportSpreadsheetXml(formatSettings, callback)
   let ignorePrefix = settings[Keys.ExportSettings.IgnorePrefix];
   let unwrapPrefix = settings[Keys.ExportSettings.UnwrapPrefix];
   let collapsePrefix = settings[Keys.ExportSettings.CollapsePrefix];
+  let dateFormatType = settings[Keys.ExportSettings.DateFormat];
+  let shouldFormatDate = dateFormatType !== DateTimeFormats.Default;
+  let dateTimeZone = settings[Keys.ExportSettings.DateTimeZone];
+  let dateFormatString = settings[Keys.ExportSettings.DateFormatString];
 
   //Nested Elements
   //let nestedElements = settings[Keys.ExportSettings.NestedElements];
@@ -1439,8 +1574,17 @@ function exportSpreadsheetXml(formatSettings, callback)
 
   //Value format data
   let valueFormatSettings = {
-    "boolsAsInts" : exportBoolsAsInts
+    "boolsAsInts" : exportBoolsAsInts,
+    "formatDates" : shouldFormatDate
   };
+
+  if(shouldFormatDate)
+  {
+    valueFormatSettings["dateFormatting"] = {
+      "timeZone": dateTimeZone,
+      "formatString" : dateFormatString
+    };
+  }
   
   //Sheets info
   let spreadsheet = SpreadsheetApp.getActive();
@@ -1778,6 +1922,10 @@ function exportSpreadsheetJson(formatSettings, callback)
   let ignorePrefix = settings[Keys.ExportSettings.IgnorePrefix];
   let unwrapPrefix = settings[Keys.ExportSettings.UnwrapPrefix];
   let collapsePrefix = settings[Keys.ExportSettings.CollapsePrefix];
+  let dateFormatType = settings[Keys.ExportSettings.DateFormat];
+  let shouldFormatDate = dateFormatType !== DateTimeFormats.Default;
+  let dateTimeZone = settings[Keys.ExportSettings.DateTimeZone];
+  let dateFormatString = settings[Keys.ExportSettings.DateFormatString];
   
   //Nested Settings
   let nestedElements = settings[Keys.ExportSettings.NestedElements];
@@ -1799,8 +1947,17 @@ function exportSpreadsheetJson(formatSettings, callback)
   //Value format data
   let valueFormatSettings = {
     "boolsAsInts" : exportBoolsAsInts,
+    "formatDates" : shouldFormatDate,
     "forceStrings": forceString
   };
+
+  if(shouldFormatDate)
+  {
+    valueFormatSettings["dateFormatting"] = {
+      "timeZone": dateTimeZone,
+      "formatString" : dateFormatString
+    };
+  }
   
   //Sheets info
   let spreadsheet = SpreadsheetApp.getActive();

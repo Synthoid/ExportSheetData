@@ -23,6 +23,9 @@
   const IGNORE_COLUMN_DEFAULT = "NOEX_";
   const UNWRAP_SHEETS_DEFAULT = "US_";
   const COLLAPSE_SHEETS_DEFAULT = "CS_";
+  //const DATE_LOCALE_DEFAULT = "en-US";
+  const DATE_TIME_ZONE_DEFAULT = "GMT";
+  const DATE_FORMAT_STRING_DEFAULT = "yyyy-MM-dd'T'HH:mm:ssZ";
   const EXPORT_FOLDER_LOCATIONS = {
     MyDrive: "MyDrive",
     Custom: "Custom"
@@ -34,6 +37,10 @@
   const SELECT_FILE_KEYS = {
     File: "file",
     Valid: "valid"
+  };
+  const DateTimeFormats = {
+    Default: "Default",
+    Custom: "Custom"
   };
   //XML
   const XML_ROOT_DEFAULT = "data";
@@ -102,7 +109,10 @@
         UnwrapWithPrefix: "unwrapSheetsWithPrefix",
         UnwrapPrefix: "unwrapPrefix",
         CollapseWithPrefix: "collapseSheetsWithPrefix",
-        CollapsePrefix: "collapsePrefix"
+        CollapsePrefix: "collapsePrefix",
+        DateFormat: "dateFormat",
+        DateTimeZone: "dateTimeZone",
+        DateFormatString: "dateFormatString"
       }
     },
     JSON: {
@@ -151,7 +161,8 @@
   
   //Visualization
   let visualizeData = false;
-  
+  //let defaultDateTimeZone = "GMT";
+
   //Format options
   //The format to export data as
   let exportFormatType = ExportFormats.JSON;
@@ -207,6 +218,10 @@
   //Collapse sheets with one row and this prefix
   let collapseSheetsWithPrefix = false;
   let collapseSheetsPrefix = "CS_";
+  //Date-time formatting
+  let dateFormat = "Default";
+  let dateTimeZone = "GMT";
+  let dateFormatString = "yyyy-MM-dd'T'HH:mm:ssZ";
   
   //XML Options
   //Determines file update behaviour
@@ -345,6 +360,12 @@
           e.stack);
       }
     }
+
+    //Set default locale to the current browser locale.
+    //defaultDateTimeZone = navigator.language;
+
+    //If the browser's locale is null or empty for some reason, fallback to en-US.
+    //if(defaultDateTimeZone == null || defaultDateTimeZone == '') defaultDateTimeZone = "en-US";
     
     //Content
     tryValidateValue(settings, Keys.Content.Format, (newValue) => exportFormatType = newValue);
@@ -383,12 +404,24 @@
     tryValidateValue(settings, Keys.General.Advanced.NestedElements, (newValue) => nestedElements = newValue === true);
     tryValidateValue(settings, Keys.General.Advanced.UnwrapSingle, (newValue) => unwrapSingleRows = newValue === true);
     tryValidateValue(settings, Keys.General.Advanced.CollapseSingle, (newValue) => collapseSingleRows = newValue === true);
+    //Ignore prefix
     tryValidateValue(settings, Keys.General.Advanced.IgnoreWithPrefix, (newValue) => ignoreColumnsWithPrefix = newValue === true);
     tryValidateValue(settings, Keys.General.Advanced.IgnorePrefix, (newValue) => ignoreColumnsPrefix = newValue === "" ? IGNORE_COLUMN_DEFAULT : newValue);
+    //Unwrap prefix
     tryValidateValue(settings, Keys.General.Advanced.UnwrapWithPrefix, (newValue) => unwrapSheetsWithPrefix = newValue === true);
     tryValidateValue(settings, Keys.General.Advanced.UnwrapPrefix, (newValue) => unwrapSheetsPrefix = newValue === "" ? UNWRAP_SHEETS_DEFAULT : newValue);
+    //Collapse prefix
     tryValidateValue(settings, Keys.General.Advanced.CollapseWithPrefix, (newValue) => collapseSheetsWithPrefix = newValue === true);
     tryValidateValue(settings, Keys.General.Advanced.CollapsePrefix, (newValue) => collapseSheetsPrefix = newValue === "" ? COLLAPSE_SHEETS_DEFAULT : newValue);
+    //Date Formatting
+    tryValidateValue(settings, Keys.General.Advanced.DateFormat, (newValue) => dateFormat = newValue);
+    tryValidateValue(settings, Keys.General.Advanced.DateTimeZone, (newValue) => dateTimeZone = newValue);
+    /*if(!tryValidateValue(settings, Keys.General.Advanced.DateTimeZone, (newValue) => dateTimeZone = newValue))
+    {
+      //If no setting is found, default to the calculated default locale...
+      dateTimeZone = defaultDateTimeZone;
+    }*/
+    tryValidateValue(settings, Keys.General.Advanced.DateFormatString, (newValue) => dateFormatString = newValue);
     
     //JSON
     let jsonSettings = settings.hasOwnProperty(Keys.Objects.JSON) ? settings[Keys.Objects.JSON] : settings;
@@ -406,8 +439,10 @@
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.EmptyValueFormat, (newValue) => emptyValueFormatJson = newValue === "" ? emptyValueFormatJson : newValue);
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.NullValueFormat, (newValue) => nullValueFormatJson = newValue === "" ? nullValueFormatJson : newValue);
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.SeparatorChar, (newValue) => arraySeparatorCharJson = newValue === "" ? JSON_SEPARATOR_DEFAULT : newValue);
+    //Force array prefix
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceArrayWithPrefix, (newValue) => forceArrayWithPrefixJson = newValue === true);
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceArrayPrefix, (newValue) => forceArrayPrefixJson = newValue === "" ? JSON_JA_DEFAULT : newValue);
+    //Nested array prefix
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceNestedArrayWithPrefix, (newValue) => forceNestedArrayWithPrefix = newValue === true);
     tryValidateValue(jsonAdvancedSettings, Keys.JSON.Advanced.ForceNestedArrayPrefix, (newValue) => forceNestedArrayPrefix = newValue === "" ? NEST_NA_DEFAULT : newValue);
     
@@ -421,16 +456,21 @@
     let xmlAdvancedSettings = xmlSettings.hasOwnProperty(Keys.Objects.Advanced) ? xmlSettings[Keys.Objects.Advanced] : xmlSettings;
 
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.NameReplacementChar, (newValue) => nameReplacementCharXml = newValue === "" ? nameReplacementCharXml : newValue);
+    //Declaration
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.IncludeDeclaration, (newValue) => includeDeclarationXml = newValue === true);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationVersion, (newValue) => declarationVersionXml = newValue === "" ? declarationVersionXml : newValue);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationEncoding, (newValue) => declarationEncodingXml = newValue === "" ? declarationEncodingXml : newValue);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.DeclarationStandalone, (newValue) => declarationStandaloneXml = newValue === "" ? declarationStandaloneXml : newValue);
+    //Attribute prefix
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceAttributesWithPrefix, (newValue) => forceAttributesWithPrefixXml = newValue === true);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceAttributesPrefix, (newValue) => forceAttributesPrefixXml = newValue === "" ? forceAttributesPrefixXml : newValue);
+    //Child element prefix
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceChildElementsWithPrefix, (newValue) => forceChildElementsWithPrefixXml = newValue === true);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceChildElementsPrefix, (newValue) => forceChildElementsPrefixXml = newValue === "" ? forceChildElementsPrefixXml : newValue);
+    //Inner text prefix
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceInnerTextWithPrefix, (newValue) => forceInnerTextWithPrefixXml = newValue === true);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.ForceInnerTextPrefix, (newValue) => forceInnerTextPrefixXml = newValue === "" ? forceInnerTextPrefixXml : newValue);
+    //Namespaces
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.RootNamespace, (newValue) => rootNamespace = newValue === "" ? rootNamespace : newValue);
     tryValidateValue(xmlAdvancedSettings, Keys.XML.Advanced.Namespaces, (newValue) => namespaces = newValue);
 
@@ -438,7 +478,12 @@
     let exportSettings = settings.hasOwnProperty(Keys.Objects.Export) ? settings[Keys.Objects.Export] : settings;
 
     tryValidateValue(exportSettings, Keys.Export.Folder, (newValue) => exportFolderId = newValue);
-    tryValidateValue(exportSettings, Keys.Export.FolderType, (newValue) => exportFolderType = newValue);
+    tryValidateValue(exportSettings, Keys.Export.FolderType, (newValue) => {
+      exportFolderType = newValue;
+
+      //Backwards compatibility check...
+      if(exportFolderType === "default" || exportFolderType === "Default" ) exportFolderType = EXPORT_FOLDER_LOCATIONS.MyDrive;
+    });
 
     //JSON
     let exportJsonSettings = exportSettings.hasOwnProperty(Keys.Objects.JSON) ? exportSettings[Keys.Objects.JSON] : exportSettings;
@@ -510,6 +555,9 @@
     properties[Keys.General.Advanced.UnwrapPrefix] = unwrapSheetsPrefix === "" ? UNWRAP_SHEETS_DEFAULT : unwrapSheetsPrefix;
     properties[Keys.General.Advanced.CollapseWithPrefix] = collapseSheetsWithPrefix;
     properties[Keys.General.Advanced.CollapsePrefix] = collapseSheetsPrefix === "" ? COLLAPSE_SHEETS_DEFAULT : collapseSheetsPrefix;
+    properties[Keys.General.Advanced.DateFormat] = dateFormat;
+    properties[Keys.General.Advanced.DateTimeZone] = dateTimeZone;
+    properties[Keys.General.Advanced.DateFormatString] = dateFormatString;
 
     //JSON
     jsonProperties[Keys.JSON.ForceString] = forceStringJson;
@@ -600,6 +648,9 @@
     settings[Keys.General.Advanced.IgnorePrefix] = getIgnorePrefix();
     settings[Keys.General.Advanced.UnwrapPrefix] = getUnwrapPrefix();
     settings[Keys.General.Advanced.CollapsePrefix] = getCollapsePrefix();
+    settings[Keys.General.Advanced.DateFormat] = dateFormat;
+    settings[Keys.General.Advanced.DateTimeZone] = getDateTimeZone();
+    settings[Keys.General.Advanced.DateFormatString] = getDateFormatString();
 
     //XML
     xmlSettings[Keys.XML.ChildElements] = exportChildElementXml;
@@ -667,6 +718,9 @@
     settings[Keys.General.Advanced.IgnorePrefix] = getIgnorePrefix();
     settings[Keys.General.Advanced.UnwrapPrefix] = getUnwrapPrefix();
     settings[Keys.General.Advanced.CollapsePrefix] = getCollapsePrefix();
+    settings[Keys.General.Advanced.DateFormat] = dateFormat;
+    settings[Keys.General.Advanced.DateTimeZone] = getDateTimeZone();
+    settings[Keys.General.Advanced.DateFormatString] = getDateFormatString();
 
     //JSON
     jsonSettings[Keys.JSON.ForceString] = forceStringJson;
@@ -1022,6 +1076,39 @@
     ignoreEmptyCells = !ignoreEmptyCells;
   }
   
+  /**
+   * Refreshes fields displaying target file information.
+   * @param {string} fileId ID for the target file.
+   * @param {string} fileOperationType Current value for the operation type.
+   * @param {string} defaultOperationType Default value for the operation type. If the given operation type matches this, the target section's contents will refresh to be empty. If they don't match, the target section will populate controls for interacting with files.
+   * @param {string} sectionElementId ID for the div element containing extra fields.
+   * @param {string} inputElementId ID for the file ID input element.
+   * @param {string} openButtonId ID for the open file button element.
+   * @param {string} inputPlaceholder Placholder text for the file ID input.
+   * @param {string} fileSelectionCallback Name for callback invoked when the browse button is clicked.
+   * @param {string} openFileCallback Name for callback invoked when the open button is clicked.
+   * @param {function} getFileNameCallback Callback invoked when the selected file's name is loaded.
+   **/
+  function refreshFileDataFields(fileId, fileOperationType, defaultOperationType, sectionElementId, inputElementId, openButtonId, inputPlaceholder, fileSelectionCallback, openFileCallback, getFileNameCallback)
+  {
+    const hasTargetFile = fileId != null && fileId !== "";
+    let sectionText = "";
+
+    if(fileOperationType !== defaultOperationType)
+    {
+      sectionText = "<input id='" + inputElementId + "' type='text' size='12' value='' placeholder='" + inputPlaceholder + "' disabled /> ";
+      sectionText += "<button onclick='" + fileSelectionCallback + "'>Browse</button><button id='" + openButtonId + "' onclick='" + openFileCallback + "'";
+      
+      if(!hasTargetFile) sectionText += " disabled";
+
+      sectionText += ">Open</button>";
+    }
+    
+    document.getElementById(sectionElementId).innerHTML = sectionText;
+
+    if(hasTargetFile) getFileName(fileId, getFileNameCallback);
+  }
+  
   //Advanced
   /**
    * Toggle the nestedElements boolean's value.
@@ -1077,10 +1164,6 @@
     ignoreColumnsWithPrefix = !ignoreColumnsWithPrefix;
     
     tryGetElementById('ignoreColumnsPrefixTextField', (element) => element.disabled = !ignoreColumnsWithPrefix);
-    /*if(document.getElementById('ignoreColumnsPrefixTextField') != null)
-    {
-      document.getElementById('ignoreColumnsPrefixTextField').disabled = !ignoreColumnsWithPrefix;
-    }*/
   }
   
   /**
@@ -1139,6 +1222,122 @@
     collapseSheetsWithPrefix = !collapseSheetsWithPrefix;
     
     tryGetElementById('collapseSheetsPrefixTextField', (element) => element.disabled = !collapseSheetsWithPrefix);
+  }
+  
+  /**
+   * Callback method that changes date time format between default and custom.
+   **/
+  function changeDateTimeFormat()
+  {
+    dateFormat = document.getElementById("dateTimeFormatSelect").value;
+
+    refreshDateTimeFields();
+  }
+
+
+  function refreshDateTimeFields()
+  {
+    let sectionText = "";
+
+    if(dateFormat !== DateTimeFormats.Default)
+    {
+      //Time Zone
+      sectionText = "<div class='option'><label for='dateTimeZoneInput'>Date Time Zone</label><div class='tooltip note padded'>Time zone for custom date-time format.</div></div><br><p><input id='dateTimeZoneInput' type='text' size='12' value='" + dateTimeZone + "' placeholder='" + DATE_TIME_ZONE_DEFAULT + "' onChange='changeDateTimeZone()' /></p>";
+      //Formatting
+      sectionText += "<div class='option'><label for='dateFormatStringInput'>Date Format String</label>";
+      //Validation Span
+      /*let isValid = false;
+      let parsedOptions = "";
+
+      try
+      {
+        parsedOptions = JSON.stringify(JSON.parse(dateFormatString), null, 2);
+        isValid = true;
+      }
+      catch
+      {
+        parsedOptions = dateFormatString;
+        isValid = false;
+      }
+
+      sectionText += "<span id='dateFormatStringInputValidation' class='validationSpan";
+      if(isValid) sectionText += " valid";
+      else sectionText += " invalid";
+      sectionText += "'></span>";*/
+      //Input
+      sectionText += "<div class='tooltip note padded'>Formatting string for dates. Based on the SimpleDateFormat specification.</div></div><br><p><textarea id='dateFormatStringInput' rows='3' cols='20' wrap='hard' placeholder='" + DATE_FORMAT_STRING_DEFAULT + "' onInput='changeDateFormatString()'>";
+      
+      sectionText += dateFormatString;
+
+      sectionText += "</textarea></p>";
+    }
+    
+    document.getElementById("dateTimeSettingsSection").innerHTML = sectionText;
+  }
+
+  /**
+   * Change the current dateTimeZone value.
+   **/ 
+  function changeDateTimeZone()
+  {
+    tryGetElementById("dateTimeZoneInput", (element) => dateTimeZone = element.value);
+  }
+
+  /**
+   * Change the current dateFormatString value.
+   **/ 
+  function changeDateFormatString()
+  {
+    tryGetElementById("dateFormatStringInput", (element) => dateFormatString = element.value);
+
+    /*let isValid = false;
+
+    try
+    {
+      JSON.stringify(JSON.parse(dateFormatString));
+      isValid = true;
+    }
+    catch
+    {
+      isValid = false;
+    }
+
+    tryGetElementById("dateFormatStringInputValidation", (element) => {
+      if(isValid)
+      {
+        element.classList.remove("invalid");
+
+        if(!element.classList.contains("valid")) element.classList.add("valid");
+      }
+      else
+      {
+        element.classList.remove("valid");
+
+        if(!element.classList.contains("invalid")) element.classList.add("invalid");
+      }
+    });*/
+  }
+
+  /**
+   * Get the dateTimeZone value. This will return an empty string if dateFormat is set to Default.
+   * @return {string}
+   **/ 
+  function getDateTimeZone()
+  {
+    if(dateFormat === DateTimeFormats.Default) return "";
+
+    return dateTimeZone === "" ? DATE_TIME_ZONE_DEFAULT : dateTimeZone;
+  }
+
+  /**
+   * Get the dateFormatString value. This will return an empty object string if dateFormat is set to Default.
+   * @return {string}
+   **/ 
+  function getDateFormatString()
+  {
+    if(dateFormat === DateTimeFormats.Default) return "";
+
+    return dateFormatString;
   }
   
   //XML Options
@@ -1497,26 +1696,6 @@
     refreshFileDataFields(replaceFileJsonId, replaceFileJsonType, REPLACE_FILE_OPTIONS.Disabled, "replaceFileJsonNameSection", "replaceFileJsonName", "openReplaceFileJsonButton", "Select file...", "openJsonFilePicker()", "openReplaceFileJson()", onGetReplaceFileJsonName);
   }
   
-  function refreshFileDataFields(fileId, fileOperationType, defaultOperationType, sectionElementId, inputElementId, openButtonId, inputPlaceholder, fileSelectionCallback, openFileCallback, getFileNameCallback)
-  {
-    const hasTargetFile = fileId != null && fileId !== "";
-    let sectionText = "";
-
-    if(fileOperationType !== defaultOperationType)
-    {
-      sectionText = "<input id='" + inputElementId + "' type='text' size='12' value='' placeholder='" + inputPlaceholder + "' disabled /> ";
-      sectionText += "<button onclick='" + fileSelectionCallback + "'>Browse</button><button id='" + openButtonId + "' onclick='" + openFileCallback + "'";
-      
-      if(!hasTargetFile) sectionText += " disabled";
-
-      sectionText += ">Open</button>";
-    }
-    
-    document.getElementById(sectionElementId).innerHTML = sectionText;
-
-    if(hasTargetFile) getFileName(fileId, getFileNameCallback);
-  }
-  
   /**
    * Toggle the forceStringJson boolean's value.
    **/
@@ -1678,7 +1857,7 @@
     //Export Folder
     generalText += "<p><div class='option'><label for='folderSelect'><b>Export Folder</b></label><div class='tooltip note padded'>Drive folder to export files to. If replacing a file, this is ignored.</div></div><br><select id='folderSelect'><option value='" + EXPORT_FOLDER_LOCATIONS.MyDrive + "'";
     if(exportFolderType === EXPORT_FOLDER_LOCATIONS.MyDrive) generalText += " selected";
-    else if(exportFolderType === "default") generalText += " selected"; //Fallback for old data...
+    //else if(exportFolderType === "default") generalText += " selected"; //Fallback for old data...
     generalText += ">My Drive</option><option value='" + EXPORT_FOLDER_LOCATIONS.Custom + "'";
     if(exportFolderType !== EXPORT_FOLDER_LOCATIONS.MyDrive && exportFolderType !== 'default') generalText += " selected";
     generalText += ">Custom</option></select></p>";
@@ -1774,6 +1953,15 @@
     generalText += "' placeholder='" + COLLAPSE_SHEETS_DEFAULT + "'";
     if(collapseSheetsWithPrefix === false) generalText += " disabled";
     generalText += "/></p><p class='note'></p></div></div>";
+    //Date-time settings
+    generalText += "<div class='sectionWrapper'><p><div class='option'><label for='dateTimeFormatSelect'>Date Format</label><div class='tooltip note padded'>Determines how date-time values are formatted when exporting data.</div></div><br><select id='dateTimeFormatSelect' onChange='changeDateTimeFormat()'><option value='" + DateTimeFormats.Default + "'";
+    if(dateFormat === DateTimeFormats.Default) generalText += " selected";
+    generalText += ">Default</option><option value='" + DateTimeFormats.Custom + "'";
+    if(dateFormat !== DateTimeFormats.Default) generalText += " selected";
+    generalText += ">Custom</option></select></p>";
+    //Date-time custom fields...
+    generalText += "<div id='dateTimeSettingsSection'>";
+    generalText += "<p class='note'></p></div></div>";
     //Section end
     generalText += "</div>";
     
@@ -2052,6 +2240,9 @@
       
       addJsonListeners();
     }
+
+    //Refresh date-time content if valid...
+    if(dateFormat !== DateTimeFormats.Default) refreshDateTimeFields();
     
     //Refresh target file names if valid...
     if(exportFolderType !== EXPORT_FOLDER_LOCATIONS.MyDrive && exportFolderId !== "") getFileName(exportFolderId, onGetExportFolderName); //Populate the name of the target export folder
