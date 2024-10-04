@@ -110,7 +110,8 @@ Tips N Tricks
 -------------
 These pages detail various tips for more obscure or esoteric functionality in ESD.
 
-- [Importing/Exporting Settings](settings.md)
-  - Exporting or importing ESD settings from another document
-- [XML](tips/tipsntricksxml.md)
-  - Tips for the XML export format
+Topic | Summary
+----- | -------
+[ESD Settings](settings.md) | Exporting or importing ESD settings from another document
+[Date-Time Values](tips/datetimes.md) | Tips for working with date-time values
+[XML](tips/tipsntricksxml.md) | Tips for the XML export format

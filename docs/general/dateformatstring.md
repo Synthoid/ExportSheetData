@@ -4,5 +4,6 @@ Formatting string used for custom date formats. This is based on the [SimpleDate
 
 See also
 --------
- - [Date Format](dateformat.md)
- - [Date Time Zone](datetimezone.md)
+- [Date-Time Values](../tips/datetimes.md)
+- [Date Format](dateformat.md)
+- [Date Time Zone](datetimezone.md)

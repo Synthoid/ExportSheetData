@@ -12,5 +12,6 @@ Custom | Specify time zone and formatting
 
 See also
 --------
- - [Date Time Zone](datetimezone.md)
- - [Date Format String](dateformatstring.md)
+- [Date-Time Values](../tips/datetimes.md)
+- [Date Time Zone](datetimezone.md)
+- [Date Format String](dateformatstring.md)

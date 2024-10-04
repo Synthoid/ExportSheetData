@@ -11,9 +11,9 @@ Name | Month/Day/Year | Year/Month/Day | Hour | Month-Day | Month/Day | Month-Ye
 Date | 10/31/2024 | 2024/10/31 | 3:33 AM | 10-31 | 10/31 | 10-2024 | "10-2024" | 10-2024 | 10/31/1963,1978/10/31,"10/31/2018"
 
 > [!NOTE]
-> The Plaintext value here is a cell manually set to use a plaintext value.
+> The Plaintext value here is a cell manually formatted to be plaintext.
 
-Date-time values are stored as actual [Date](https://developers.google.com/apps-script/reference/document/date) objects in Sheets. So even if the cell *visually* has a value of `3:33 AM` it *really* has a more complicated value that points to a specific date-time. Here is a breakdown of the above *visual* values and their corresponding `Date` values.
+Date-time values are stored as actual [Date](https://developers.google.com/apps-script/reference/document/date) objects in Sheets. So even if the cell *visually* has a value of `3:33 AM` it *really* has a more complicated value that points to a specific date-time. Review the [documentation on Date formats in Sheets](https://developers.google.com/sheets/api/guides/formats#about_date_time_values) for more specific information. Here is a breakdown of the above *visual* values and their corresponding `Date` values.
 
 Name | Date
 ---- | ----
@@ -49,6 +49,7 @@ JSON:
   }
 }
 ```
+
 XML:
 ```xml
 <data>
@@ -70,39 +71,40 @@ XML:
 
 Setting | Value
 ------- | -----
-Time Zone | GMT
-Format String | yyyy-MM-dd'T'HH:mm:ss
+Time Zone | EST
+Format String | dd MMM, yyyy'T'HH:mm zzzz
 
 JSON:
 ```json
 {
   "Date": {
-    "Month/Day/Year": "2024-10-31T04:00:00",
-    "Year/Month/Day": "2024-10-31T04:00:00",
-    "Hour": "1899-12-30T08:33:00",
-    "Month-Day": "2024-10-31T04:00:00",
-    "Month/Day": "2024-10-31T04:00:00",
-    "Month-Year": "2024-10-01T04:00:00",
+    "Month/Day/Year": "30 Oct, 2024T23:00 Eastern Standard Time",
+    "Year/Month/Day": "30 Oct, 2024T23:00 Eastern Standard Time",
+    "Hour": "30 Dec, 1899T03:33 Eastern Standard Time",
+    "Month-Day": "30 Oct, 2024T23:00 Eastern Standard Time",
+    "Month/Day": "30 Oct, 2024T23:00 Eastern Standard Time",
+    "Month-Year": "30 Sep, 2024T23:00 Eastern Standard Time",
     "Month-Year-Escaped": "10-2024",
     "Plaintext": "10-2024",
     "Array": [
-      "1963-10-31T05:00:00",
-      "1978-10-31T05:00:00",
+      "31 Oct, 1963T00:00 Eastern Standard Time",
+      "31 Oct, 1978T00:00 Eastern Standard Time",
       "10/31/2018"
     ]
   }
 }
 ```
+
 XML:
 ```xml
 <data>
   <Date>
-    <Month_Day_Year>2024-10-31T04:00:00</Month_Day_Year>
-    <Year_Month_Day>2024-10-31T04:00:00</Year_Month_Day>
-    <Hour>1899-12-30T08:33:00</Hour>
-    <Month-Day>2024-10-31T04:00:00</Month-Day>
-    <Month_Day>2024-10-31T04:00:00</Month_Day>
-    <Month-Year>2024-10-01T04:00:00</Month-Year>
+    <Month_Day_Year>30 Oct, 2024T23:00 Eastern Standard Time</Month_Day_Year>
+    <Year_Month_Day>30 Oct, 2024T23:00 Eastern Standard Time</Year_Month_Day>
+    <Hour>30 Dec, 1899T03:33 Eastern Standard Time</Hour>
+    <Month-Day>30 Oct, 2024T23:00 Eastern Standard Time</Month-Day>
+    <Month_Day>30 Oct, 2024T23:00 Eastern Standard Time</Month_Day>
+    <Month-Year>30 Sep, 2024T23:00 Eastern Standard Time</Month-Year>
     <Month-Year-Escaped>"10-2024"</Month-Year-Escaped>
     <Plaintext>10-2024</Plaintext>
     <Array>10/31/1963,1978/10/31,"10/31/2018"</Array>
@@ -110,11 +112,15 @@ XML:
 </data>
 ```
 
+JSON and XML each have ways to prevent strings from being parsed into Dates:
 
-It is possible to use specific JSON and XML each have ways to prevent strings from being parsed into Dates:
-
-Format | Escape Method
+Format | Escape Method(s)
 ------ | -------------
-JSON | Wrap values in double quotes ( `"` )
-| | Format cell as Plaintext
+JSON | Wrap values in double quotes ( `"` ), format cell as Plaintext
 XML | Format cell as Plaintext
+
+See also
+--------
+- [Date Format](dateformat.md)
+- [Date Time Zone](datetimezone.md)
+- [Date Format String](dateformatstring.md)
