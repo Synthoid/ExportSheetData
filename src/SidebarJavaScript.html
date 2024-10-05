@@ -25,7 +25,8 @@
   const COLLAPSE_SHEETS_DEFAULT = "CS_";
   //const DATE_LOCALE_DEFAULT = "en-US";
   const DATE_TIME_ZONE_DEFAULT = "GMT";
-  const DATE_FORMAT_STRING_DEFAULT = "yyyy-MM-dd'T'HH:mm:ssZ";
+  const DATE_FORMAT_STRING_DEFAULT = "yyyy-MM-dd'T'HH:mm:sszZ";
+  const DATE_FORMAT_STRING_PLACEHOLDER = "yyyy-MM-dd&apos;T&apos;HH:mm:sszZ";
   const EXPORT_FOLDER_LOCATIONS = {
     MyDrive: "MyDrive",
     Custom: "Custom"
@@ -221,7 +222,7 @@
   //Date-time formatting
   let dateFormat = "Default";
   let dateTimeZone = "GMT";
-  let dateFormatString = "yyyy-MM-dd'T'HH:mm:ssZ";
+  let dateFormatString = "yyyy-MM-dd'T'HH:mm:sszZ";
   
   //XML Options
   //Determines file update behaviour
@@ -1265,7 +1266,7 @@
       else sectionText += " invalid";
       sectionText += "'></span>";*/
       //Input
-      sectionText += "<div class='tooltip note padded'>Formatting string for dates. Based on the SimpleDateFormat specification.</div></div><br><p><textarea id='dateFormatStringInput' rows='3' cols='20' wrap='hard' placeholder='" + DATE_FORMAT_STRING_DEFAULT + "' onInput='changeDateFormatString()'>";
+      sectionText += "<div class='tooltip note padded'>Formatting string for dates. Based on the SimpleDateFormat specification.</div></div><br><p><textarea id='dateFormatStringInput' rows='3' cols='20' wrap='hard' placeholder='" + DATE_FORMAT_STRING_PLACEHOLDER + "' onInput='changeDateFormatString()'>";
       
       sectionText += dateFormatString;
 
@@ -1326,7 +1327,7 @@
   {
     if(dateFormat === DateTimeFormats.Default) return "";
 
-    return dateTimeZone === "" ? DATE_TIME_ZONE_DEFAULT : dateTimeZone;
+    return dateTimeZone.trim() === "" ? DATE_TIME_ZONE_DEFAULT : dateTimeZone.trim();
   }
 
   /**
@@ -1337,7 +1338,7 @@
   {
     if(dateFormat === DateTimeFormats.Default) return "";
 
-    return dateFormatString;
+    return dateFormatString.trim() === "" ? DATE_FORMAT_STRING_DEFAULT : dateFormatString.trim();
   }
   
   //XML Options

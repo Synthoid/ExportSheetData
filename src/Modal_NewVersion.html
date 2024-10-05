@@ -6,7 +6,7 @@
     <style>
       .highlights {
         width: 95%;
-        height: 115px;
+        height: 165px;
         overflow: auto;
         border: 1px solid gray;
         padding: 4px;
@@ -30,63 +30,38 @@
     </div>
     <div class="highlights">
       <!--Release Highlights-->
+      <div class="title"><u>General</u></div>
+      <ul>
+        <li>Added support for specifying date-time value formatting.</li>
+        <li>Misc CSS and UX adjustments.</li>
+      </ul>
+      <div class="title"><u>JSON</u></div>
+      <ul>
+        <li>Date strings in cell arrays are now parsed into actual date values, unless escaped with double quotes.</li>
+        <li>Escaped strings in cell arrays are now preserved as strings more aggressively.</li>
+        <ul>
+          <li><b>Example Input</b></li>
+          <ul>
+            <li>2,"2",6-7,"6-7"</li>
+          </ul>
+          <li><b>Current</b></li>
+          <ul>
+            <li>[ 2, "2", "2001-06-07T04:00:00.000Z", "6-7" ]</li>
+          </ul>
+          <li><b>Previous</b></li>
+          <ul>
+            <li>[ 2, 2, "6-7", "\"6-7\"" ]</li>
+          </ul>
+        </ul>
+      </ul>
       <div class="title"><u>Backend Updates</u></div>
+      (Preserved these notes from v66 since they are significant changes)
       <ul>
         <li>Migrated DriveApp calls to the Drive API to support more limited security scopes.</li>
         <ul>
           <li><u>You will need to reassign custom export location values due to this change!</u></li>
         </ul>
-      </ul>
-      <div class="title"><u>General</u></div>
-      <ul>
-        <li>Can now download visualized data directly, without exporting a file to Drive.</li>
-        <li>Removed old "Replace file(s)" option.</li>
-        <ul>
-          <li>To replace existing file contents, you must now use the file picker to target specific JSON/XML files.</li>
-        </ul>
-        <li>Added buttons to open custom export folder and replace file targets.</li>
         <li>Exporting now places files in your root "My Drive" folder by default, instead of the same folder as the original spreadsheet. This is a limitation of the more limited scopes :(</li>
-        <li>Sidebar will now refresh specific sections instead of regenerating all HTML during certain field adjustments.</li>
-        <li>Misc CSS and UX adjustments.</li>
-      </ul>
-      <div class="title"><u>XML</u></div>
-      <ul>
-        <li>Cached key and namespace values during export to improve performance.</li>
-        <li>Moved "Export bools as ints" option to the General section so JSON can utilize it as well.</li>
-      </ul>
-      <div class="title"><u>JSON</u></div>
-      <ul>
-        <li>Value format settings like "Force string values" will now apply recursively on array and object values, instead of only being applied to top level fields.</li>
-        <li>Adding a comma when exporting cell arrays will now output a formatted array with no extra elements.</li>
-        <ul>
-          <li><b>Example Input</b></li>
-          <ul>
-            <li>"2,"</li>
-          </ul>
-          <li><b>Current</b></li>
-          <ul>
-            <li>[ 2 ]</li>
-          </ul>
-          <li><b>Previous</b></li>
-          <ul>
-            <li>[ 2, "" ]</li>
-          </ul>
-        </ul>
-        <li>Escaped strings now trim the wrapping double quotes when exporting cell arrays.</li>
-        <ul>
-          <li><b>Example Input</b></li>
-          <ul>
-            <li>""For example, this.",2"</li>
-          </ul>
-          <li><b>Current</b></li>
-          <ul>
-            <li>[ "For example, this.", 2 ]</li>
-          </ul>
-          <li><b>Previous</b></li>
-          <ul>
-            <li>[ "\"For example, this.\"", 2 ]</li>
-          </ul>
-        </ul>
       </ul>
     </div>
     <div>

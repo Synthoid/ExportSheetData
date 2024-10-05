@@ -2903,7 +2903,7 @@ function openSupportModal()
  **/
 function openNewVersionModal()
 {
-  openGenericModal('Modal_NewVersion', "What's New", 375, 250, true);
+  openGenericModal('Modal_NewVersion', "What's New", 375, 300, true);
 }
 
 /**

@@ -5,7 +5,7 @@ Determines how date-time values are formatted when exporting data. There are two
 Value | Description
 ----- | -----------
 Default | Use default JSON/XML date formats
-Custom | Specify time zone and formatting
+Custom | Specify time zone and formatting string
 
 > [!WARNING]
 > If your custom settings are not valid, default date-time formatting will be used.
