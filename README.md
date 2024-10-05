@@ -17,7 +17,7 @@ Documentation
 
 The best way to learn how to use Export Sheet Data is by using it! Open the sidebar, read the tooltips of various seettings, and experiment by using the Visualize option.
 
-For detailed descriptions and examples for each option, take a look at ESD's documentation.
+For detailed descriptions on each option, including example inputs and outputs, take a look at ESD's documentation.
 
 If you want to create more advanced data structures, make sure to read the Wiki page about [Nested Elements](https://github.com/Synthoid/ExportSheetData/wiki/Nested-Elements).
 

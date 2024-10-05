@@ -125,6 +125,6 @@ XML | Format cell as Plaintext
 
 See also
 --------
-- [Date Format](dateformat.md)
-- [Date Time Zone](datetimezone.md)
-- [Date Format String](dateformatstring.md)
+- [Date Format](../general/dateformat.md)
+- [Date Time Zone](../general/datetimezone.md)
+- [Date Format String](../general/dateformatstring.md)
