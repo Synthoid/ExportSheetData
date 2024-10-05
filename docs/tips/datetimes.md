@@ -6,9 +6,9 @@ Date-time values in Sheets are exported as standard JSON/XML time formats. These
 
 **Sheet name: `Dates`**
 
-Name | Month/Day/Year | Year/Month/Day | Hour | Month-Day | Month/Day | Month-Year | Month-Year-Escaped | Plaintext | Array
----- | -------------- | -------------- | ---- | --------- | --------- | ---------- | ------------------ | --------- | -----
-Date | 10/31/2024 | 2024/10/31 | 3:33 AM | 10-31 | 10/31 | 10-2024 | "10-2024" | 10-2024 | 10/31/1963,1978/10/31,"10/31/2018"
+Name | Formula | Month/Day/Year | Year/Month/Day | Hour | Month-Day | Month/Day | Month-Year | Month-Year-Escaped | Plaintext | Array
+---- | ------- | -------------- | -------------- | ---- | --------- | --------- | ---------- | ------------------ | --------- | -----
+Date | `=DATE(2024,10,31)` | 10/31/2024 | 2024/10/31 | 3:33 AM | 10-31 | 10/31 | 10-2024 | "10-2024" | 10-2024 | 10/31/1963,1978/10/31,"10/31/2018"
 
 > [!NOTE]
 > The Plaintext value here is a cell manually formatted to be plaintext.
@@ -33,6 +33,7 @@ JSON:
 ```json
 {
   "Date": {
+    "Formula": "2024-10-31T04:00:00.000Z",
     "Month/Day/Year": "2024-10-31T04:00:00.000Z",
     "Year/Month/Day": "2024-10-31T04:00:00.000Z",
     "Hour": "1899-12-30T08:33:00.000Z",
@@ -54,6 +55,7 @@ XML:
 ```xml
 <data>
   <Date>
+    <Formula>Thu Oct 31 2024 00:00:00 GMT-0400 (Eastern Daylight Time)</Formula>
     <Month_Day_Year>Thu Oct 31 2024 00:00:00 GMT-0400 (Eastern Daylight Time)</Month_Day_Year>
     <Year_Month_Day>Thu Oct 31 2024 00:00:00 GMT-0400 (Eastern Daylight Time)</Year_Month_Day>
     <Hour>Sat Dec 30 1899 03:33:00 GMT-0500 (Eastern Standard Time)</Hour>
@@ -78,6 +80,7 @@ JSON:
 ```json
 {
   "Date": {
+    "Formula": "30 Oct, 2024T23:00 Eastern Standard Time",
     "Month/Day/Year": "30 Oct, 2024T23:00 Eastern Standard Time",
     "Year/Month/Day": "30 Oct, 2024T23:00 Eastern Standard Time",
     "Hour": "30 Dec, 1899T03:33 Eastern Standard Time",
@@ -99,6 +102,7 @@ XML:
 ```xml
 <data>
   <Date>
+    <Formula>30 Oct, 2024T23:00 Eastern Standard Time</Formula>
     <Month_Day_Year>30 Oct, 2024T23:00 Eastern Standard Time</Month_Day_Year>
     <Year_Month_Day>30 Oct, 2024T23:00 Eastern Standard Time</Year_Month_Day>
     <Hour>30 Dec, 1899T03:33 Eastern Standard Time</Hour>
