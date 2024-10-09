@@ -3,7 +3,7 @@ XML Tips & Tricks
 This section covers how to use some more obscure XML functionality in ESD. These tips only apply when targeting the XML export format.
 
 XML Comments
----------------------
+------------
 If the first cell in a row is the string `!--`, the row will be exported as an XML comment block.
 
 ### Example: ###

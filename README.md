@@ -13,7 +13,7 @@ Export Sheet Data is available on the Google Workspace Marketplace.
 
 Documentation
 -------------
-[Documentation index page](https://github.com/Synthoid/ExportSheetData/blob/master/docs/index.md)
+[Documentation index page](docs/index.md)
 
 The best way to learn how to use Export Sheet Data is by using it! Open the sidebar, read the tooltips of various seettings, and experiment by using the Visualize option.
 

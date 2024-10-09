@@ -114,4 +114,5 @@ Topic | Summary
 ----- | -------
 [ESD Settings](settings.md) | Exporting or importing ESD settings from another document
 [Date-Time Values](tips/datetimes.md) | Tips for working with date-time values
+[JSON](tips/tipsntricksjson.md) | TIps for the JSON export format
 [XML](tips/tipsntricksxml.md) | Tips for the XML export format
