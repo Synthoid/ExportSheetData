@@ -4,7 +4,7 @@ As of v65, ESD supports exporting and importing settings via JSON strings. This 
 
 ![settings01](images/settings/settings01.png)
 
-This will open the settings menu. Here, you can see the current documents settings (if ESD has exported or visualized data) which can be copied and pasted into the bottom text area in another document to import the settings used by ESD in the current document.
+This will open the settings menu. Here, you can see the current document's settings (if ESD has exported or visualized data) which can be copied and pasted into the bottom text area in another document to import the settings used by ESD in the current document.
 
 ![settings01](images/settings/settings02.png)
 

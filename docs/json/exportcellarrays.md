@@ -5,7 +5,7 @@ Export a cell's value as a JSON array if the cell contains commas (`,`), or what
 Each value in the generated array will be converted into it's parsed type. For example: `Test,1,false` will export as `[ "Test", 1, false ]`
 
 > [!TIP]
-> To prevent data containing a comma from being exported as separate array elements, wrap your value with quotation marks (`""`).
+> To prevent data containing a comma from being exported as separate array elements, wrap your value with quotation marks (`""`).<br><br>To include double quotes in escaped content, place a backslash ( `\` ) in front of them. Like so:<br><br>`"He asked, \"What's up doc?\""`
 
 ### Example: ###
 
