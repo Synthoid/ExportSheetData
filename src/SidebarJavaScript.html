@@ -2193,11 +2193,11 @@
       //Content to array JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='contentsArrayToggle' type='checkbox' value='ContentArray'";
       if(exportContentsAsArrayJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'><label for='contentsArrayToggle'>Export contents as array</label><div class='tooltip note'>Export total contents as a raw JSON array. (<span class='tooltipHighlight'>WARNING:</span> This means the exported data will not be formatted as a stand-alone JSON object.)</div></div></div>";
+      advancedJsonText += "><div class='option'><label for='contentsArrayToggle'>Export contents as array</label><div class='tooltip note'>Export total contents as a raw JSON array.<br><br><span class='tooltipHighlight'>WARNING:</span> This means the exported data will not be formatted as a stand-alone JSON object.</div></div></div>";
       //Braces to object JSON
       advancedJsonText += "<div class='sectionWrapper'><input id='cellObjectToggle' type='checkbox' value='CellObject'";
       if(exportCellObjectJson) advancedJsonText += " checked";
-      advancedJsonText += "><div class='option'><label for='cellObjectToggle'>Export cell objects</label><div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces, or a JSON array if wrapped in brackets. (<span class='tooltipHighlight'>WARNING:</span> This content will export an empty object/array if not properly formatted.)</div></div></div>";
+      advancedJsonText += "><div class='option'><label for='cellObjectToggle'>Export cell objects</label><div class='tooltip note'>Export a cell's contents as a JSON object if it is wrapped in braces, or a JSON array if wrapped in brackets.<br><br><span class='tooltipHighlight'>WARNING:</span> This content will export an empty object/array if not properly formatted.</div></div></div>";
       //Empty Value Type
       advancedJsonText += "<div class='sectionWrapper'><div class='option'><label for='jsonEmptyValueFormatDropdown'>Empty value format</label><div class='tooltip note padded'>What value to export for empty cells.</div></div><br><select id='jsonEmptyValueFormatDropdown' onchange='changeEmptyValueFormatJson()'><option value='null'";
       if(emptyValueFormatJson === "null") advancedJsonText += " selected";

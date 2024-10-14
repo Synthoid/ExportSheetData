@@ -18,6 +18,7 @@
       .title
       {
         font-weight: bold;
+        margin-bottom: 2px;
       }
       
       .buttonsLeft {
@@ -55,6 +56,25 @@
         position: fixed;
         bottom: 0px;
       }
+
+      .validationSpan::after {
+        border-radius: 4px;
+        margin-left: 4px;
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+
+      .validationSpan.valid::after {
+        border: 1px solid green;
+        color: green;
+        content: "✓";
+      }
+
+      .validationSpan.invalid::after {
+        border: 1px solid red;
+        color: red;
+        content: "✖";
+      }
     </style>
   </head>
   <body>
@@ -69,9 +89,11 @@
       <textarea class="display" id="current-clipboard" readonly>Loading...</textarea>
       <div class="title">
         New Settings
+        <!--Validation Span-->
+        <span id='newSettingsInputValidation' class='validationSpan invalid'></span>
       </div>
       <!--New Settings-->
-      <textarea class="display" id="load-clipboard" oninput="validateLoadButton()"></textarea>
+      <textarea class="display" id="load-clipboard" oninput="validateNewSettings()"></textarea>
     </div>
     <div class="buttonsLeft">
       <button class="action" id="load-button" onclick="loadSettings()" disabled>Load Settings</button>
@@ -88,16 +110,46 @@
         copyText.select();
         copyText.setSelectionRange(0, 99999); /*For mobile devices*/
 
-        document.execCommand("copy");
+        //document.execCommand("copy");
+        navigator.clipboard.writeText(copyText.value);
       }
       
       
-      function validateLoadButton()
+      function validateNewSettings()
       {
+        let isValid = false;
         let newSettingsString = document.getElementById("load-clipboard").value;
+        let parsedOptions = "";
+
+        try
+        {
+          parsedOptions = JSON.stringify(JSON.parse(newSettingsString), null, 2);
+          isValid = true;
+        }
+        catch
+        {
+          parsedOptions = newSettingsString;
+          isValid = false;
+        }
+
+        //Validation Span
+        let validationSpan = document.getElementById("newSettingsInputValidation");
+
+        if(isValid && !validationSpan.classList.contains("valid"))
+        {
+          validationSpan.classList.add("valid");
+          validationSpan.classList.remove("invalid");
+        }
+        else if(!isValid && !validationSpan.classList.contains("invalid"))
+        {
+          validationSpan.classList.add("invalid");
+          validationSpan.classList.remove("valid");
+        }
+        
+        //Button
         let button = document.getElementById("load-button");
         
-        button.disabled = (newSettingsString === "");
+        button.disabled = !isValid;
       }
       
       

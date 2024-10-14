@@ -9,6 +9,7 @@
         height: 165px;
         overflow: auto;
         border: 1px solid gray;
+        border-radius: 4px;
         padding: 4px;
       }
       
@@ -18,9 +19,6 @@
       
       button {
         cursor: pointer;
-      }
-      
-      button.close {
       }
     </style>
   </head>
@@ -32,27 +30,32 @@
       <!--Release Highlights-->
       <div class="title"><u>General</u></div>
       <ul>
-        <li>Added support for specifying date-time value formatting.</li>
+        <li>Added support for customizing date-time value formatting.</li>
         <li>Misc CSS and UX adjustments.</li>
       </ul>
       <div class="title"><u>JSON</u></div>
       <ul>
         <li>Date strings in cell arrays are now parsed into actual date values, unless escaped with double quotes.</li>
+        <li>Fixed some oversights in how escaped strings for cell arrays are parsed.</li>
         <li>Escaped strings in cell arrays are now preserved as strings more aggressively.</li>
         <ul>
           <li><b>Example Input</b></li>
           <ul>
-            <li>2,"2",6-7,"6-7"</li>
+            <li>2,"2",false,"true",6-7,"6-7"</li>
           </ul>
           <li><b>Current</b></li>
           <ul>
-            <li>[ 2, "2", "2001-06-07T04:00:00.000Z", "6-7" ]</li>
+            <li>[ 2, "2", false, "true", "2001-06-07T04:00:00.000Z", "6-7" ]</li>
           </ul>
           <li><b>Previous</b></li>
           <ul>
-            <li>[ 2, 2, "6-7", "\"6-7\"" ]</li>
+            <li>[ 2, 2, false, true, "6-7", "\"6-7\"" ]</li>
           </ul>
         </ul>
+      </ul>
+      <div class="title"><u>Settings</u></div>
+      <ul>
+        <li>New settings input area now validates text as you type and gives more visual feedback when settings are valid or invalid.</li>
       </ul>
       <div class="title"><u>Backend Updates</u></div>
       (Preserved these notes from v66 since they are significant changes)

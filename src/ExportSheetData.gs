@@ -500,7 +500,7 @@ function isObject(object)
  **/
 function isNullString(value)
 {
-  return typeof(value) === 'string' && (value.localeCompare("null", "en", { sensitivity : "base" }) === 0);
+  return typeof(value) === 'string' && value === "null";//(value.localeCompare("null", "en", { sensitivity : "base" }) === 0);
 }
 
 /**
@@ -563,6 +563,32 @@ function isNumber(value)
   }
 
   return isNumber;
+}
+
+/**
+ * Returns true if the given value is some variation of "true" or "false".
+ * @param {any} value to check.
+ * @return {boolean}
+ **/
+function isBoolean(value)
+{
+  if(value === 'true' || value === 'false') return true;
+  //if(value.localeCompare('true', 'en', { sensitivity: "base" })) return true;
+  //if(value.localeCompare('false', 'en', { sensitivity: "base" })) return true;
+
+  return false;
+}
+
+/**
+ * Parse the given string as a boolean.
+ * @param {string} value Value to parse.
+ * @return {boolean}
+ **/
+function formatBooleanString(value)
+{
+  if(value === 'false') return false;
+
+  return true;
 }
 
 /**
@@ -712,9 +738,17 @@ function getCellContentArray(cell, separatorChar, cellArray)
   let commaIndicies = [];
   let openQuoteIndicies = [];
   let closeQuoteIndicies = [];
+  //let quoteIndicies = [];
+  //let quoteRanges = [];
   
+  //TODO: This needs to detect quote indicies from both ends, rather than sequentialy...
+  //Current setup will not properly escape |"They said, "what's up, doc?""|
+  //Since it will interpret it as [ "\"They said, \"What's up", "doc?\"\"" ]
+  //instead of "They said, \"What's up, doc?\""
+  //Also need to handle Test, "Test2,3", "test4,5,6"
+  //So it exports as [ "Test", "Test2,3", "test4,5,6" ]
   //Set the indicies for quotes and commas
-  for(let i=0; i < content.length; i++)
+  /*for(let i=0; i < content.length; i++)
   {
     if(content.charAt(i) == '"')
     {
@@ -731,7 +765,92 @@ function getCellContentArray(cell, separatorChar, cellArray)
     {
       commaIndicies.push(i);
     }
+  }*/
+
+  for(let i=0; i < content.length; i++)
+  {
+    const char = content.charAt(i);
+
+    switch(char)
+    {
+      case '"':
+        if(openQuoteIndicies.length == closeQuoteIndicies.length)
+        {
+          openQuoteIndicies.push(i);
+        }
+        else
+        {
+          closeQuoteIndicies.push(i);
+        }
+        break;
+      case '\\':
+        if(i < content.length - 1)
+        {
+          //Skip 'escaped' quotes and treat them as standard chars...
+          if(content[i+1] === '"')
+          {
+            i++;
+            continue;
+          }
+        }
+        break;
+      default:
+        if(char === separatorChar)
+        {
+          commaIndicies.push(i);
+        }
+        break;
+    }
+
+    /*if(content.charAt(i) == '"')
+    {
+      if(openQuoteIndicies.length == closeQuoteIndicies.length)
+      {
+        openQuoteIndicies.push(i);
+      }
+      else
+      {
+        closeQuoteIndicies.push(i);
+      }
+    }
+    else if(content.charAt(i) == separatorChar)
+    {
+      commaIndicies.push(i);
+    }*/
   }
+
+  /*for(let i=0; i < content.length; i++)
+  {
+    if(content.charAt(i) === '"')
+    {
+      quoteIndicies.push(i);
+    }
+    else if(content.charAt(i) === separatorChar)
+    {
+      commaIndicies.push(i);
+    }
+  }
+
+  //Handle |"Test " test"| as |Test \" test|
+  for(let i=0; i < quoteIndicies.length; i++)
+  {
+    if(quoteIndicies[i] >= quoteIndicies[(quoteIndicies.length - 1) - i])
+    {
+      //Break out after pairs have been established...
+      break;
+    }
+
+    let range = [];
+
+    range.push(quoteIndicies[i]);
+
+    if(quoteIndicies[i] !== quoteIndicies[(quoteIndicies.length - 1) - i])
+    {
+      range.push(quoteIndicies[(quoteIndicies.length - 1) - i]);
+    }
+
+    quoteRanges.push(range);
+  }*/
   
   //Remove a comma if it is wrapped in quotes
   //Use the close quote indicies in the case of an open ended quote at the end of content
@@ -745,12 +864,25 @@ function getCellContentArray(cell, separatorChar, cellArray)
       }
     }
   }
+  /*for(let i=0; i < quoteIndicies.length; i++)
+  {
+    //Skip open quote ranges with only 1 index...
+    if(quoteRanges[i].length < 2) continue;
+
+    for(let j=commaIndicies.length-1; j >= 0; j--)
+    {
+      if(commaIndicies[j] > openQuoteIndicies[i] && commaIndicies[j] < closeQuoteIndicies[i])
+      {
+        commaIndicies.splice(j, 1);
+      }
+    }
+  }*/
 
   //Return early if no commas are detected...
-  if(commaIndicies.length === 0)
+  /*if(commaIndicies.length === 0)
   {
     status = 0;
-  }
+  }*/
         
   //Populate the array
   if(commaIndicies.length > 0)
@@ -769,18 +901,31 @@ function getCellContentArray(cell, separatorChar, cellArray)
         if(arrayString.length > 2 && arrayString[0] === '"' && arrayString[arrayString.length-1] === '"')
         {
           //Get rid of wrapping quotes.
-          cellArray.push(arrayString.replace('"', ' ').replace('"', ' ').trim());
+          //cellArray.push(arrayString.replace('"', ' ').replace('"', ' ').trim());
+          let trimmedString = arrayString.substring(1, arrayString.length - 1).trim();
+
+          //content.replace(/&/g, '&amp;')
+          cellArray.push(trimmedString.replace(/[\\"]{2,}/g, '"'));
+          //cellArray.push(arrayString.substring(1, arrayString.length - 1).trim());
         }
         else
         {
           //Check for dates, but only if not numbers or all numbers will be dates...
           if(isNumber(arrayString))
           {
-            cellArray.push(new Number(arrayString));
+            cellArray.push(Number(arrayString));
           }
           else if(isDate(arrayString, true))
           {
             cellArray.push(new Date(arrayString));
+          }
+          else if(isBoolean(arrayString))
+          {
+            cellArray.push(formatBooleanString(arrayString));
+          }
+          else if(isNullString(arrayString))
+          {
+            cellArray.push(null);
           }
           else
           {
@@ -803,18 +948,29 @@ function getCellContentArray(cell, separatorChar, cellArray)
 
       if(lastString.length > 2 && lastString[0] === '"' && lastString[lastString.length-1] === '"')
       {
-        cellArray.push(lastString.replace('"', ' ').replace('"', ' ').trim());
+        //cellArray.push(lastString.replace('"', ' ').replace('"', ' ').trim());
+        //cellArray.push(lastString.substring(1, lastString.length - 1).trim());
+        let trimmedString = lastString.substring(1, lastString.length - 1).trim();
+        cellArray.push(trimmedString.replace(/[\\"]{2,}/g, '"'));
       }
       else
       {
         //Check for dates, but only if not numbers or all numbers will be dates...
         if(isNumber(lastString))
         {
-          cellArray.push(new Number(lastString));
+          cellArray.push(Number(lastString));
         }
         else if(isDate(lastString, true))
         {
           cellArray.push(new Date(lastString));
+        }
+        else if(isBoolean(lastString))
+        {
+          cellArray.push(formatBooleanString(lastString));
+        }
+        else if(isNullString(lastString))
+        {
+          cellArray.push(null);
         }
         else
         {
@@ -825,14 +981,24 @@ function getCellContentArray(cell, separatorChar, cellArray)
   }
   else
   {
+    status = 0;
+
     if(content != "") cellArray.push(content);
   }
   
   //Convert values to their correct type (float, bool, etc)
   for(let i=0; i < cellArray.length; i++)
   {
+    if(cellArray[i] === null)
+    {
+      continue;
+    }
     //Numbers
     if(cellArray[i] instanceof Number)
+    {
+      continue;
+    }
+    else if(cellArray[i] instanceof Boolean)
     {
       continue;
     }
@@ -847,17 +1013,21 @@ function getCellContentArray(cell, separatorChar, cellArray)
       continue;
     }
     //Booleans
-    else if(cellArray[i] === 'true') cellArray[i] = true;
-    else if(cellArray[i] === 'false') cellArray[i] = false;
+    //else if(cellArray[i] === 'true') cellArray[i] = true;
+    //else if(cellArray[i] === 'false') cellArray[i] = false;
     //Null
-    else if(cellArray[i] === 'null') cellArray[i] = null;
+    //else if(cellArray[i] === 'null') cellArray[i] = null;
     //String
     else if(cellArray[i].length > 1)
     {
       //Strip wrapping quotes...
       if(cellArray[i][0] === '"' && cellArray[i][cellArray[i].length - 1] === '"')
       {
-        cellArray[i] = cellArray[i].substring(1, cellArray[i].length - 1);
+        let trimmedString = cellArray[i].substring(1, cellArray[i].length - 1).trim();
+
+        cellArray[i] = trimmedString.replace(/[\\"]{2,}/g, '"');
+        //cellArray[i] = cellArray[i].substring(1, cellArray[i].length - 1);
+
         //const subString = cellArray[i].substring(1, cellArray[i].length - 1);
         
         //If the cell was a single escaped string like "Test1, Test2", return a special status.
@@ -1046,6 +1216,25 @@ function formatJsonValue(value, valueFormatSettings)
     if(exportBoolsAsInts && typeof(value) === "boolean")
     {
       newValue = value ? 1 : 0;
+    }
+    else if(newValue === null || isNullString(newValue))
+    {
+      const nullValueFormat = valueFormatSettings["nullValueFormat"];
+
+      newValue = getNullCellValueJson(nullValueFormat);
+    }
+    else if(newValue === "")
+    {
+      const emptyValueFormat = valueFormatSettings["emptyValueFormat"];
+
+      newValue = getEmptyCellValueJson(emptyValueFormat);
+
+      if(newValue === null)
+      {
+        const nullValueFormat = valueFormatSettings["nullValueFormat"];
+
+        newValue = getNullCellValueJson(nullValueFormat);
+      }
     }
 
     if(forceStrings && newValue != null)
@@ -1948,7 +2137,9 @@ function exportSpreadsheetJson(formatSettings, callback)
   let valueFormatSettings = {
     "boolsAsInts" : exportBoolsAsInts,
     "formatDates" : shouldFormatDate,
-    "forceStrings": forceString
+    "forceStrings": forceString,
+    "emptyValueFormat": emptyValueFormat,
+    "nullValueFormat": nullValueFormat
   };
 
   if(shouldFormatDate)
@@ -2533,16 +2724,16 @@ function exportSpreadsheetJson(formatSettings, callback)
             }
             
             //Format empty and null content
-            if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
-            else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
+            //if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
+            //else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
             
             element[key] = content;
           }
           else
           {
             //Format empty and null content
-            if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
-            else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
+            //if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
+            //else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
           
             rowObject[key] = content;
             
@@ -2585,8 +2776,8 @@ function exportSpreadsheetJson(formatSettings, callback)
         content = formatJsonValue(content, valueFormatSettings);
         
         //Format empty and null content
-        if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
-        else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
+        //if(content === "") content = getEmptyCellValueJson(emptyValueFormat);
+        //else if(isNullString(content)) content = getNullCellValueJson(nullValueFormat);
         
         if(unwrapSheet) sheetJsonObject[key] = content;
         else sheetJsonArray.push(content);
